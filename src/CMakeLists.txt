@@ -1,4 +1,4 @@
-set( batchSystem_SRC
+set( batchsystem_SRC
         batchSystem.cpp
         lsfBatch.cpp
         lsf.cpp
@@ -9,7 +9,7 @@ set( batchSystem_SRC
         batchJson.cpp
 )
 
-set( batchSystem_HDR
+set( batchsystem_HDR
         batchSystem.h
         lsfBatch.h
         lsf.h
@@ -22,17 +22,45 @@ set( batchSystem_HDR
         policyOptional.h
 )
 
-add_library( batchsystem_dep
-        ${batchSystem_SRC}
-        ${batchSystem_HDR}
+# Fixme: STATIC because for dynamic, we would need to handle visibility
+# and I don't want to do the annotations right now
+add_library(batchsystem STATIC
+  ${batchsystem_SRC}
+  ${batchsystem_HDR}
 )
 
-target_include_directories( batchsystem_dep
+
+# depend on bunch of C++11 and C++14 features to have C++14 enabled by default
+target_compile_features(Catch2
+  PUBLIC
+    cxx_alignas
+    cxx_alignof
+    cxx_attributes
+    cxx_auto_type
+    cxx_constexpr
+    cxx_defaulted_functions
+    cxx_deleted_functions
+    cxx_final
+    cxx_lambdas
+    cxx_noexcept
+    cxx_override
+    cxx_range_for
+    cxx_rvalue_references
+    cxx_static_assert
+    cxx_strong_enums
+    cxx_trailing_return_types
+    cxx_unicode_literals
+    cxx_user_literals
+    cxx_variable_templates
+    cxx_variadic_macros
+)
+
+target_include_directories( batchsystem
         PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
-target_include_directories( batchsystem_dep
+target_include_directories( batchsystem
         SYSTEM PUBLIC	${LIBXMLPP_INCLUDE_DIRS}
 )
 
