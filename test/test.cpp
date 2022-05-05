@@ -2,19 +2,20 @@
 #include <iostream>
 #include <sstream>
 #include <fstream>
+#include <functional>
 
 #include "batchsystem/batchsystem.h"
 #include "batchsystem/slurm.h"
 #include "batchsystem/json.h"
 #include "batchsystem/internal/byteParse.h"
 
+using namespace std::placeholders;
+
 namespace {
 
-int runCommand(std::stringstream& stream, const std::string& cmd, const std::vector<std::string>& args) {
-    char* env = std::getenv("TEST_DIR");
-    std::string path = (env ? (std::string(env) + "/") : "") + cmd;
+int runCommand(const std::string& rootdir, std::stringstream& stream, const std::string& cmd, const std::vector<std::string>& args) {
+    std::string path = rootdir + cmd;
     for (const auto& a : args) path += " " + a;
-
     std::ifstream f(path);
     if (f) {
         stream << f.rdbuf();
@@ -22,7 +23,6 @@ int runCommand(std::stringstream& stream, const std::string& cmd, const std::vec
     } else {
         return 1;
     }
-	return 0;
 }
 
 }
@@ -43,7 +43,8 @@ TEST_CASE("Test system") {
     SECTION("Batch system") {
         using namespace cw::batch;
         BatchSystem batchSystem;
-        slurm::create_batch(batchSystem, runCommand);
+
+        slurm::create_batch(batchSystem, std::bind(runCommand, std::string(TEST_DIR)+"/", _1, _2, _3));
 
         std::vector<std::string> lines;
         batchSystem.getJobs([&](Job j){

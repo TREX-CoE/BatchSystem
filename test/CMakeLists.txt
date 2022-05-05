@@ -12,4 +12,9 @@ target_include_directories( tests PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
+# pass testdata dir to testing code
+set (TEST_DIR ${CMAKE_CURRENT_SOURCE_DIR}/testdata)
+target_compile_definitions( tests PRIVATE TEST_DIR="${TEST_DIR}")
+
+
 
