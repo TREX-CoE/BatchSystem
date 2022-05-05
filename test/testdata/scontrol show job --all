@@ -1,0 +1,268 @@
+JobId=3191 JobName=bash
+   UserId=benchmark-0432(88000047) GroupId=benchmark-0432(88000047) MCS_label=N/A
+   Priority=4294900320 Nice=0 Account=(null) QOS=normal
+   JobState=RUNNING Reason=None Dependency=(null)
+   Requeue=1 Restarts=0 BatchFlag=0 Reboot=0 ExitCode=0:0
+   RunTime=17:57:37 TimeLimit=14-00:00:00 TimeMin=N/A
+   SubmitTime=2021-04-21T16:51:39 EligibleTime=2021-04-21T16:51:39
+   AccrueTime=2021-04-21T16:51:39
+   StartTime=2021-04-21T16:51:40 EndTime=2021-05-05T16:51:40 Deadline=N/A
+   SuspendTime=None SecsPreSuspend=0 LastSchedEval=2021-04-21T16:51:40
+   Partition=CPU_8360Y AllocNode:Sid=frontend:336109
+   ReqNodeList=itp02 ExcNodeList=(null)
+   NodeList=itp02
+   BatchHost=itp02
+   NumNodes=1 NumCPUs=48 NumTasks=1 CPUs/Task=N/A ReqB:S:C:T=0:0:*:*
+   TRES=cpu=48,node=1,billing=48
+   Socks/Node=* NtasksPerN:B:S:C=0:0:*:* CoreSpec=*
+   MinCPUsNode=1 MinMemoryNode=0 MinTmpDiskNode=0
+   Features=(null) DelayBoot=00:00:00
+   OverSubscribe=NO Contiguous=0 Licenses=(null) Network=(null)
+   Command=bash
+   WorkDir=/home/benchmark-0432
+   Power=
+   MailUser=(null) MailType=NONE
+
+JobId=3194 JobName=bash
+   UserId=benchmark-0432(88000047) GroupId=benchmark-0432(88000047) MCS_label=N/A
+   Priority=4294900317 Nice=0 Account=(null) QOS=normal
+   JobState=RUNNING Reason=None Dependency=(null)
+   Requeue=1 Restarts=0 BatchFlag=0 Reboot=0 ExitCode=0:0
+   RunTime=12:15:21 TimeLimit=14-00:00:00 TimeMin=N/A
+   SubmitTime=2021-04-21T22:33:56 EligibleTime=2021-04-21T22:33:56
+   AccrueTime=Unknown
+   StartTime=2021-04-21T22:33:56 EndTime=2021-05-05T22:33:56 Deadline=N/A
+   SuspendTime=None SecsPreSuspend=0 LastSchedEval=2021-04-21T22:33:56
+   Partition=CPU_7F52 AllocNode:Sid=frontend:343269
+   ReqNodeList=(null) ExcNodeList=(null)
+   NodeList=gpu01sas
+   BatchHost=gpu01sas
+   NumNodes=1 NumCPUs=64 NumTasks=1 CPUs/Task=N/A ReqB:S:C:T=0:0:*:*
+   TRES=cpu=64,node=1,billing=64
+   Socks/Node=* NtasksPerN:B:S:C=0:0:*:* CoreSpec=*
+   MinCPUsNode=1 MinMemoryNode=0 MinTmpDiskNode=0
+   Features=(null) DelayBoot=00:00:00
+   OverSubscribe=NO Contiguous=0 Licenses=(null) Network=(null)
+   Command=bash
+   WorkDir=/home/benchmark-0432
+   Power=
+   MailUser=(null) MailType=NONE
+
+JobId=3196 JobName=Stress
+   UserId=benchmark-0419(88000013) GroupId=benchmark-0419(88000013) MCS_label=N/A
+   Priority=4294900315 Nice=0 Account=(null) QOS=normal
+   JobState=RUNNING Reason=None Dependency=(null)
+   Requeue=1 Restarts=0 BatchFlag=1 Reboot=0 ExitCode=0:0
+   RunTime=11:35:32 TimeLimit=14-00:00:00 TimeMin=N/A
+   SubmitTime=2021-04-21T23:13:44 EligibleTime=2021-04-21T23:13:44
+   AccrueTime=2021-04-21T23:13:44
+   StartTime=2021-04-21T23:13:45 EndTime=2021-05-05T23:13:45 Deadline=N/A
+   SuspendTime=None SecsPreSuspend=0 LastSchedEval=2021-04-21T23:13:45
+   Partition=CPU_7F52 AllocNode:Sid=frontend:342975
+   ReqNodeList=(null) ExcNodeList=(null)
+   NodeList=sas03
+   BatchHost=sas03
+   NumNodes=1 NumCPUs=64 NumTasks=1 CPUs/Task=N/A ReqB:S:C:T=0:0:*:*
+   TRES=cpu=64,node=1,billing=64
+   Socks/Node=* NtasksPerN:B:S:C=0:0:*:* CoreSpec=*
+   MinCPUsNode=1 MinMemoryNode=0 MinTmpDiskNode=0
+   Features=(null) DelayBoot=00:00:00
+   OverSubscribe=NO Contiguous=0 Licenses=(null) Network=(null)
+   Command=./stress-boinc.slurm
+   WorkDir=/home/benchmark-0419/stress/bo
+   StdErr=/home/benchmark-0419/stress/bo/slurm-3196.out
+   StdIn=/dev/null
+   StdOut=/home/benchmark-0419/stress/bo/slurm-3196.out
+   Power=
+   MailUser=(null) MailType=NONE
+
+JobId=3197 JobName=Stress
+   UserId=benchmark-0419(88000013) GroupId=benchmark-0419(88000013) MCS_label=N/A
+   Priority=4294900314 Nice=0 Account=(null) QOS=normal
+   JobState=RUNNING Reason=None Dependency=(null)
+   Requeue=1 Restarts=0 BatchFlag=1 Reboot=0 ExitCode=0:0
+   RunTime=11:20:41 TimeLimit=14-00:00:00 TimeMin=N/A
+   SubmitTime=2021-04-21T23:28:35 EligibleTime=2021-04-21T23:28:35
+   AccrueTime=2021-04-21T23:28:35
+   StartTime=2021-04-21T23:28:36 EndTime=2021-05-05T23:28:36 Deadline=N/A
+   SuspendTime=None SecsPreSuspend=0 LastSchedEval=2021-04-21T23:28:36
+   Partition=ALL AllocNode:Sid=frontend:342975
+   ReqNodeList=ins03 ExcNodeList=(null)
+   NodeList=ins03
+   BatchHost=ins03
+   NumNodes=1 NumCPUs=112 NumTasks=1 CPUs/Task=1 ReqB:S:C:T=0:0:*:*
+   TRES=cpu=112,node=1,billing=112
+   Socks/Node=* NtasksPerN:B:S:C=0:0:*:* CoreSpec=*
+   MinCPUsNode=1 MinMemoryNode=0 MinTmpDiskNode=0
+   Features=(null) DelayBoot=00:00:00
+   OverSubscribe=NO Contiguous=0 Licenses=(null) Network=(null)
+   Command=./stress-boinc.slurm
+   WorkDir=/home/benchmark-0419/stress/bo
+   StdErr=/home/benchmark-0419/stress/bo/slurm-3197.out
+   StdIn=/dev/null
+   StdOut=/home/benchmark-0419/stress/bo/slurm-3197.out
+   Power=
+   MailUser=(null) MailType=NONE
+
+JobId=3199 JobName=amd_full_15
+   UserId=unitzsche(88000043) GroupId=unitzsche(88000043) MCS_label=N/A
+   Priority=4294900312 Nice=0 Account=(null) QOS=normal
+   JobState=RUNNING Reason=None Dependency=(null)
+   Requeue=1 Restarts=0 BatchFlag=1 Reboot=0 ExitCode=0:0
+   RunTime=02:13:38 TimeLimit=12:00:00 TimeMin=N/A
+   SubmitTime=2021-04-22T08:35:39 EligibleTime=2021-04-22T08:35:39
+   AccrueTime=2021-04-22T08:35:39
+   StartTime=2021-04-22T08:35:39 EndTime=2021-04-22T20:35:39 Deadline=N/A
+   SuspendTime=None SecsPreSuspend=0 LastSchedEval=2021-04-22T08:35:39
+   Partition=CPU_7662 AllocNode:Sid=frontend:345893
+   ReqNodeList=sas04 ExcNodeList=(null)
+   NodeList=sas04
+   BatchHost=sas04
+   NumNodes=1 NumCPUs=256 NumTasks=1 CPUs/Task=1 ReqB:S:C:T=0:0:*:*
+   TRES=cpu=256,node=1,billing=256
+   Socks/Node=* NtasksPerN:B:S:C=0:0:*:* CoreSpec=*
+   MinCPUsNode=1 MinMemoryNode=0 MinTmpDiskNode=0
+   Features=(null) DelayBoot=00:00:00
+   OverSubscribe=NO Contiguous=0 Licenses=(null) Network=(null)
+   Command=/home/unitzsche/amd_7662/full_13/slurm.batch
+   WorkDir=/home/unitzsche/amd_7662/full_13
+   StdErr=/home/unitzsche/amd_7662/full_13/slurm-3199.out
+   StdIn=/dev/null
+   StdOut=/home/unitzsche/amd_7662/full_13/slurm-3199.out
+   Power=
+   MailUser=(null) MailType=NONE
+
+JobId=4 JobName=jobscript.sh
+   UserId=kevth(1000) GroupId=kevth(1000) MCS_label=N/A
+   Priority=4294901757 Nice=0 Account=(null) QOS=normal
+   JobState=PENDING Reason=Nodes_required_for_job_are_DOWN,_DRAINED_or_reserved_for_jobs_in_higher_priority_partitions Dependency=(null)
+   Requeue=1 Restarts=0 BatchFlag=1 Reboot=0 ExitCode=0:0
+   RunTime=00:00:00 TimeLimit=16:40:00 TimeMin=N/A
+   SubmitTime=2022-04-21T14:31:02 EligibleTime=2022-04-21T14:31:02
+   AccrueTime=2022-04-21T14:31:02
+   StartTime=Unknown EndTime=Unknown Deadline=N/A
+   SuspendTime=None SecsPreSuspend=0 LastSchedEval=2022-04-27T11:07:50
+   Partition=debug AllocNode:Sid=ubuntu:5593
+   ReqNodeList=(null) ExcNodeList=(null)
+   NodeList=(null)
+   NumNodes=1-1 NumCPUs=1 NumTasks=1 CPUs/Task=1 ReqB:S:C:T=0:0:*:*
+   TRES=cpu=1,node=1,billing=1
+   Socks/Node=* NtasksPerN:B:S:C=0:0:*:* CoreSpec=*
+   MinCPUsNode=1 MinMemoryNode=0 MinTmpDiskNode=0
+   Features=(null) DelayBoot=00:00:00
+   OverSubscribe=OK Contiguous=0 Licenses=(null) Network=(null)
+   Command=/home/kevth/batch_test/jobscript.sh
+   WorkDir=/home/kevth/batch_test
+   StdErr=/home/kevth/batch_test/slurm-4.out
+   StdIn=/dev/null
+   StdOut=/home/kevth/batch_test/slurm-4.out
+   Power=
+   NtasksPerTRES:0
+
+JobId=5 JobName=jobscript.sh
+   UserId=kevth(1000) GroupId=kevth(1000) MCS_label=N/A
+   Priority=4294901756 Nice=0 Account=(null) QOS=normal
+   JobState=PENDING Reason=ReqNodeNotAvail,_UnavailableNodes:ubuntu Dependency=(null)
+   Requeue=1 Restarts=0 BatchFlag=1 Reboot=0 ExitCode=0:0
+   RunTime=00:00:00 TimeLimit=16:40:00 TimeMin=N/A
+   SubmitTime=2022-04-21T14:31:07 EligibleTime=2022-04-21T14:31:07
+   AccrueTime=2022-04-21T14:31:07
+   StartTime=Unknown EndTime=Unknown Deadline=N/A
+   SuspendTime=None SecsPreSuspend=0 LastSchedEval=2022-04-27T11:07:50
+   Partition=debug AllocNode:Sid=ubuntu:5593
+   ReqNodeList=(null) ExcNodeList=(null)
+   NodeList=(null)
+   NumNodes=1-1 NumCPUs=1 NumTasks=1 CPUs/Task=1 ReqB:S:C:T=0:0:*:*
+   TRES=cpu=1,node=1,billing=1
+   Socks/Node=* NtasksPerN:B:S:C=0:0:*:* CoreSpec=*
+   MinCPUsNode=1 MinMemoryNode=0 MinTmpDiskNode=0
+   Features=(null) DelayBoot=00:00:00
+   OverSubscribe=OK Contiguous=0 Licenses=(null) Network=(null)
+   Command=/home/kevth/batch_test/jobscript.sh --help
+   WorkDir=/home/kevth/batch_test
+   StdErr=/home/kevth/batch_test/slurm-5.out
+   StdIn=/dev/null
+   StdOut=/home/kevth/batch_test/slurm-5.out
+   Power=
+   NtasksPerTRES:0
+
+JobId=6 JobName=jobscript.sh
+   UserId=kevth(1000) GroupId=kevth(1000) MCS_label=N/A
+   Priority=4294901755 Nice=0 Account=(null) QOS=normal
+   JobState=PENDING Reason=ReqNodeNotAvail,_UnavailableNodes:ubuntu Dependency=(null)
+   Requeue=1 Restarts=0 BatchFlag=1 Reboot=0 ExitCode=0:0
+   RunTime=00:00:00 TimeLimit=16:40:00 TimeMin=N/A
+   SubmitTime=2022-04-21T15:06:50 EligibleTime=2022-04-21T15:06:50
+   AccrueTime=2022-04-21T15:06:50
+   StartTime=Unknown EndTime=Unknown Deadline=N/A
+   SuspendTime=None SecsPreSuspend=0 LastSchedEval=2022-04-27T11:07:50
+   Partition=debug AllocNode:Sid=ubuntu:5593
+   ReqNodeList=(null) ExcNodeList=(null)
+   NodeList=(null)
+   NumNodes=1-1 NumCPUs=1 NumTasks=1 CPUs/Task=1 ReqB:S:C:T=0:0:*:*
+   TRES=cpu=1,node=1,billing=1
+   Socks/Node=* NtasksPerN:B:S:C=0:0:*:* CoreSpec=*
+   MinCPUsNode=1 MinMemoryNode=0 MinTmpDiskNode=0
+   Features=(null) DelayBoot=00:00:00
+   OverSubscribe=OK Contiguous=0 Licenses=(null) Network=(null)
+   Command=/home/kevth/batch_test/jobscript.sh
+   WorkDir=/home/kevth/batch_test
+   StdErr=/home/kevth/batch_test/slurm-6.out
+   StdIn=/dev/null
+   StdOut=/home/kevth/batch_test/slurm-6.out
+   Power=
+   NtasksPerTRES:0
+
+JobId=7 JobName=jobscript.sh
+   UserId=kevth(1000) GroupId=kevth(1000) MCS_label=N/A
+   Priority=4294901754 Nice=0 Account=(null) QOS=normal
+   JobState=PENDING Reason=ReqNodeNotAvail,_UnavailableNodes:ubuntu Dependency=(null)
+   Requeue=1 Restarts=0 BatchFlag=1 Reboot=0 ExitCode=0:0
+   RunTime=00:00:00 TimeLimit=16:40:00 TimeMin=N/A
+   SubmitTime=2022-04-21T15:09:08 EligibleTime=2022-04-21T15:09:08
+   AccrueTime=2022-04-21T15:09:08
+   StartTime=Unknown EndTime=Unknown Deadline=N/A
+   SuspendTime=None SecsPreSuspend=0 LastSchedEval=2022-04-27T11:07:50
+   Partition=debug AllocNode:Sid=ubuntu:5593
+   ReqNodeList=(null) ExcNodeList=(null)
+   NodeList=(null)
+   NumNodes=1-1 NumCPUs=1 NumTasks=1 CPUs/Task=1 ReqB:S:C:T=0:0:*:*
+   TRES=cpu=1,node=1,billing=1
+   Socks/Node=* NtasksPerN:B:S:C=0:0:*:* CoreSpec=*
+   MinCPUsNode=1 MinMemoryNode=0 MinTmpDiskNode=0
+   Features=(null) DelayBoot=00:00:00
+   OverSubscribe=OK Contiguous=0 Licenses=(null) Network=(null)
+   Command=/home/kevth/batch_test/jobscript.sh
+   WorkDir=/home/kevth/batch_test
+   StdErr=/home/kevth/batch_test/slurm-7.out
+   StdIn=/dev/null
+   StdOut=/home/kevth/batch_test/slurm-7.out
+   Power=
+   NtasksPerTRES:0
+
+JobId=8 JobName=wrap
+   UserId=kevth(1000) GroupId=kevth(1000) MCS_label=N/A
+   Priority=4294901753 Nice=0 Account=(null) QOS=normal
+   JobState=PENDING Reason=ReqNodeNotAvail,_UnavailableNodes:ubuntu Dependency=(null)
+   Requeue=1 Restarts=0 BatchFlag=1 Reboot=0 ExitCode=0:0
+   RunTime=00:00:00 TimeLimit=16:40:00 TimeMin=N/A
+   SubmitTime=2022-04-21T15:18:23 EligibleTime=2022-04-21T15:18:23
+   AccrueTime=2022-04-21T15:18:23
+   StartTime=Unknown EndTime=Unknown Deadline=N/A
+   SuspendTime=None SecsPreSuspend=0 LastSchedEval=2022-04-27T11:07:50
+   Partition=debug AllocNode:Sid=ubuntu:5593
+   ReqNodeList=(null) ExcNodeList=(null)
+   NodeList=(null)
+   NumNodes=1-1 NumCPUs=1 NumTasks=1 CPUs/Task=1 ReqB:S:C:T=0:0:*:*
+   TRES=cpu=1,node=1,billing=1
+   Socks/Node=* NtasksPerN:B:S:C=0:0:*:* CoreSpec=*
+   MinCPUsNode=1 MinMemoryNode=0 MinTmpDiskNode=0
+   Features=(null) DelayBoot=00:00:00
+   OverSubscribe=OK Contiguous=0 Licenses=(null) Network=(null)
+   Command=(null)
+   WorkDir=/home/kevth/batch_test
+   StdErr=/home/kevth/batch_test/slurm-8.out
+   StdIn=/dev/null
+   StdOut=/home/kevth/batch_test/slurm-8.out
+   Power=
+   NtasksPerTRES:0

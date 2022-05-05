@@ -1,25 +1,29 @@
 set( batchsystem_SRC
-        batchSystem.cpp
-        lsfBatch.cpp
-        lsf.cpp
-        pbsBatch.cpp
-        pbs.cpp
-        slurmBatch.cpp
-        slurm.cpp
-        batchJson.cpp
+        batchsystem/batchsystem.cpp
+        batchsystem/lsfBatch.cpp
+        batchsystem/lsf.cpp
+        batchsystem/pbsBatch.cpp
+        batchsystem/pbs.cpp
+        batchsystem/slurmBatch.cpp
+        batchsystem/slurm.cpp
+        batchsystem/json.cpp
 )
 
 set( batchsystem_HDR
-        batchSystem.h
-        lsfBatch.h
-        lsf.h
-        pbsBatch.h
-        pbs.h
-        slurmBatch.h
-        slurm.h
-        batchJson.h
-        batchDetail.h
-        policyOptional.h
+        batchsystem/internal/byteParse.h
+        batchsystem/internal/runCommand.h
+        batchsystem/internal/splitString.h
+        batchsystem/internal/streamCast.h
+        batchsystem/internal/timeToEpoch.h
+        batchsystem/batchsystem.h
+        batchsystem/lsfBatch.h
+        batchsystem/lsf.h
+        batchsystem/pbsBatch.h
+        batchsystem/pbs.h
+        batchsystem/slurmBatch.h
+        batchsystem/slurm.h
+        batchsystem/json.h
+        batchsystem/policyOptional.h
 )
 
 # Fixme: STATIC because for dynamic, we would need to handle visibility
@@ -29,41 +33,17 @@ add_library(batchsystem STATIC
   ${batchsystem_HDR}
 )
 
-
-# depend on bunch of C++11 and C++14 features to have C++14 enabled by default
-target_compile_features(Catch2
-  PUBLIC
-    cxx_alignas
-    cxx_alignof
-    cxx_attributes
-    cxx_auto_type
-    cxx_constexpr
-    cxx_defaulted_functions
-    cxx_deleted_functions
-    cxx_final
-    cxx_lambdas
-    cxx_noexcept
-    cxx_override
-    cxx_range_for
-    cxx_rvalue_references
-    cxx_static_assert
-    cxx_strong_enums
-    cxx_trailing_return_types
-    cxx_unicode_literals
-    cxx_user_literals
-    cxx_variable_templates
-    cxx_variadic_macros
-)
-
-target_include_directories( batchsystem
-        PUBLIC
-        ${CMAKE_CURRENT_SOURCE_DIR}
-)
+target_compile_features(batchsystem PUBLIC cxx_std_14)
 
 target_include_directories( batchsystem
         SYSTEM PUBLIC	${LIBXMLPP_INCLUDE_DIRS}
 )
 
-target_link_libraries( batchsystem_dep
+target_link_libraries( batchsystem
         ${LIBXMLPP_LIBRARIES}
+)
+
+target_include_directories( batchsystem
+        PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR}
 )

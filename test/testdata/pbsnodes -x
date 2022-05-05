@@ -1,0 +1,1 @@
+<Data><Node><name>ubuntu</name><state>down</state><power_state>Running</power_state><np>1</np><ntype>cluster</ntype><note>testnote</note><mom_service_port>15002</mom_service_port><mom_manager_port>15003</mom_manager_port></Node></Data>

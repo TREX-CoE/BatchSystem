@@ -1,0 +1,551 @@
+NodeName=gmz01 Arch=x86_64 CoresPerSocket=8 
+   CPUAlloc=0 CPUTot=128 CPULoad=0.00
+   AvailableFeatures=(null)
+   ActiveFeatures=(null)
+   Gres=(null)
+   NodeAddr=gmz01 NodeHostName=gmz01 Version=20.02.3
+   OS=Linux 4.18.0-193.28.1.el8_2.x86_64 #1 SMP Thu Oct 22 00:20:22 UTC 2020 
+   RealMemory=1 AllocMem=0 FreeMem=253909 Sockets=8 Boards=1
+   State=IDLE ThreadsPerCore=2 TmpDisk=0 Weight=1 Owner=N/A MCS_label=N/A
+   Partitions=ALL,CPU_7452,OS_CENTOS8 
+   BootTime=2021-03-10T09:21:06 SlurmdStartTime=2021-04-21T16:50:40
+   CfgTRES=cpu=128,mem=1M,billing=128
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/s ExtSensorsWatts=0 ExtSensorsTemp=n/s
+   
+
+NodeName=gmz02 Arch=x86_64 CoresPerSocket=8 
+   CPUAlloc=0 CPUTot=128 CPULoad=0.00
+   AvailableFeatures=(null)
+   ActiveFeatures=(null)
+   Gres=(null)
+   NodeAddr=gmz02 NodeHostName=gmz02 Version=20.02.3
+   OS=Linux 4.18.0-193.28.1.el8_2.x86_64 #1 SMP Thu Oct 22 00:20:22 UTC 2020 
+   RealMemory=1 AllocMem=0 FreeMem=253832 Sockets=8 Boards=1
+   State=IDLE ThreadsPerCore=2 TmpDisk=0 Weight=1 Owner=N/A MCS_label=N/A
+   Partitions=ALL,CPU_7452,OS_CENTOS8 
+   BootTime=2021-03-10T08:57:19 SlurmdStartTime=2021-04-21T16:50:41
+   CfgTRES=cpu=128,mem=1M,billing=128
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/s ExtSensorsWatts=0 ExtSensorsTemp=n/s
+   
+
+NodeName=gmz03 CoresPerSocket=8 
+   CPUAlloc=0 CPUTot=32 CPULoad=N/A
+   AvailableFeatures=(null)
+   ActiveFeatures=(null)
+   Gres=(null)
+   NodeAddr=gmz03 NodeHostName=gmz03 
+   RealMemory=1 AllocMem=0 FreeMem=N/A Sockets=4 Boards=1
+   State=DOWN* ThreadsPerCore=1 TmpDisk=0 Weight=1 Owner=N/A MCS_label=N/A
+   Partitions=ALL,CPU_7452,OS_CENTOS8 
+   BootTime=None SlurmdStartTime=None
+   CfgTRES=cpu=32,mem=1M,billing=32
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/s ExtSensorsWatts=0 ExtSensorsTemp=n/s
+   Reason=Not responding [slurm@2021-02-02T12:11:41]
+
+NodeName=gmz06 Arch=x86_64 CoresPerSocket=16 
+   CPUAlloc=0 CPUTot=256 CPULoad=0.03
+   AvailableFeatures=(null)
+   ActiveFeatures=(null)
+   Gres=(null)
+   NodeAddr=gmz06 NodeHostName=gmz06 Version=20.02.3
+   OS=Linux 4.18.0-240.15.1.el8_3.x86_64 #1 SMP Mon Mar 1 17:16:16 UTC 2021 
+   RealMemory=1 AllocMem=0 FreeMem=251995 Sockets=8 Boards=1
+   State=IDLE ThreadsPerCore=2 TmpDisk=0 Weight=1 Owner=N/A MCS_label=N/A
+   Partitions=ALL,CPU_7713,OS_CENTOS8 
+   BootTime=2021-04-06T18:29:27 SlurmdStartTime=2021-04-21T16:50:41
+   CfgTRES=cpu=256,mem=1M,billing=256
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/s ExtSensorsWatts=0 ExtSensorsTemp=n/s
+   
+
+NodeName=gmz07 Arch=x86_64 CoresPerSocket=16 
+   CPUAlloc=0 CPUTot=256 CPULoad=0.04
+   AvailableFeatures=(null)
+   ActiveFeatures=(null)
+   Gres=(null)
+   NodeAddr=gmz07 NodeHostName=gmz07 Version=20.02.3
+   OS=Linux 4.18.0-240.15.1.el8_3.x86_64 #1 SMP Mon Mar 1 17:16:16 UTC 2021 
+   RealMemory=1 AllocMem=0 FreeMem=511580 Sockets=8 Boards=1
+   State=IDLE ThreadsPerCore=2 TmpDisk=0 Weight=1 Owner=N/A MCS_label=N/A
+   Partitions=ALL,CPU_7713,OS_CENTOS8 
+   BootTime=2021-04-21T13:55:23 SlurmdStartTime=2021-04-21T16:50:41
+   CfgTRES=cpu=256,mem=1M,billing=256
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/s ExtSensorsWatts=0 ExtSensorsTemp=n/s
+   
+
+NodeName=gmz08 Arch=x86_64 CoresPerSocket=16 
+   CPUAlloc=0 CPUTot=256 CPULoad=0.00
+   AvailableFeatures=(null)
+   ActiveFeatures=(null)
+   Gres=(null)
+   NodeAddr=gmz08 NodeHostName=gmz08 Version=20.02.3
+   OS=Linux 4.18.0-193.28.1.el8_2.x86_64 #1 SMP Thu Oct 22 00:20:22 UTC 2020 
+   RealMemory=1 AllocMem=0 FreeMem=251849 Sockets=8 Boards=1
+   State=IDLE ThreadsPerCore=2 TmpDisk=0 Weight=1 Owner=N/A MCS_label=N/A
+   Partitions=ALL,CPU_7702,OS_CENTOS8 
+   BootTime=2020-12-03T11:44:15 SlurmdStartTime=2021-04-21T16:50:41
+   CfgTRES=cpu=256,mem=1M,billing=256
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/s ExtSensorsWatts=0 ExtSensorsTemp=n/s
+   
+
+NodeName=gmz09 Arch=x86_64 CoresPerSocket=16 
+   CPUAlloc=0 CPUTot=256 CPULoad=0.00
+   AvailableFeatures=(null)
+   ActiveFeatures=(null)
+   Gres=(null)
+   NodeAddr=gmz09 NodeHostName=gmz09 Version=20.02.3
+   OS=Linux 4.18.0-240.22.1.el8_3.x86_64 #1 SMP Tue Apr 6 18:32:06 PDT 2021 
+   RealMemory=1 AllocMem=0 FreeMem=511017 Sockets=8 Boards=1
+   State=IDLE ThreadsPerCore=2 TmpDisk=0 Weight=1 Owner=N/A MCS_label=N/A
+   Partitions=ALL,CPU_7763,OS_CENTOS8 
+   BootTime=2021-04-21T09:20:55 SlurmdStartTime=2021-04-21T16:50:41
+   CfgTRES=cpu=256,mem=1M,billing=256
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/s ExtSensorsWatts=0 ExtSensorsTemp=n/s
+   
+
+NodeName=gpu01sas Arch=x86_64 CoresPerSocket=4 
+   CPUAlloc=64 CPUTot=64 CPULoad=1.00
+   AvailableFeatures=(null)
+   ActiveFeatures=(null)
+   Gres=(null)
+   NodeAddr=gpu01sas NodeHostName=gpu01sas Version=20.02.3
+   OS=Linux 4.18.0-193.28.1.el8_2.x86_64 #1 SMP Thu Oct 22 00:20:22 UTC 2020 
+   RealMemory=1 AllocMem=0 FreeMem=42662 Sockets=8 Boards=1
+   State=ALLOCATED ThreadsPerCore=2 TmpDisk=0 Weight=1 Owner=N/A MCS_label=N/A
+   Partitions=ALL,CPU_7F52,GPU_A100,OS_CENTOS8 
+   BootTime=2021-03-25T21:52:34 SlurmdStartTime=2021-04-21T16:50:41
+   CfgTRES=cpu=64,mem=1M,billing=64
+   AllocTRES=cpu=64
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/s ExtSensorsWatts=0 ExtSensorsTemp=n/s
+   
+
+NodeName=gpu02aes CoresPerSocket=24 
+   CPUAlloc=0 CPUTot=48 CPULoad=N/A
+   AvailableFeatures=(null)
+   ActiveFeatures=(null)
+   Gres=(null)
+   NodeAddr=gpu02aes NodeHostName=gpu02aes 
+   RealMemory=1 AllocMem=0 FreeMem=N/A Sockets=1 Boards=1
+   State=DOWN* ThreadsPerCore=2 TmpDisk=0 Weight=1 Owner=N/A MCS_label=N/A
+   Partitions=ALL,CPU_7402,GPU_MI50,OS_CENTOS8 
+   BootTime=None SlurmdStartTime=None
+   CfgTRES=cpu=48,mem=1M,billing=48
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/s ExtSensorsWatts=0 ExtSensorsTemp=n/s
+   Reason=Not responding [slurm@2021-04-09T17:15:08]
+
+NodeName=gpu03gmz Arch=x86_64 CoresPerSocket=24 
+   CPUAlloc=0 CPUTot=48 CPULoad=0.00
+   AvailableFeatures=(null)
+   ActiveFeatures=(null)
+   Gres=(null)
+   NodeAddr=gpu03gmz NodeHostName=gpu03gmz Version=20.02.3
+   OS=Linux 4.18.0-193.28.1.el8_2.x86_64 #1 SMP Thu Oct 22 00:20:22 UTC 2020 
+   RealMemory=1 AllocMem=0 FreeMem=126778 Sockets=1 Boards=1
+   State=IDLE ThreadsPerCore=2 TmpDisk=0 Weight=1 Owner=N/A MCS_label=N/A
+   Partitions=ALL,CPU_7402,GPU_MI100,OS_CENTOS8 
+   BootTime=2021-03-26T17:00:03 SlurmdStartTime=2021-04-21T16:50:41
+   CfgTRES=cpu=48,mem=1M,billing=48
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/s ExtSensorsWatts=0 ExtSensorsTemp=n/s
+   
+
+NodeName=gpu04sas CoresPerSocket=20 
+   CPUAlloc=0 CPUTot=80 CPULoad=N/A
+   AvailableFeatures=(null)
+   ActiveFeatures=(null)
+   Gres=(null)
+   NodeAddr=gpu04sas NodeHostName=gpu04sas 
+   RealMemory=1 AllocMem=0 FreeMem=N/A Sockets=2 Boards=1
+   State=DOWN* ThreadsPerCore=2 TmpDisk=0 Weight=1 Owner=N/A MCS_label=N/A
+   Partitions=ALL,GPU_RTX8000 
+   BootTime=None SlurmdStartTime=None
+   CfgTRES=cpu=80,mem=1M,billing=80
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/s ExtSensorsWatts=0 ExtSensorsTemp=n/s
+   Reason=Not responding [slurm@2021-03-26T13:34:41]
+
+NodeName=hnk01 CoresPerSocket=16 
+   CPUAlloc=0 CPUTot=256 CPULoad=N/A
+   AvailableFeatures=(null)
+   ActiveFeatures=(null)
+   Gres=(null)
+   NodeAddr=hnk01 NodeHostName=hnk01 
+   RealMemory=1 AllocMem=0 FreeMem=N/A Sockets=8 Boards=1
+   State=DOWN* ThreadsPerCore=2 TmpDisk=0 Weight=1 Owner=N/A MCS_label=N/A
+   Partitions=ALL,CPU_7662,GPU_A100 
+   BootTime=None SlurmdStartTime=None
+   CfgTRES=cpu=256,mem=1M,billing=256
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/s ExtSensorsWatts=0 ExtSensorsTemp=n/s
+   Reason=Not responding [slurm@2021-03-25T12:53:39]
+
+NodeName=hnk02 CoresPerSocket=16 
+   CPUAlloc=0 CPUTot=256 CPULoad=N/A
+   AvailableFeatures=(null)
+   ActiveFeatures=(null)
+   Gres=(null)
+   NodeAddr=hnk02 NodeHostName=hnk02 
+   RealMemory=1 AllocMem=0 FreeMem=N/A Sockets=8 Boards=1
+   State=DOWN* ThreadsPerCore=2 TmpDisk=0 Weight=1 Owner=N/A MCS_label=N/A
+   Partitions=ALL,CPU_7662,GPU_A100 
+   BootTime=None SlurmdStartTime=None
+   CfgTRES=cpu=256,mem=1M,billing=256
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/s ExtSensorsWatts=0 ExtSensorsTemp=n/s
+   Reason=Not responding [slurm@2021-03-25T12:53:39]
+
+NodeName=icp01 Arch=x86_64 CoresPerSocket=36 
+   CPUAlloc=0 CPUTot=144 CPULoad=0.00
+   AvailableFeatures=(null)
+   ActiveFeatures=(null)
+   Gres=(null)
+   NodeAddr=icp01 NodeHostName=icp01 Version=20.02.3
+   OS=Linux 4.18.0-240.15.1.el8_3.x86_64 #1 SMP Tue Feb 16 14:27:25 PST 2021 
+   RealMemory=1 AllocMem=0 FreeMem=253888 Sockets=2 Boards=1
+   State=IDLE+DRAIN ThreadsPerCore=2 TmpDisk=0 Weight=1 Owner=N/A MCS_label=N/A
+   Partitions=ALL,CPU_8360Y,OS_CENTOS8 
+   BootTime=2021-04-15T18:25:05 SlurmdStartTime=2021-04-21T16:50:41
+   CfgTRES=cpu=144,mem=1M,billing=144
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/s ExtSensorsWatts=0 ExtSensorsTemp=n/s
+   Reason=Low socket*core*thread count, Low CPUs [slurm@2021-04-20T09:53:14]
+
+NodeName=icp02 Arch=x86_64 CoresPerSocket=36 
+   CPUAlloc=0 CPUTot=144 CPULoad=0.00
+   AvailableFeatures=(null)
+   ActiveFeatures=(null)
+   Gres=(null)
+   NodeAddr=icp02 NodeHostName=icp02 Version=20.02.3
+   OS=Linux 4.18.0-240.15.1.el8_3.x86_64 #1 SMP Tue Feb 16 14:27:25 PST 2021 
+   RealMemory=1 AllocMem=0 FreeMem=1027554 Sockets=2 Boards=1
+   State=IDLE ThreadsPerCore=2 TmpDisk=0 Weight=1 Owner=N/A MCS_label=N/A
+   Partitions=ALL,CPU_8360Y,OS_CENTOS8 
+   BootTime=2021-04-15T18:25:36 SlurmdStartTime=2021-04-21T16:50:41
+   CfgTRES=cpu=144,mem=1M,billing=144
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/s ExtSensorsWatts=0 ExtSensorsTemp=n/s
+   
+
+NodeName=icp03 Arch=x86_64 CoresPerSocket=36 
+   CPUAlloc=144 CPUTot=144 CPULoad=2.00
+   AvailableFeatures=(null)
+   ActiveFeatures=(null)
+   Gres=(null)
+   NodeAddr=icp03 NodeHostName=icp03 Version=20.02.3
+   OS=Linux 4.18.0-240.15.1.el8_3.x86_64 #1 SMP Tue Feb 16 14:27:25 PST 2021 
+   RealMemory=1 AllocMem=0 FreeMem=249886 Sockets=2 Boards=1
+   State=ALLOCATED ThreadsPerCore=2 TmpDisk=0 Weight=1 Owner=N/A MCS_label=N/A
+   Partitions=ALL,CPU_8360Y,OS_CENTOS8 
+   BootTime=2021-04-15T18:25:14 SlurmdStartTime=2021-04-21T16:50:41
+   CfgTRES=cpu=144,mem=1M,billing=144
+   AllocTRES=cpu=144
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/s ExtSensorsWatts=0 ExtSensorsTemp=n/s
+   
+
+NodeName=ins03 Arch=x86_64 CoresPerSocket=28 
+   CPUAlloc=112 CPUTot=112 CPULoad=55.80
+   AvailableFeatures=(null)
+   ActiveFeatures=(null)
+   Gres=(null)
+   NodeAddr=ins03 NodeHostName=ins03 Version=20.02.3
+   OS=Linux 4.18.0-240.22.1.el8_3.x86_64 #1 SMP Tue Apr 6 18:32:06 PDT 2021 
+   RealMemory=1 AllocMem=0 FreeMem=503221 Sockets=2 Boards=1
+   State=ALLOCATED ThreadsPerCore=2 TmpDisk=0 Weight=1 Owner=N/A MCS_label=N/A
+   Partitions=ALL,OS_CENTOS8 
+   BootTime=2021-04-21T17:32:22 SlurmdStartTime=2021-04-21T23:28:17
+   CfgTRES=cpu=112,mem=1M,billing=112
+   AllocTRES=cpu=112
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/s ExtSensorsWatts=0 ExtSensorsTemp=n/s
+   
+
+NodeName=itp01 Arch=x86_64 CoresPerSocket=36 
+   CPUAlloc=0 CPUTot=144 CPULoad=0.00
+   AvailableFeatures=(null)
+   ActiveFeatures=(null)
+   Gres=(null)
+   NodeAddr=itp01 NodeHostName=itp01 Version=20.02.3
+   OS=Linux 4.18.0-240.22.1.el8_3.x86_64 #1 SMP Tue Apr 6 18:32:06 PDT 2021 
+   RealMemory=1 AllocMem=0 FreeMem=253930 Sockets=2 Boards=1
+   State=IDLE ThreadsPerCore=2 TmpDisk=0 Weight=1 Owner=N/A MCS_label=N/A
+   Partitions=ALL,CPU_8360Y,OS_CENTOS8 
+   BootTime=2021-04-15T18:25:06 SlurmdStartTime=2021-04-21T16:50:41
+   CfgTRES=cpu=144,mem=1M,billing=144
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/s ExtSensorsWatts=0 ExtSensorsTemp=n/s
+   
+
+NodeName=itp02 Arch=x86_64 CoresPerSocket=24 
+   CPUAlloc=48 CPUTot=48 CPULoad=0.00
+   AvailableFeatures=(null)
+   ActiveFeatures=(null)
+   Gres=(null)
+   NodeAddr=itp02 NodeHostName=itp02 Version=20.02.3
+   OS=Linux 4.18.0-240.22.1.el8_3.x86_64 #1 SMP Tue Apr 6 18:32:06 PDT 2021 
+   RealMemory=1 AllocMem=0 FreeMem=254484 Sockets=2 Boards=1
+   State=ALLOCATED ThreadsPerCore=1 TmpDisk=0 Weight=1 Owner=N/A MCS_label=N/A
+   Partitions=ALL,CPU_8360Y,OS_CENTOS8 
+   BootTime=2021-04-16T08:01:18 SlurmdStartTime=2021-04-21T16:50:41
+   CfgTRES=cpu=48,mem=1M,billing=48
+   AllocTRES=cpu=48
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/s ExtSensorsWatts=0 ExtSensorsTemp=n/s
+   
+
+NodeName=itp03 Arch=x86_64 CoresPerSocket=36 
+   CPUAlloc=0 CPUTot=144 CPULoad=0.00
+   AvailableFeatures=(null)
+   ActiveFeatures=(null)
+   Gres=(null)
+   NodeAddr=itp03 NodeHostName=itp03 Version=20.02.3
+   OS=Linux 4.18.0-240.15.1.el8_3.x86_64 #1 SMP Tue Feb 16 14:27:25 PST 2021 
+   RealMemory=1 AllocMem=0 FreeMem=253943 Sockets=2 Boards=1
+   State=IDLE ThreadsPerCore=2 TmpDisk=0 Weight=1 Owner=N/A MCS_label=N/A
+   Partitions=ALL,CPU_8360Y,OS_CENTOS8 
+   BootTime=2021-04-15T18:25:05 SlurmdStartTime=2021-04-21T16:50:41
+   CfgTRES=cpu=144,mem=1M,billing=144
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/s ExtSensorsWatts=0 ExtSensorsTemp=n/s
+   
+
+NodeName=itp04 Arch=x86_64 CoresPerSocket=36 
+   CPUAlloc=0 CPUTot=144 CPULoad=0.00
+   AvailableFeatures=(null)
+   ActiveFeatures=(null)
+   Gres=(null)
+   NodeAddr=itp04 NodeHostName=itp04 Version=20.02.3
+   OS=Linux 4.18.0-240.15.1.el8_3.x86_64 #1 SMP Tue Feb 16 14:27:25 PST 2021 
+   RealMemory=1 AllocMem=0 FreeMem=254066 Sockets=2 Boards=1
+   State=IDLE ThreadsPerCore=2 TmpDisk=0 Weight=1 Owner=N/A MCS_label=N/A
+   Partitions=ALL,CPU_8360Y,OS_CENTOS8 
+   BootTime=2021-04-15T18:25:04 SlurmdStartTime=2021-04-21T16:50:41
+   CfgTRES=cpu=144,mem=1M,billing=144
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/s ExtSensorsWatts=0 ExtSensorsTemp=n/s
+   
+
+NodeName=itp09 Arch=x86_64 CoresPerSocket=36 
+   CPUAlloc=0 CPUTot=144 CPULoad=0.00
+   AvailableFeatures=(null)
+   ActiveFeatures=(null)
+   Gres=(null)
+   NodeAddr=itp09 NodeHostName=itp09 Version=20.02.3
+   OS=Linux 4.18.0-240.15.1.el8_3.x86_64 #1 SMP Tue Feb 16 14:27:25 PST 2021 
+   RealMemory=1 AllocMem=0 FreeMem=254114 Sockets=2 Boards=1
+   State=IDLE ThreadsPerCore=2 TmpDisk=0 Weight=1 Owner=N/A MCS_label=N/A
+   Partitions=ALL,CPU_8360Y,OS_CENTOS8 
+   BootTime=2021-04-15T18:25:27 SlurmdStartTime=2021-04-21T16:50:41
+   CfgTRES=cpu=144,mem=1M,billing=144
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/s ExtSensorsWatts=0 ExtSensorsTemp=n/s
+   
+
+NodeName=iwk01 Arch=x86_64 CoresPerSocket=24 
+   CPUAlloc=0 CPUTot=192 CPULoad=0.00
+   AvailableFeatures=(null)
+   ActiveFeatures=(null)
+   Gres=(null)
+   NodeAddr=iwk01 NodeHostName=iwk01 Version=20.02.3
+   OS=Linux 4.18.0-193.28.1.el8_2.x86_64 #1 SMP Thu Oct 22 00:20:22 UTC 2020 
+   RealMemory=1 AllocMem=0 FreeMem=378717 Sockets=4 Boards=1
+   State=IDLE ThreadsPerCore=2 TmpDisk=0 Weight=1 Owner=N/A MCS_label=N/A
+   Partitions=ALL,CPU_9242,OS_CENTOS8 
+   BootTime=2021-03-19T14:40:51 SlurmdStartTime=2021-04-21T16:50:41
+   CfgTRES=cpu=192,mem=1M,billing=192
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/s ExtSensorsWatts=0 ExtSensorsTemp=n/s
+   
+
+NodeName=iwk02 Arch=x86_64 CoresPerSocket=24 
+   CPUAlloc=0 CPUTot=192 CPULoad=0.00
+   AvailableFeatures=(null)
+   ActiveFeatures=(null)
+   Gres=(null)
+   NodeAddr=iwk02 NodeHostName=iwk02 Version=20.02.3
+   OS=Linux 4.18.0-193.28.1.el8_2.x86_64 #1 SMP Thu Oct 22 00:20:22 UTC 2020 
+   RealMemory=1 AllocMem=0 FreeMem=378734 Sockets=4 Boards=1
+   State=IDLE ThreadsPerCore=2 TmpDisk=0 Weight=1 Owner=N/A MCS_label=N/A
+   Partitions=ALL,CPU_9242,OS_CENTOS8 
+   BootTime=2021-03-19T14:48:31 SlurmdStartTime=2021-04-21T16:50:41
+   CfgTRES=cpu=192,mem=1M,billing=192
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/s ExtSensorsWatts=0 ExtSensorsTemp=n/s
+   
+
+NodeName=jena01 CoresPerSocket=20 
+   CPUAlloc=0 CPUTot=80 CPULoad=N/A
+   AvailableFeatures=(null)
+   ActiveFeatures=(null)
+   Gres=(null)
+   NodeAddr=jena01 NodeHostName=jena01 
+   RealMemory=1 AllocMem=0 FreeMem=N/A Sockets=2 Boards=1
+   State=DOWN* ThreadsPerCore=2 TmpDisk=0 Weight=1 Owner=N/A MCS_label=N/A
+   Partitions=ALL,GPU_RTX5000 
+   BootTime=None SlurmdStartTime=None
+   CfgTRES=cpu=80,mem=1M,billing=80
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/s ExtSensorsWatts=0 ExtSensorsTemp=n/s
+   Reason=Not responding [slurm@2021-03-24T12:56:58]
+
+NodeName=mi100-2 CoresPerSocket=4 
+   CPUAlloc=0 CPUTot=64 CPULoad=N/A
+   AvailableFeatures=(null)
+   ActiveFeatures=(null)
+   Gres=(null)
+   NodeAddr=mi100-2 NodeHostName=mi100-2 
+   RealMemory=1 AllocMem=0 FreeMem=N/A Sockets=8 Boards=1
+   State=DOWN*+DRAIN ThreadsPerCore=2 TmpDisk=0 Weight=1 Owner=N/A MCS_label=N/A
+   Partitions=ALL,CPU_7302,GPU_MI100 
+   BootTime=None SlurmdStartTime=None
+   CfgTRES=cpu=64,mem=1M,billing=64
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/s ExtSensorsWatts=0 ExtSensorsTemp=n/s
+   Reason=off [nimi@2021-04-13T16:54:34]
+
+NodeName=sas01 Arch=x86_64 CoresPerSocket=16 
+   CPUAlloc=0 CPUTot=256 CPULoad=0.00
+   AvailableFeatures=(null)
+   ActiveFeatures=(null)
+   Gres=(null)
+   NodeAddr=sas01 NodeHostName=sas01 Version=20.02.3
+   OS=Linux 4.18.0-240.22.1.el8_3.x86_64 #1 SMP Thu Apr 8 19:01:30 UTC 2021 
+   RealMemory=1 AllocMem=0 FreeMem=510363 Sockets=8 Boards=1
+   State=IDLE ThreadsPerCore=2 TmpDisk=0 Weight=1 Owner=N/A MCS_label=N/A
+   Partitions=ALL,CPU_7713,OS_CENTOS8 
+   BootTime=2021-04-21T13:57:52 SlurmdStartTime=2021-04-21T16:50:41
+   CfgTRES=cpu=256,mem=1M,billing=256
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/s ExtSensorsWatts=0 ExtSensorsTemp=n/s
+   
+
+NodeName=sas02 Arch=x86_64 CoresPerSocket=16 
+   CPUAlloc=0 CPUTot=256 CPULoad=0.00
+   AvailableFeatures=(null)
+   ActiveFeatures=(null)
+   Gres=(null)
+   NodeAddr=sas02 NodeHostName=sas02 Version=20.02.3
+   OS=Linux 4.18.0-240.15.1.el8_3.x86_64 #1 SMP Tue Feb 16 14:27:25 PST 2021 
+   RealMemory=1 AllocMem=0 FreeMem=251222 Sockets=8 Boards=1
+   State=IDLE ThreadsPerCore=2 TmpDisk=0 Weight=1 Owner=N/A MCS_label=N/A
+   Partitions=ALL,CPU_7713,OS_CENTOS8 
+   BootTime=2021-04-06T18:28:37 SlurmdStartTime=2021-04-21T16:50:41
+   CfgTRES=cpu=256,mem=1M,billing=256
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/s ExtSensorsWatts=0 ExtSensorsTemp=n/s
+   
+
+NodeName=sas03 Arch=x86_64 CoresPerSocket=16 
+   CPUAlloc=64 CPUTot=64 CPULoad=31.38
+   AvailableFeatures=(null)
+   ActiveFeatures=(null)
+   Gres=(null)
+   NodeAddr=sas03 NodeHostName=sas03 Version=20.02.3
+   OS=Linux 4.18.0-240.22.1.el8_3.x86_64 #1 SMP Tue Apr 6 18:32:06 PDT 2021 
+   RealMemory=1 AllocMem=0 FreeMem=1024653 Sockets=2 Boards=1
+   State=ALLOCATED ThreadsPerCore=2 TmpDisk=0 Weight=1 Owner=N/A MCS_label=N/A
+   Partitions=ALL,CPU_7F52,OS_CENTOS8 
+   BootTime=2021-04-21T16:38:14 SlurmdStartTime=2021-04-21T16:50:41
+   CfgTRES=cpu=64,mem=1M,billing=64
+   AllocTRES=cpu=64
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/s ExtSensorsWatts=0 ExtSensorsTemp=n/s
+   
+
+NodeName=sas04 Arch=x86_64 CoresPerSocket=64 
+   CPUAlloc=256 CPUTot=256 CPULoad=73.31
+   AvailableFeatures=(null)
+   ActiveFeatures=(null)
+   Gres=(null)
+   NodeAddr=sas04 NodeHostName=sas04 Version=20.02.3
+   OS=Linux 4.18.0-240.22.1.el8_3.x86_64 #1 SMP Tue Apr 6 18:32:06 PDT 2021 
+   RealMemory=1 AllocMem=0 FreeMem=383964 Sockets=2 Boards=1
+   State=ALLOCATED ThreadsPerCore=2 TmpDisk=0 Weight=1 Owner=N/A MCS_label=N/A
+   Partitions=ALL,CPU_7662,OS_CENTOS8 
+   BootTime=2021-04-21T17:33:42 SlurmdStartTime=2021-04-21T23:08:04
+   CfgTRES=cpu=256,mem=1M,billing=256
+   AllocTRES=cpu=256
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/s ExtSensorsWatts=0 ExtSensorsTemp=n/s
+   
+
+NodeName=ubuntu Arch=x86_64 CoresPerSocket=1 
+   CPUAlloc=0 CPUTot=1 CPULoad=0.29
+   AvailableFeatures=(null)
+   ActiveFeatures=(null)
+   Gres=(null)
+   NodeAddr=ubuntu NodeHostName=ubuntu Version=20.11.4
+   OS=Linux 5.13.0-39-generic #44-Ubuntu SMP Thu Mar 24 15:35:05 UTC 2022 
+   RealMemory=500 AllocMem=0 FreeMem=1684 Sockets=1 Boards=1
+   State=IDLE+DRAIN ThreadsPerCore=1 TmpDisk=0 Weight=1 Owner=N/A MCS_label=N/A
+   Partitions=debug 
+   BootTime=2022-04-20T12:39:06 SlurmdStartTime=2022-04-20T12:54:04
+   CfgTRES=cpu=1,mem=500M,billing=1
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/s ExtSensorsWatts=0 ExtSensorsTemp=n/s
+   Reason=Clustware [kevth@2022-04-11T15:29:43]
+   Comment=a

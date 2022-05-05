@@ -1,0 +1,7 @@
+ubuntu
+     state = down
+     power_state = Running
+     np = 1
+     ntype = cluster
+     mom_service_port = 15002
+     mom_manager_port = 15003

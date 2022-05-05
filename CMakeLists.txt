@@ -10,8 +10,9 @@ endif()
 
 project(batchsystem LANGUAGES CXX VERSION 1.0.0)
 
-# Basic paths
-set(CATCH_DIR ${CMAKE_CURRENT_SOURCE_DIR})
-set(SOURCES_DIR ${CATCH_DIR}/src)
+FIND_PACKAGE(PkgConfig REQUIRED) # workaround else PKG_SEARCH_MODULE isn't found
+PKG_SEARCH_MODULE(LIBXMLPP REQUIRED libxml++-2.6 libxml++-3.0)
+message(STATUS "libxml++: ${LIBXMLPP_LIBRARIES}")
 
-add_subdirectory(src)
+add_subdirectory(src/)
+add_subdirectory(test/)

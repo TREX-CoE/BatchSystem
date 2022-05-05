@@ -1,0 +1,10 @@
+Queue: batch
+    queue_type = Execution
+    total_jobs = 0
+    state_count = Transit:0 Queued:0 Held:0 Waiting:0 Running:0 Exiting:0 Comp
+        lete:0 
+    resources_default.walltime = 01:00:00
+    resources_default.nodes = 1
+    mtime = 1649429720
+    enabled = True
+    started = True
