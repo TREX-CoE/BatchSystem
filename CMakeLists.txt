@@ -15,4 +15,7 @@ PKG_SEARCH_MODULE(LIBXMLPP REQUIRED libxml++-2.6 libxml++-3.0)
 message(STATUS "libxml++: ${LIBXMLPP_LIBRARIES}")
 
 add_subdirectory(src/)
-add_subdirectory(test/)
+
+if(NOT_SUBPROJECT)
+    add_subdirectory(test/)
+endif(NOT_SUBPROJECT)
