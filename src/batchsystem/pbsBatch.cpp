@@ -449,7 +449,8 @@ void PbsBatch::setNodeComment(const std::string& name, bool, const std::string& 
 }
 
 void PbsBatch::setQueueState(const std::string& name, QueueState state, bool) const {
-	bool enabled, started;
+	bool enabled = false;
+	bool started = false;
 	switch (state) {
 		case QueueState::Unknown: return;
 		case QueueState::Open: enabled=true; started=true; break;
