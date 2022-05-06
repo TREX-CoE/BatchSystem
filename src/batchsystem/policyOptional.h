@@ -12,7 +12,7 @@ namespace cw {
  * 
  * \section usage Usage example
  * 
- * Use \ref policy_optional::has_value to check if value is set and \ref policy_optional::get to access it.
+ * Use \ref policy_optional::policy_optional::has_value to check if value is set and \ref policy_optional::policy_optional::get to access it.
  * 
  * \code
  * // create optional using maximum (255) as empty case

@@ -75,10 +75,6 @@ enum class NodeChangeState {
  * \brief Node informations
  * 
  * Struct containing all node informations parsed from batchsystem.
- * 
- * \warning
- * Fields can be empty / not supported by certain batchsystem implementation.
- * Check field with \ref is_empty first
  */
 struct Node {
 	string_optional name; //!< Shortened (hostname only) node name
