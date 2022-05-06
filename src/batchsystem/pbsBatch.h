@@ -21,8 +21,14 @@ public:
 	
 	std::string runJob(const JobOptions& opts) const;
 	BatchInfo getBatchInfo() const;
+	static void parseNodes(const std::string& output, std::function<getNodes_inserter_f> insert);
+	static CmdOptions getNodesCmd();
 	void getNodes(std::function<getNodes_inserter_f> insert) const;
+	static void parseJobs(const std::string& output, std::function<getJobs_inserter_f> insert);
+	static CmdOptions getJobsCmd();
 	void getJobs(std::function<getJobs_inserter_f> insert) const;
+	static void parseQueues(const std::string& output, std::function<getQueues_inserter_f> insert);
+	static CmdOptions getQueuesCmd();
 	void getQueues(std::function<getQueues_inserter_f> insert) const;
 	void setQueueState(const std::string& name, QueueState state, bool) const;
 	void changeNodeState(const std::string& name, NodeChangeState state, bool force, const std::string& reason, bool appendReason) const;

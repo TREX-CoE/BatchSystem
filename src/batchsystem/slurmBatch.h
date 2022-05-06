@@ -65,8 +65,16 @@ public:
 
 	std::string runJob(const JobOptions& opts) const;
 	BatchInfo getBatchInfo() const;
+	static void parseNodes(const std::string& output, std::function<getNodes_inserter_f> insert);
+	static CmdOptions getNodesCmd();
 	void getNodes(std::function<getNodes_inserter_f> insert) const;
+
+
+	static void parseJobs(const std::string& output, std::function<getJobs_inserter_f> insert);
+	static CmdOptions getJobsCmd();
 	void getJobs(std::function<getJobs_inserter_f> insert) const;
+
+	static void parseJobsLegacy(const std::string& output, std::function<getJobs_inserter_f> insert);
 
 	/**
 	 * \brief Explicitly get jobs via scontrol
@@ -74,6 +82,8 @@ public:
 	 * \param insert 
 	 */
 	void getJobsLegacy(std::function<getJobs_inserter_f> insert) const;
+
+	static void parseJobsSacct(const std::string& output, std::function<getJobs_inserter_f> insert);
 
 	/**
 	 * \brief Explicitly get jobs via acct
@@ -94,6 +104,9 @@ public:
 	 */
 	void getJobsSacct(std::function<getJobs_inserter_f> insert, const std::string& stateFilter) const;
 
+
+	static void parseQueues(const std::string& output, std::function<getQueues_inserter_f> insert);
+	static CmdOptions getQueuesCmd();
 	void getQueues(std::function<getQueues_inserter_f> insert) const;
 	void setNodeComment(const std::string& name, bool, const std::string& comment, bool) const;
 

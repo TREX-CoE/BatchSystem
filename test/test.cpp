@@ -15,12 +15,14 @@ const std::string TESTDATA_DIR = std::string(TEST_DIR);
 
 namespace {
 
-int runCommand(const std::string& rootdir, std::stringstream& stream, const std::string& cmd, const std::vector<std::string>& args) {
-    std::string path = rootdir + cmd;
-    for (const auto& a : args) path += " " + a;
+int runCommand(const std::string& rootdir, std::string& out, const cw::batch::CmdOptions& opts) {
+    std::string path = rootdir + opts.cmd;
+    for (const auto& a : opts.args) path += " " + a;
     std::ifstream f(path);
     if (f) {
+        std::stringstream stream;
         stream << f.rdbuf();
+        out = stream.str();
         return 0;
     } else {
         return 1;
@@ -46,7 +48,7 @@ TEST_CASE("Test system") {
         using namespace cw::batch;
         BatchSystem batchSystem;
 
-        slurm::create_batch(batchSystem, std::bind(runCommand, TESTDATA_DIR+"/1/", _1, _2, _3));
+        slurm::create_batch(batchSystem, std::bind(runCommand, TESTDATA_DIR+"/1/", _1, _2));
 
         std::vector<Job> jobs;
         batchSystem.getJobs([&](Job j){ jobs.push_back(j); return true; });

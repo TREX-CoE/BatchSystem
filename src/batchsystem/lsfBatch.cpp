@@ -19,10 +19,10 @@ namespace lsf {
 
 LsfBatch::LsfBatch(std::function<cmd_execute_f> func): _func(func) {}
 
-void LsfBatch::getNodes(std::function<getNodes_inserter_f> insert) const {
+void LsfBatch::parseNodes(const std::string& output, std::function<getNodes_inserter_f> insert) {
 	std::vector<int>	cellLengths;
 
-	std::stringstream commandResult = runCommand(_func, "bhosts", {});
+	std::stringstream commandResult(output);
 	std::stringstream buffer;
 	char line[1024];
 	bool firstLine=true;
@@ -128,9 +128,15 @@ void LsfBatch::getNodes(std::function<getNodes_inserter_f> insert) const {
 		}
 	}
 }
+CmdOptions LsfBatch::getNodesCmd() {
+	return {"bhosts", {}};
+}
+void LsfBatch::getNodes(std::function<getNodes_inserter_f> insert) const {
+	parseNodes(runCommand(_func, getNodesCmd()), insert);
+}
 
-void LsfBatch::getJobs(std::function<getJobs_inserter_f> insert) const {
-	std::stringstream commandResult = runCommand(_func, "bjobs", {"-u", "all"});
+void LsfBatch::parseJobs(const std::string& output, std::function<getJobs_inserter_f> insert) {
+	std::stringstream commandResult(output);
 
 	std::vector<int> cellLengths;
 	std::stringstream buffer;
@@ -264,10 +270,18 @@ void LsfBatch::getJobs(std::function<getJobs_inserter_f> insert) const {
 	}
 }
 
-void LsfBatch::getQueues(std::function<getQueues_inserter_f> insert) const {
+CmdOptions LsfBatch::getJobsCmd() {
+	return {"bjobs", {"-u", "all"}};
+}
+
+void LsfBatch::getJobs(std::function<getJobs_inserter_f> insert) const {
+	parseJobs(runCommand(_func, getJobsCmd()), insert);
+}
+
+void LsfBatch::parseQueues(const std::string& output, std::function<getQueues_inserter_f> insert) {
 	std::vector<int>	cellLengths;
 
-	std::stringstream commandResult = runCommand(_func, "bqueues", {});
+	std::stringstream commandResult(output);
 
 	std::stringstream buffer;
 	char line[1024];
@@ -387,11 +401,19 @@ void LsfBatch::getQueues(std::function<getQueues_inserter_f> insert) const {
 	}
 }
 
+CmdOptions LsfBatch::getQueuesCmd() {
+	return {"bqueues", {}};
+}
+
+void LsfBatch::getQueues(std::function<getQueues_inserter_f> insert) const {
+	parseQueues(runCommand(_func, getQueuesCmd()), insert);
+}
+
 void LsfBatch::setQueueState(const std::string& name, QueueState state, bool) const {
 	switch (state) {
 		case QueueState::Unknown: throw std::runtime_error("unknown state");
-		case QueueState::Open: runCommand(_func, "badmin", {"qopen", name}); break;
-		case QueueState::Closed: runCommand(_func, "badmin", {"qclose", name}); break;
+		case QueueState::Open: runCommand(_func, {"badmin", {"qopen", name}}); break;
+		case QueueState::Closed: runCommand(_func, {"badmin", {"qclose", name}}); break;
 		case QueueState::Inactive: throw std::runtime_error("inactive not supported");
 		case QueueState::Draining: throw std::runtime_error("draining not supported");
 		default: throw std::runtime_error("invalid state");
@@ -402,10 +424,10 @@ void LsfBatch::changeNodeState(const std::string& name, NodeChangeState state, b
 	std::string stateArg;
 	switch (state) {
 		case NodeChangeState::Resume: 
-			runCommand(_func, "badmin", {"hopen", name});
+			runCommand(_func, {"badmin", {"hopen", name}});
 			break;
 		case NodeChangeState::Drain:
-			runCommand(_func, "badmin", {"hclose", name});
+			runCommand(_func, {"badmin", {"hclose", name}});
 			break;
 		case NodeChangeState::Undrain:
 			throw std::runtime_error("Undrain not supported for LSF");
@@ -415,16 +437,16 @@ void LsfBatch::changeNodeState(const std::string& name, NodeChangeState state, b
 }
 
 void LsfBatch::releaseJob(const std::string& job, bool) const {
-	runCommand(_func, "bresume", {job});
+	runCommand(_func, {"bresume", {job}});
 }
 void LsfBatch::holdJob(const std::string& job, bool) const {
-	runCommand(_func, "bstop", {job});
+	runCommand(_func, {"bstop", {job}});
 }
 void LsfBatch::deleteJobByUser(const std::string& user, bool) const {
-	runCommand(_func, "bkill", {"-u", user});
+	runCommand(_func, {"bkill", {"-u", user}});
 }
 void LsfBatch::deleteJobById(const std::string& job, bool) const {
-	runCommand(_func, "bkill", {job});
+	runCommand(_func, {"bkill", {job}});
 }
 
 }

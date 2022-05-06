@@ -58,25 +58,20 @@ std::string PbsBatch::runJob(const JobOptions& opts) const {
 		args.push_back("gpus="+std::to_string(opts.numberGpus.get()));
 	}
 	args.push_back(opts.path.get());
-	std::stringstream commandResult = runCommand(_func, "qsub", args);
-	return trim_copy(commandResult.str());
+	return trim_copy(runCommand(_func, {"qsub", args}));
 
 }
 
 BatchInfo PbsBatch::getBatchInfo() const {
 	BatchInfo info;
 	info.name = std::string("pbs");
-
-	std::stringstream commandResult = runCommand(_func, "pbsnodes", {"--version"});
-	info.version = commandResult.str();
+	info.version = trim_copy(runCommand(_func, {"pbsnodes", {"--version"}}));
 	return info;
 }
 
-void PbsBatch::getNodes(std::function<getNodes_inserter_f> insert) const {
-	std::stringstream commandResult = runCommand(_func, "pbsnodes", {"-x"});
-
+void PbsBatch::parseNodes(const std::string& output, std::function<getNodes_inserter_f> insert) {
 	xmlpp::DomParser parser;
-	parser.parse_memory(commandResult.str());
+	parser.parse_memory(output);
 	const auto root = parser.get_document()->get_root_node();
 	const auto nodes = root->find("/Data/Node");
 
@@ -145,12 +140,17 @@ void PbsBatch::getNodes(std::function<getNodes_inserter_f> insert) const {
 	}
 }
 
-// see man pbs_job_attributes 
-void PbsBatch::getJobs(std::function<getJobs_inserter_f> insert) const {
-	std::stringstream commandResult = runCommand(_func, "qstat", {"-f", "-x"});
+CmdOptions PbsBatch::getNodesCmd() {
+	return {"pbsnodes", {"-x"}};
+}
+void PbsBatch::getNodes(std::function<getNodes_inserter_f> insert) const {
+	parseNodes(runCommand(_func, getNodesCmd()), insert);
+}
 
+// see man pbs_job_attributes 
+void PbsBatch::parseJobs(const std::string& output, std::function<getJobs_inserter_f> insert) {
 	xmlpp::DomParser parser;
-	parser.parse_memory(commandResult.str());
+	parser.parse_memory(output);
 	const auto root = parser.get_document()->get_root_node();
 	const auto nodes = root->find("/Data/Job");
 
@@ -322,8 +322,16 @@ void PbsBatch::getJobs(std::function<getJobs_inserter_f> insert) const {
 	}
 }
 
-void PbsBatch::getQueues(std::function<getQueues_inserter_f> insert) const {
-	std::stringstream commandResult = runCommand(_func, "qstat", {"-Qf"});
+CmdOptions PbsBatch::getJobsCmd() {
+	return {"qstat", {"-f", "-x"}};
+}
+void PbsBatch::getJobs(std::function<getJobs_inserter_f> insert) const {
+	parseJobs(runCommand(_func, getJobsCmd()), insert);
+}
+
+
+void PbsBatch::parseQueues(const std::string& output, std::function<getQueues_inserter_f> insert) {
+	std::stringstream commandResult(output);
 
 	std::string tmp, queueType;
 	Queue queue {};
@@ -444,8 +452,15 @@ void PbsBatch::getQueues(std::function<getQueues_inserter_f> insert) const {
 	}
 }
 
+CmdOptions PbsBatch::getQueuesCmd() {
+	return {"qstat", {"-Qf"}};
+}
+void PbsBatch::getQueues(std::function<getQueues_inserter_f> insert) const {
+	parseQueues(runCommand(_func, getQueuesCmd()), insert);
+}
+
 void PbsBatch::setNodeComment(const std::string& name, bool, const std::string& comment, bool appendComment) const {
-	runCommand(_func, "pbsnodes", {name, appendComment ? "-A" : "-N", comment});
+	runCommand(_func, {"pbsnodes", {name, appendComment ? "-A" : "-N", comment}});
 }
 
 void PbsBatch::setQueueState(const std::string& name, QueueState state, bool) const {
@@ -459,7 +474,7 @@ void PbsBatch::setQueueState(const std::string& name, QueueState state, bool) co
 		case QueueState::Draining: enabled=false; started=true; break;
 		default: throw std::runtime_error("invalid state"); break;
 	}
-	runCommand(_func, "qmgr", {"-c", "set queue " + name + " enabled="+(enabled ? "true" : "false") + ",started="+(started ? "true" : "false")});
+	runCommand(_func, {"qmgr", {"-c", "set queue " + name + " enabled="+(enabled ? "true" : "false") + ",started="+(started ? "true" : "false")}});
 }
 
 void PbsBatch::changeNodeState(const std::string& name, NodeChangeState state, bool, const std::string& reason, bool appendReason) const {
@@ -470,23 +485,22 @@ void PbsBatch::changeNodeState(const std::string& name, NodeChangeState state, b
 		case NodeChangeState::Undrain: stateArg="-c"; break;
 		default: throw std::runtime_error("invalid state");
 	}
-	runCommand(_func, "pbsnodes", {stateArg, name, appendReason ? "-A" : "-N", reason});
+	runCommand(_func, {"pbsnodes", {stateArg, name, appendReason ? "-A" : "-N", reason}});
 }
 void PbsBatch::releaseJob(const std::string& job, bool) const {
-	runCommand(_func, "qrls", {job});
+	runCommand(_func, {"qrls", {job}});
 }
 void PbsBatch::holdJob(const std::string& job, bool) const {
-	runCommand(_func, "qhold", {job});
+	runCommand(_func, {"qhold", {job}});
 }
 void PbsBatch::suspendJob(const std::string& job, bool) const {
-	runCommand(_func, "qsig", {"-s", "suspend", job});
+	runCommand(_func, {"qsig", {"-s", "suspend", job}});
 }
 void PbsBatch::resumeJob(const std::string& job, bool) const {
-	runCommand(_func, "qsig", {"-s", "resume", job});
+	runCommand(_func, {"qsig", {"-s", "resume", job}});
 }
 void PbsBatch::getJobsByUser(const std::string& user, std::function<bool(std::string)> inserter) const {
-	std::stringstream out = runCommand(_func, "qselect", {"-u", user});
-	std::string userjobsStr = out.str();
+	std::string userjobsStr = runCommand(_func, {"qselect", {"-u", user}});
 	splitString(userjobsStr, "\n", [&](size_t start, size_t end) {
 		std::string job=trim_copy(userjobsStr.substr(start, end));
 		if (!job.empty()) {
@@ -503,19 +517,19 @@ void PbsBatch::deleteJobByUser(const std::string& user, bool force) const {
 	// qdel -u only supported by SGE https://stackoverflow.com/questions/28857807/use-qdel-to-delete-all-my-jobs-at-once-not-one-at-a-time
 	// instead manually query jobs of user first and then delete them
 	getJobsByUser(user, [&](std::string job){args.push_back(job);return true;});
-	runCommand(_func, "qdel", args);
+	runCommand(_func, {"qdel", args});
 }
 void PbsBatch::deleteJobById(const std::string& job, bool force) const {
 	std::vector<std::string> args;
 	if (force) args.push_back("-p"); // purge forces job to be deleted
 	args.push_back(job);
-	runCommand(_func, "qdel", args);
+	runCommand(_func, {"qdel", args});
 }
 void PbsBatch::rescheduleRunningJobInQueue(const std::string& name, bool force) const {
 	std::vector<std::string> args;
 	if (force) args.push_back("-f");
 	args.push_back(name);
-	runCommand(_func, "qrerun", args);
+	runCommand(_func, {"qrerun", args});
 }
 
 }
