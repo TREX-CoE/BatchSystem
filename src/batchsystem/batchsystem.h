@@ -452,17 +452,20 @@ typedef void resumeJob_f(const std::string& job, bool force);
  */
 typedef void rescheduleRunningJobInQueue_f(const std::string& job, bool force);
 
+/**
+ * \brief Shell command options to execute
+ *
+ */
 struct CmdOptions {
-	std::string cmd;
-	std::vector<std::string> args;
+	std::string cmd; //!< cmd to execute
+	std::vector<std::string> args; //!< args to pass to cmd
 };
 
 /**
  * \brief Callback for batchsystem implementations to call shell command.
  * 
  * \param[out] out Shell output is passed to this stringstream
- * \param cmd Command to run
- * \param args Arguments to pass to command
+ * \param opts Command and arguments to run
  */
 typedef int cmd_execute_f(std::string& out, const CmdOptions& opts);
 
