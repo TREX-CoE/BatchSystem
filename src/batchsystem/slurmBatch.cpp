@@ -540,8 +540,10 @@ void SlurmBatch::parseSacct(const std::string& output, std::function<bool(std::m
 
 	std::string line;
 
-	// parse header
-	getline(commandResult, line);
+	// parse header (skip empty lines)
+	while (line.empty()) getline(commandResult, line);
+
+
 	std::vector<std::string> header;
 	splitString(line, "|", [&](size_t start, size_t end) {
 		header.push_back(line.substr(start, end));
@@ -554,6 +556,7 @@ void SlurmBatch::parseSacct(const std::string& output, std::function<bool(std::m
 		if (line.empty()) continue;
 		size_t i = 0;
 		splitString(line, "|", [&](size_t start, size_t end) {
+			if (i == header.size()) return false;
 			job[header[i]]=line.substr(start, end);
 			++i;
 			return true;
