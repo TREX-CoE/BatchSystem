@@ -389,11 +389,12 @@ void LsfBatch::getQueues(std::function<getQueues_inserter_f> insert) const {
 
 void LsfBatch::setQueueState(const std::string& name, QueueState state, bool) const {
 	switch (state) {
-		case QueueState::Unknown: return;
+		case QueueState::Unknown: throw std::runtime_error("unknown state");
 		case QueueState::Open: runCommand(_func, "badmin", {"qopen", name}); break;
 		case QueueState::Closed: runCommand(_func, "badmin", {"qclose", name}); break;
 		case QueueState::Inactive: throw std::runtime_error("inactive not supported");
 		case QueueState::Draining: throw std::runtime_error("draining not supported");
+		default: throw std::runtime_error("invalid state");
 	}
 }
 
@@ -408,6 +409,8 @@ void LsfBatch::changeNodeState(const std::string& name, NodeChangeState state, b
 			break;
 		case NodeChangeState::Undrain:
 			throw std::runtime_error("Undrain not supported for LSF");
+		default:
+			throw std::runtime_error("invalid state");
 	}
 }
 

@@ -93,7 +93,7 @@ void PbsBatch::getNodes(std::function<getNodes_inserter_f> insert) const {
 			else if(name=="jobs")
 			{
 				std::string joblist = xml_node_to_str(child);
-				size_t count = 0;
+				uint32_t count = 0;
 				splitString(joblist, ",", [&](size_t start, size_t end) {
 					std::string jobinfo=trim_copy(joblist.substr(start, end));
 					jobinfo=jobinfo.substr(0,jobinfo.find('.'));
@@ -452,11 +452,12 @@ void PbsBatch::setQueueState(const std::string& name, QueueState state, bool) co
 	bool enabled = false;
 	bool started = false;
 	switch (state) {
-		case QueueState::Unknown: return;
+		case QueueState::Unknown: throw std::runtime_error("unknown state");
 		case QueueState::Open: enabled=true; started=true; break;
 		case QueueState::Closed: enabled=false; started=false; break;
 		case QueueState::Inactive: enabled=true; started=false; break;
 		case QueueState::Draining: enabled=false; started=true; break;
+		default: throw std::runtime_error("invalid state"); break;
 	}
 	runCommand(_func, "qmgr", {"-c", "set queue " + name + " enabled="+(enabled ? "true" : "false") + ",started="+(started ? "true" : "false")});
 }
@@ -467,6 +468,7 @@ void PbsBatch::changeNodeState(const std::string& name, NodeChangeState state, b
 		case NodeChangeState::Resume: stateArg="-r"; break;
 		case NodeChangeState::Drain: stateArg="-o"; break;
 		case NodeChangeState::Undrain: stateArg="-c"; break;
+		default: throw std::runtime_error("invalid state");
 	}
 	runCommand(_func, "pbsnodes", {stateArg, name, appendReason ? "-A" : "-N", reason});
 }

@@ -14,6 +14,11 @@ FIND_PACKAGE(PkgConfig REQUIRED) # workaround else PKG_SEARCH_MODULE isn't found
 PKG_SEARCH_MODULE(LIBXMLPP REQUIRED libxml++-2.6 libxml++-3.0)
 message(STATUS "libxml++: ${LIBXMLPP_LIBRARIES}")
 
+if(NOT_SUBPROJECT)
+    # use custom flags if compiled as main project only, else use parent projects
+    set( CMAKE_CXX_FLAGS "-Werror -Wall -Wextra -pedantic -Wshadow -Wswitch-enum -Wpointer-arith -Wwrite-strings -Wunreachable-code -Wformat=2 -Wundef -Wredundant-decls -Wcast-align -Wcast-qual -Wctor-dtor-privacy -Wdisabled-optimization -Wformat=2 -Winit-self -Wlogical-op -Wmissing-include-dirs -Wnoexcept -Woverloaded-virtual -Wredundant-decls -Wsign-promo -Wstrict-null-sentinel -Wstrict-overflow=1 -Wundef -Wno-deprecated-copy -Wfloat-equal -Wswitch-default -Wsign-conversion -Wconversion  -Wold-style-cast -Wstrict-overflow=2")
+  endif(NOT_SUBPROJECT)
+
 add_subdirectory(src/)
 
 if(NOT_SUBPROJECT)

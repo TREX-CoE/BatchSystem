@@ -19,8 +19,8 @@ const char* to_cstr(const JobState& state) {
 		case JobState::Moved: return "moved";
 		case JobState::Suspend: return "suspend";
 		case JobState::Zombie: return "zombie";
+		default: return "invalid";
 	}
-	return "unknown";
 }
 
 const char* to_cstr(const QueueState& state) {
@@ -30,8 +30,8 @@ const char* to_cstr(const QueueState& state) {
 		case QueueState::Closed: return "closed";
 		case QueueState::Inactive: return "inactive";
 		case QueueState::Draining: return "draining";
+		default: return "invalid";
 	}
-	return "unknown";
 }
 
 const char* to_cstr(const NodeState& state) {
@@ -45,8 +45,8 @@ const char* to_cstr(const NodeState& state) {
 		case NodeState::Reserved: return "reserved";
 		case NodeState::Maintainence: return "maintainence";
 		case NodeState::Failed: return "failed";
+		default: return "invalid";
 	}
-	return "unknown";
 }
 
 }

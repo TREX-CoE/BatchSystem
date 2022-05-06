@@ -53,7 +53,7 @@ JobState parseJobState(const std::string& str) {
 
 bool getMatches(const std::regex& r, const std::string& s, size_t offset, std::vector<std::ssub_match>& matches, bool search=true) {
 	std::smatch base_match;
-	bool status = search ? std::regex_search(s.begin()+offset, s.end(), base_match, r) : std::regex_match(s.begin()+offset, s.end(), base_match, r);
+	bool status = search ? std::regex_search(s.begin()+static_cast<ssize_t>(offset), s.end(), base_match, r) : std::regex_match(s.begin()+static_cast<ssize_t>(offset), s.end(), base_match, r);
 	if (status) {
 		for (size_t i = 0; i < base_match.size(); ++i) {
 			matches.push_back(base_match[i]);
@@ -116,7 +116,7 @@ std::vector<std::string> nodelist_helper(const std::string& nodeList) {
 						std::string nodeStart=posRange[1].str();
 						std::string nodeEnd=posRange[2].str();
 
-						offsetRange=std::distance(range.cbegin(), posRange[2].second);
+						offsetRange=static_cast<size_t>(std::distance(range.cbegin(), posRange[2].second));
 
 						int nodeIdStart=-1;
 						int nodeIdEnd=-1;
@@ -134,7 +134,7 @@ std::vector<std::string> nodelist_helper(const std::string& nodeList) {
 
 						if(nodeIdStart>=0 && nodeIdEnd>=0)
 						{
-							padding=nodeEnd.length();
+							padding=static_cast<int>(nodeEnd.length());
 
 							for(int i=nodeIdStart;i<=nodeIdEnd;i++)
 							{
@@ -146,7 +146,7 @@ std::vector<std::string> nodelist_helper(const std::string& nodeList) {
 					}
 					else if(nodeMatched)
 					{
-						offsetRange=std::distance(range.cbegin(), posNode[1].second);
+						offsetRange=static_cast<size_t>(std::distance(range.cbegin(), posNode[1].second));
 						nodes.push_back(nodeName+posNode[1].str());
 					}
 					else
@@ -155,12 +155,12 @@ std::vector<std::string> nodelist_helper(const std::string& nodeList) {
 					}
 				}
 
-				pos=std::distance(nodeList.cbegin(), posNodes[2].second);
+				pos=static_cast<size_t>(std::distance(nodeList.cbegin(), posNodes[2].second));
 			}
 			else if (getMatches(regSingleNode, subValue, 0, posNodes) && posNodes.size()==1)
 			{
 				nodes.push_back(posNodes[0].str());
-				pos=std::distance(nodeList.begin(), posNodes[0].second);
+				pos=static_cast<size_t>(std::distance(nodeList.begin(), posNodes[0].second));
 			}
 
 			pos=nodeList.find(',',pos);
@@ -695,6 +695,7 @@ void SlurmBatch::changeNodeState(const std::string& name, NodeChangeState state,
 		case NodeChangeState::Resume: stateString="RESUME"; break;
 		case NodeChangeState::Drain: stateString="DRAIN"; break;
 		case NodeChangeState::Undrain: stateString="UNDRAIN"; break;
+		default: throw std::runtime_error("invalid state"); 
 	} 
 	std::vector<std::string> args{"update", "NodeName=" + name, "State="+stateString};
 	// add reason if needed and force default if empty as needed by slurm!
@@ -728,11 +729,12 @@ void SlurmBatch::resumeJob(const std::string& job, bool) const {
 void SlurmBatch::setQueueState(const std::string& name, QueueState state, bool) const {
 	std::string stateStr;
 	switch (state) {
-		case QueueState::Unknown: return;
+		case QueueState::Unknown: throw std::runtime_error("unknown state");
 		case QueueState::Open: stateStr="UP"; break;
 		case QueueState::Closed: stateStr="DOWN"; break;
 		case QueueState::Inactive: stateStr="INACTIVE"; break;
 		case QueueState::Draining: stateStr="DRAIN"; break;
+		default: throw std::runtime_error("unknown state");
 	}
 	runCommand(_func, "scontrol", {"update", "PartitionName=" + name, "State="+stateStr});
 }
