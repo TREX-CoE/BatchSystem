@@ -134,6 +134,11 @@ CmdOptions LsfBatch::getNodesCmd() {
 void LsfBatch::getNodes(std::function<getNodes_inserter_f> insert) const {
 	parseNodes(runCommand(_func, getNodesCmd()), insert);
 }
+void LsfBatch::getNodes(const std::vector<std::string>& filterNodes, std::function<getNodes_inserter_f> insert) const {
+	CmdOptions opts = getNodesCmd();
+	for (const auto& n: filterNodes) opts.args.push_back(n);
+	parseNodes(runCommand(_func, opts), insert);
+}
 
 void LsfBatch::parseJobs(const std::string& output, std::function<getJobs_inserter_f> insert) {
 	std::stringstream commandResult(output);

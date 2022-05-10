@@ -22,6 +22,7 @@ public:
 	static void parseNodes(const std::string& output, std::function<getNodes_inserter_f> insert);
 	static CmdOptions getNodesCmd();
 	void getNodes(std::function<getNodes_inserter_f> insert) const;
+	void getNodes(const std::vector<std::string>& filterNodes, std::function<getNodes_inserter_f> insert) const;
 	static void parseJobs(const std::string& output, std::function<getJobs_inserter_f> insert);
 	static CmdOptions getJobsCmd();
 	void getJobs(std::function<getJobs_inserter_f> insert) const;

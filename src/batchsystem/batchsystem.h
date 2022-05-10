@@ -289,9 +289,12 @@ typedef bool getNodes_inserter_f(Node node);
  * 
  * Query batchsystem for node informations.
  * 
+ * \note if node in filterNodes is missing no execption is thrown, the batchsystem tries return info for the other nodes queried but some implementations will not get info for any node 
+ *
+ * \param filterNodes Query only selected nodes or all if empty
  * \param insert Callback to get next Node
  */
-typedef void getNodes_f(std::function<getNodes_inserter_f> insert);
+typedef void getNodes_f(const std::vector<std::string>& filterNodes, std::function<getNodes_inserter_f> insert);
 
 /**
  * \brief Get next Job struct from batchsystem
