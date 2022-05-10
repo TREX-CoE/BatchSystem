@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <sstream>
+#include <numeric>
 #include <regex>
 #include <iomanip>
 
@@ -219,6 +220,10 @@ void SlurmBatch::parseNodes(const std::string& output, std::function<getNodes_in
 	while(commandResult.good())
 	{
 		getline(commandResult,tmp);
+		// skip empty lines
+		if (tmp.empty()) continue;
+		// skip Node a not found lines
+		if (tmp.rfind("Node ", 0) == 0) continue;
 
 		buffer.clear();
 		buffer.str("");
@@ -237,7 +242,8 @@ void SlurmBatch::parseNodes(const std::string& output, std::function<getNodes_in
 
 				if(name=="NodeName")
 				{
-					if (!node.name.get().empty()) {
+					if (node.name.has_value()) {
+						std::cout << "insert " << node.name.get() << std::endl;
 						if (!insert(std::move(node))) return;
 						node = Node{}; // reset to default
 					}
@@ -302,14 +308,27 @@ void SlurmBatch::parseNodes(const std::string& output, std::function<getNodes_in
 			}
 		}
 	}
+	// check after last line if as uninserted node
+	if (node.name.has_value()) insert(std::move(node));
 }
 
 CmdOptions SlurmBatch::getNodesCmd() {
 	return {"scontrol", {"show", "node", "--all"}};
 }
+void SlurmBatch::getNodes(const std::vector<std::string>& filterNodes, std::function<getNodes_inserter_f> insert) const {
+	CmdOptions opts{"scontrol", {"show"}};
+	if (filterNodes.empty()) {
+		opts.args.push_back(std::accumulate(filterNodes.begin(), filterNodes.end(), std::string(), [](const std::string &s1, const std::string &s2){
+			// join string with , separator
+			return s1.empty() ? s2 : (s1 + "," + s2);
+		}));
+	}
+	parseNodes(runCommand(_func, opts), insert);
+}
 void SlurmBatch::getNodes(std::function<getNodes_inserter_f> insert) const {
 	parseNodes(runCommand(_func, getNodesCmd()), insert);
 }
+
 
 void SlurmBatch::getJobs(std::function<getJobs_inserter_f> insert) const {
 	if (_useSacct) {

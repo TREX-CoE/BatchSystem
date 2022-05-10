@@ -71,7 +71,14 @@ BatchInfo PbsBatch::getBatchInfo() const {
 
 void PbsBatch::parseNodes(const std::string& output, std::function<getNodes_inserter_f> insert) {
 	xmlpp::DomParser parser;
-	parser.parse_memory(output);
+	std::string s(output);
+	ltrim(s); // skip empty lines etc.
+
+	if (s.rfind("pbsnodes: Unknown node"/*  MSG=cannot locate specified node*/) == 0) {
+		// just ignore missing node (-> user checks insert function calls to see if node found, more uniform way oterh batchsystems use this)
+		return;
+	}
+	parser.parse_memory(s);
 	const auto root = parser.get_document()->get_root_node();
 	const auto nodes = root->find("/Data/Node");
 
@@ -143,6 +150,13 @@ void PbsBatch::parseNodes(const std::string& output, std::function<getNodes_inse
 CmdOptions PbsBatch::getNodesCmd() {
 	return {"pbsnodes", {"-x"}};
 }
+
+void PbsBatch::getNodes(const std::vector<std::string>& filterNodes, std::function<getNodes_inserter_f> insert) const {
+	CmdOptions opts = getNodesCmd();
+	for (const auto& n : filterNodes) opts.args.push_back(n);
+	parseNodes(runCommand(_func, opts), insert);
+}
+
 void PbsBatch::getNodes(std::function<getNodes_inserter_f> insert) const {
 	parseNodes(runCommand(_func, getNodesCmd()), insert);
 }
