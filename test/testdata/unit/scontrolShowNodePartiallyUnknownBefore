@@ -1,0 +1,18 @@
+Node a not found
+Node b not found
+NodeName=gmz01 Arch=x86_64 CoresPerSocket=8 
+   CPUAlloc=0 CPUTot=128 CPULoad=0.00
+   AvailableFeatures=(null)
+   ActiveFeatures=(null)
+   Gres=(null)
+   NodeAddr=gmz01 NodeHostName=gmz01 Version=20.02.3
+   OS=Linux 4.18.0-193.28.1.el8_2.x86_64 #1 SMP Thu Oct 22 00:20:22 UTC 2020 
+   RealMemory=1 AllocMem=0 FreeMem=253909 Sockets=8 Boards=1
+   State=IDLE ThreadsPerCore=2 TmpDisk=0 Weight=1 Owner=N/A MCS_label=N/A
+   Partitions=ALL,CPU_7452,OS_CENTOS8 
+   BootTime=2021-03-10T09:21:06 SlurmdStartTime=2021-04-21T16:50:40
+   CfgTRES=cpu=128,mem=1M,billing=128
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/s ExtSensorsWatts=0 ExtSensorsTemp=n/s

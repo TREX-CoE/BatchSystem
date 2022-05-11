@@ -557,16 +557,12 @@ void SlurmBatch::getJobsSacct(std::function<getJobs_inserter_f> insert) const {
 }
 
 void SlurmBatch::parseSacct(const std::string& output, std::function<bool(std::map<std::string, std::string>)> insert) {
-
 	std::stringstream commandResult(output);
-	std::stringstream buffer;
-	std::string tmp, name, value, jobid;
 
 	std::string line;
-
+	
 	// parse header (skip empty lines)
 	while (line.empty()) getline(commandResult, line);
-
 
 	std::vector<std::string> header;
 	splitString(line, "|", [&](size_t start, size_t end) {
@@ -575,9 +571,9 @@ void SlurmBatch::parseSacct(const std::string& output, std::function<bool(std::m
 	});
 	
 	while(commandResult.good()) {
-		std::map<std::string, std::string> job;
 		getline(commandResult, line);
 		if (line.empty()) continue;
+		std::map<std::string, std::string> job;
 		size_t i = 0;
 		splitString(line, "|", [&](size_t start, size_t end) {
 			if (i == header.size()) return false;

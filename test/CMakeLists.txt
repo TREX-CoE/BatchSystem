@@ -1,6 +1,6 @@
 add_subdirectory(Catch2)
 # These tests can use the Catch2-provided main
-add_executable(tests test.cpp)
+add_executable(tests unit.cpp internal.cpp full.cpp)
 
 set_target_properties( Catch2 PROPERTIES COMPILE_FLAGS "-w" )
 set_target_properties( tests PROPERTIES COMPILE_FLAGS "-Wno-ctor-dtor-privacy" )
