@@ -69,6 +69,11 @@ BatchInfo PbsBatch::getBatchInfo() const {
 	return info;
 }
 
+bool PbsBatch::detect() const {
+	std::string out;
+	return _func(out, {"pbs-config", {"--version"}}) == 0;
+}
+
 void PbsBatch::parseNodes(const std::string& output, std::function<getNodes_inserter_f> insert) {
 	xmlpp::DomParser parser;
 	std::string s(output);

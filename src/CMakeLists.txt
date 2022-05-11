@@ -6,6 +6,7 @@ set( batchsystem_SRC
         batchsystem/pbs.cpp
         batchsystem/slurmBatch.cpp
         batchsystem/slurm.cpp
+        batchsystem/factory.cpp
         batchsystem/json.cpp
 )
 
@@ -23,6 +24,7 @@ set( batchsystem_HDR
         batchsystem/slurmBatch.h
         batchsystem/slurm.h
         batchsystem/json.h
+        batchsystem/factory.h
         batchsystem/policyOptional.h
 )
 

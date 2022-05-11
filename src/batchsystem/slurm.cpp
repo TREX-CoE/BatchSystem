@@ -31,6 +31,10 @@ namespace cw {
 namespace batch {
 namespace slurm {
 
+bool detect(std::function<cmd_execute_f> _func) {
+	return SlurmBatch(_func, false).detect();
+}
+
 void create_batch(BatchSystem& inf, std::function<cmd_execute_f> _func, bool useSacct) {
 	::create_batch(inf, SlurmBatch(_func, useSacct));
 }

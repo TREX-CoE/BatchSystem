@@ -18,7 +18,7 @@ private:
 	std::function<cmd_execute_f> _func;
 public:
 	PbsBatch(std::function<cmd_execute_f> func);
-	
+	bool detect() const;
 	std::string runJob(const JobOptions& opts) const;
 	BatchInfo getBatchInfo() const;
 	static void parseNodes(const std::string& output, std::function<getNodes_inserter_f> insert);

@@ -209,6 +209,11 @@ BatchInfo SlurmBatch::getBatchInfo() const {
 	return info;
 }
 
+bool SlurmBatch::detect() const {
+	std::string out;
+	return _func(out, {"sinfo", {"--version"}}) == 0;
+}
+
 void SlurmBatch::parseNodes(const std::string& output, std::function<getNodes_inserter_f> insert) {
 	std::stringstream commandResult(output);
 

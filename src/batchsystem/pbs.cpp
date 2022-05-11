@@ -10,6 +10,10 @@ namespace cw {
 namespace batch {
 namespace pbs {
 
+bool detect(std::function<cmd_execute_f> _func) {
+	return PbsBatch(_func).detect();
+}
+
 void create_batch(BatchSystem& inf, std::function<cmd_execute_f> _func) {
 	PbsBatch state(_func);
 	inf.runJob = [state](auto... args){ return state.runJob(args...); };

@@ -21,6 +21,8 @@ public:
 	SlurmBatch(std::function<cmd_execute_f> func);
 	SlurmBatch(std::function<cmd_execute_f> func, bool useSacct);
 
+	bool detect() const;
+	
 	/**
 	 * \brief Check if sacct executable is present and can be queried
 	 * 

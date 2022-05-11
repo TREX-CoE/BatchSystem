@@ -13,6 +13,14 @@ namespace batch {
 namespace slurm {
 
 /**
+ * \brief Detect wether batchsystem exists
+ * 
+ * \param _func Function to call shell commands
+ * \return Wether batchsystem has been found
+ */
+bool detect(std::function<cmd_execute_f> _func);
+
+/**
  * \brief Initialize batchsystem interface with Slurm implementation (autodetect sacct)
  * 
  * This variant calls sacct to check wether it is available and queryable (slurmdbd running) and use that instead of scontrol for job infos.

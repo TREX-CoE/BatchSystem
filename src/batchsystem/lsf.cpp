@@ -12,6 +12,10 @@ namespace cw {
 namespace batch {
 namespace lsf {
 
+bool detect(std::function<cmd_execute_f> _func) {
+	return LsfBatch(_func).detect();
+}
+
 void create_batch(BatchSystem& inf, std::function<cmd_execute_f> _func) {
 	LsfBatch state(_func);
 	inf.getNodes = [state](auto... args){ state.getNodes(args...); };

@@ -19,6 +19,7 @@ private:
 public:
 	LsfBatch(std::function<cmd_execute_f> func);
 
+	bool detect() const;
 	static void parseNodes(const std::string& output, std::function<getNodes_inserter_f> insert);
 	static CmdOptions getNodesCmd();
 	void getNodes(std::function<getNodes_inserter_f> insert) const;

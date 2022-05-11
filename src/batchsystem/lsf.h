@@ -13,6 +13,14 @@ namespace batch {
 namespace lsf {
 
 /**
+ * \brief Detect wether batchsystem exists
+ * 
+ * \param _func Function to call shell commands
+ * \return Wether batchsystem has been found
+ */
+bool detect(std::function<cmd_execute_f> _func);
+
+/**
  * \brief Initialize batchsystem interface with LSF implementation
  * 
  * \param[out] inf Interface object to set

@@ -1,5 +1,5 @@
-#ifndef __CW_BASE_BATCH_SYSTEM_CATCHER__
-#define __CW_BASE_BATCH_SYSTEM_CATCHER__
+#ifndef __CW_BATCHSYSTEM_BATCHSYSTEM__
+#define __CW_BATCHSYSTEM_BATCHSYSTEM__
 
 #include <string>
 #include <vector>
@@ -509,4 +509,4 @@ struct BatchSystem
 }
 }
 
-#endif /* __CW_BASE_BATCH_SYSTEM_CATCHER__ */
+#endif /* __CW_BATCHSYSTEM_BATCHSYSTEM__ */

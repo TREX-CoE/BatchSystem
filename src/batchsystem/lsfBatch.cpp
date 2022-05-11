@@ -140,6 +140,11 @@ void LsfBatch::getNodes(const std::vector<std::string>& filterNodes, std::functi
 	parseNodes(runCommand(_func, opts), insert);
 }
 
+bool LsfBatch::detect() const {
+	std::string out;
+	return _func(out, {"bjobs", {"--version"}}) == 0;
+}
+
 void LsfBatch::parseJobs(const std::string& output, std::function<getJobs_inserter_f> insert) {
 	std::stringstream commandResult(output);
 
