@@ -15,6 +15,7 @@ set( batchsystem_HDR
         batchsystem/internal/runCommand.h
         batchsystem/internal/splitString.h
         batchsystem/internal/streamCast.h
+        batchsystem/internal/joinString.h
         batchsystem/internal/timeToEpoch.h
         batchsystem/batchsystem.h
         batchsystem/lsfBatch.h

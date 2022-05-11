@@ -103,8 +103,10 @@ public:
 	 * 
 	 * \param insert 
 	 * \param stateFilter Comma separated States to filter
+	 * \param filterJobs jobs to filter
 	 */
 	void getJobsSacct(std::function<getJobs_inserter_f> insert, const std::string& stateFilter) const;
+	void getJobsSacct(std::function<getJobs_inserter_f> insert, const std::string& stateFilter, const std::vector<std::string>& filterJobs) const;
 
 
 	static void parseQueues(const std::string& output, std::function<getQueues_inserter_f> insert);

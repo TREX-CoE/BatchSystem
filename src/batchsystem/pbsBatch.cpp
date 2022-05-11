@@ -80,7 +80,7 @@ void PbsBatch::parseNodes(const std::string& output, std::function<getNodes_inse
 	ltrim(s); // skip empty lines etc.
 
 	if (s.rfind("pbsnodes: Unknown node"/*  MSG=cannot locate specified node*/) == 0) {
-		// just ignore missing node (-> user checks insert function calls to see if node found, more uniform way oterh batchsystems use this)
+		// just ignore missing node (-> user checks insert function calls to see if node found, more uniform way other batchsystems use this)
 		return;
 	}
 	parser.parse_memory(s);

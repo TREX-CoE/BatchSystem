@@ -11,6 +11,7 @@
 #include "batchsystem/internal/streamCast.h"
 #include "batchsystem/internal/splitString.h"
 #include "batchsystem/internal/timeToEpoch.h"
+#include "batchsystem/internal/joinString.h"
 
 using namespace cw::batch;
 using namespace cw::batch::internal;
@@ -323,10 +324,7 @@ CmdOptions SlurmBatch::getNodesCmd() {
 void SlurmBatch::getNodes(const std::vector<std::string>& filterNodes, std::function<getNodes_inserter_f> insert) const {
 	CmdOptions opts{"scontrol", {"show"}};
 	if (filterNodes.empty()) {
-		opts.args.push_back(std::accumulate(filterNodes.begin(), filterNodes.end(), std::string(), [](const std::string &s1, const std::string &s2){
-			// join string with , separator
-			return s1.empty() ? s2 : (s1 + "," + s2);
-		}));
+		opts.args.push_back(internal::joinString(filterNodes.begin(), filterNodes.end(), ","));
 	}
 	parseNodes(runCommand(_func, opts), insert);
 }
@@ -553,7 +551,7 @@ std::string SlurmBatch::runJob(const JobOptions& opts) const {
 }
 
 void SlurmBatch::getJobsSacct(std::function<getJobs_inserter_f> insert) const {
-	getJobsSacct(insert, "PD,R,RQ,S"); // show only active jobs
+	getJobsSacct(insert, "PD,R,RQ,S", {}); // show only active jobs
 }
 
 void SlurmBatch::parseSacct(const std::string& output, std::function<bool(std::map<std::string, std::string>)> insert) {
@@ -594,7 +592,7 @@ void SlurmBatch::parseJobsSacct(const std::string& output, std::function<getJobs
 	});
 }
 
-void SlurmBatch::getJobsSacct(std::function<getJobs_inserter_f> insert, const std::string& stateFilter) const {
+void SlurmBatch::getJobsSacct(std::function<getJobs_inserter_f> insert, const std::string& stateFilter, const std::vector<std::string>& filterJobs) const {
 	std::vector<std::string> args{
 			"-X",
 			"-P",
@@ -604,6 +602,11 @@ void SlurmBatch::getJobsSacct(std::function<getJobs_inserter_f> insert, const st
 	if (!stateFilter.empty()) {
 		args.push_back("--state");
 		args.push_back(stateFilter);
+	}
+	if (!filterJobs.empty()) {
+		args.push_back("-j");
+		args.push_back(internal::joinString(filterJobs.begin(), filterJobs.end(), ","));
+
 	}
 	parseJobsSacct(runCommand(_func, {"sacct", args}), insert);
 }
