@@ -506,6 +506,13 @@ struct BatchSystem
 	std::function<rescheduleRunningJobInQueue_f> rescheduleRunningJobInQueue;
 };
 
+
+class BatchInterface {
+public:
+	virtual bool getNodesAsync(const std::vector<std::string>& filterNodes, std::function<getNodes_inserter_f> insert) = 0;
+	virtual ~BatchInterface() {}
+};
+
 }
 }
 

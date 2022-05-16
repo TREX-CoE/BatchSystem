@@ -166,6 +166,23 @@ void PbsBatch::getNodes(std::function<getNodes_inserter_f> insert) const {
 	parseNodes(runCommand(_func, getNodesCmd()), insert);
 }
 
+bool PbsBatch::getNodesAsync(const std::vector<std::string>& filterNodes, std::function<getNodes_inserter_f> insert) {
+	CmdOptions opts = getNodesCmd();
+	for (const auto& n : filterNodes) opts.args.push_back(n);
+
+	std::string out;
+	int ret = _func(out, opts);
+	if (ret == -1) {
+		return false;
+	} else if (ret > 0) {
+		throw CommandFailed("Command failed", {"pbsnodes", "-x"}, ret);
+	} else {
+		parseNodes(out, insert);
+		return true;
+	}
+}
+
+
 // see man pbs_job_attributes 
 void PbsBatch::parseJobs(const std::string& output, std::function<getJobs_inserter_f> insert) {
 	xmlpp::DomParser parser;

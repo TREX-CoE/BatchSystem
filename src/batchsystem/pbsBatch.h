@@ -13,10 +13,13 @@ namespace pbs {
  * Wrapped within generic interface via \ref cw::batch::pbs::create_batch.
  * 
  */
-class PbsBatch {
+class PbsBatch : public BatchInterface {
 private:
 	std::function<cmd_execute_f> _func;
+	std::map<std::vector<std::string>, std::string> _cache;
 public:
+	virtual bool getNodesAsync(const std::vector<std::string>& filterNodes, std::function<getNodes_inserter_f> insert);
+
 	PbsBatch(std::function<cmd_execute_f> func);
 	bool detect() const;
 	std::string runJob(const JobOptions& opts) const;
