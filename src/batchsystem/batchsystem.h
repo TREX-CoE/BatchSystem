@@ -296,18 +296,6 @@ public:
 typedef bool getNodes_inserter_f(Node node);
 
 /**
- * \brief Get Node structs information from batchsystem
- * 
- * Query batchsystem for node informations.
- * 
- * \note if node in filterNodes is missing no execption is thrown, the batchsystem tries return info for the other nodes queried but some implementations will not get info for any node 
- *
- * \param filterNodes Query only selected nodes or all if empty
- * \param insert Callback to get next Node
- */
-typedef void getNodes_f(const std::vector<std::string>& filterNodes, std::function<getNodes_inserter_f> insert);
-
-/**
  * \brief Get next Job struct from batchsystem
  * 
  * Iterator like callback that passes next Job as parameter and allows stopping via return value.
@@ -319,15 +307,6 @@ typedef void getNodes_f(const std::vector<std::string>& filterNodes, std::functi
 typedef bool getJobs_inserter_f(Job job);
 
 /**
- * \brief Get Job structs information from batchsystem
- * 
- * Query batchsystem for job informations.
- * 
- * \param insert Callback to get next Job
- */
-typedef void getJobs_f(std::function<getJobs_inserter_f> insert);
-
-/**
  * \brief Get next Queue struct from batchsystem
  * 
  * Iterator like callback that passes next Queue as parameter and allows stopping via return value.
@@ -337,130 +316,6 @@ typedef void getJobs_f(std::function<getJobs_inserter_f> insert);
  * \return Wether to stop iterating 
  */
 typedef bool getQueues_inserter_f(Queue queue);
-
-/**
- * \brief Get Queue structs information from batchsystem
- * 
- * Query batchsystem for queue informations.
- * 
- * \param insert Callback to get next Queue
- */
-typedef void getQueues_f(std::function<getQueues_inserter_f> insert);
-
-/**
- * \brief Get batchsystem information
- * 
- * Get metadata for used batchsystem and version.
- * 
- * \return batchsystem info metadata 
- */
-typedef BatchInfo getBatchInfo_f();
-
-/**
- * \brief Delete job by Id
- * 
- * \param job Id of job to delete
- * \param force Force delete
- */
-typedef void deleteJobById_f(const std::string& job, bool force);
-
-/**
- * \brief Delete job(s) by user
- * 
- * \param user User of job(s) to delete
- * \param force Force delete
- */
-typedef void deleteJobByUser_f(const std::string& user, bool force);
-
-/**
- * \brief Change Node state
- * 
- * \param name Name of node to change
- * \param state Event to trigger to change node state
- * \param force Wether to force node change
- * \param reason Reason of node change
- * \param appendReason Wether reason should be appended instead of overwritten
- */
-typedef void changeNodeState_f(const std::string& name, NodeChangeState state, bool force, const std::string& reason, bool appendReason);
-
-/**
- * \brief Set the QueueState
- * 
- * Change the queue state.
- * 
- * \param name Name of the queue to change state
- * \param state State to change to
- * \param force Wether to force state change
- */
-typedef void setQueueState_f(const std::string& name, QueueState state, bool force);
-
-/**
- * \brief Schedule job to run on batchsystem
- * 
- * \param opts Options for job to run
- * \return Job Id of scheduled job 
- */
-typedef std::string runJob_f(const JobOptions& opts);
-
-/**
- * \brief Set the node comment
- * 
- * \param name Node to set comment for
- * \param comment Comment string to set
- * \param appendComment Wether to append comment instead of overwritting
- */
-typedef void setNodeComment_f(const std::string& name, bool, const std::string& comment, bool appendComment);
-
-/**
- * \brief Prevent a pending job from being run
- * 
- * Reverse of \ref releaseJob_f operation.
- * 
- * \param job Id of job to hold
- * \param force Wether to force hold
- */
-typedef void holdJob_f(const std::string& job, bool force);
-
-/**
- * \brief Release a job that has been hold before to start execution
- * 
- * Reverse of \ref holdJob_f operation.
- * 
- * \param job Id of job to release
- * \param force Wether to force release
- */
-typedef void releaseJob_f(const std::string& job, bool force);
-
-/**
- * \brief Suspend a running job
- * 
- * Reverse of \ref resumeJob_f operation.
- * 
- * \param job Id of job to suspend
- * \param force Wether to force suspend
- */
-typedef void suspendJob_f(const std::string& job, bool force);
-
-/**
- * \brief Resume a job that was suspended before
- * 
- * Reverse of \ref suspendJob_f operation.
- * 
- * \param job Id of job to resume
- * \param force Wether to force resume
- */
-typedef void resumeJob_f(const std::string& job, bool force);
-
-
-/**
- * \brief Requeue a job into a waiting state
- * 
- * Running / supended / finished job is put back into a pending state.
- * 
- * \param job Id of job to requeue
- * \param force Wether to force reque
- */
-typedef void rescheduleRunningJobInQueue_f(const std::string& job, bool force);
 
 /**
  * \brief Callback for batchsystem implementations to call shell command.
@@ -480,41 +335,172 @@ typedef int cmd_execute_f(std::string& out, const CmdOptions& opts);
  * Function objects can throw exceptions to signal errors.
  * Provided implementations do and custom implementations should throw a \ref CommandFailed exception,
  * if they call a shell command that fails.
- * 
- * \warning
- * Each function object can be null, meaning not implemented/supported.
- * So null checking is required before calling.
  */
-struct BatchSystem
-{
-	std::function<getNodes_f> getNodes;
-	std::function<getJobs_f> getJobs;
-	std::function<getQueues_f> getQueues;
-
-	std::function<getBatchInfo_f> getBatchInfo;
-
-	std::function<deleteJobById_f> deleteJobById;
-	std::function<deleteJobByUser_f> deleteJobByUser;
-
-	std::function<changeNodeState_f> changeNodeState;
-	std::function<setQueueState_f> setQueueState;
-	
-	std::function<runJob_f> runJob;
-	std::function<setNodeComment_f> setNodeComment;
-	std::function<holdJob_f> holdJob;
-	std::function<releaseJob_f> releaseJob;
-	std::function<suspendJob_f> suspendJob;
-	std::function<resumeJob_f> resumeJob;
-	std::function<rescheduleRunningJobInQueue_f> rescheduleRunningJobInQueue;
-};
-
-
 class BatchInterface {
 public:
-	virtual bool getNodesAsync(const std::vector<std::string>& filterNodes, std::function<getNodes_inserter_f> insert) = 0;
-	virtual bool getQueuesAsync(std::function<getQueues_inserter_f> insert) = 0;
-	virtual void resetCache() = 0;
 	virtual ~BatchInterface() {}
+	
+	/**
+	 * @brief Check to detect batch interface.
+	 * 
+	 * @param[out] detected Set whether batch system is detected 
+	 * @return true if done
+	 */
+	virtual bool detect(bool& detected) = 0;
+
+	/**
+	 * @brief Reset internal cache
+	 * 
+	 */
+	virtual void resetCache() = 0;
+
+	/**
+	 * \brief Get Node structs information from batchsystem
+	 * 
+	 * Query batchsystem for node informations.
+	 * 
+	 * \note if node in filterNodes is missing no execption is thrown, the batchsystem tries return info for the other nodes queried but some implementations will not get info for any node 
+	 *
+	 * \param filterNodes Query only selected nodes or all if empty
+	 * \param insert Callback to get next Node
+	 */
+	virtual bool getNodes(const std::vector<std::string>& filterNodes, std::function<getNodes_inserter_f> insert) = 0;
+
+	/**
+	 * \brief Get Queue structs information from batchsystem
+	 * 
+	 * Query batchsystem for queue informations.
+	 * 
+	 * \param insert Callback to get next Queue
+	 */
+	virtual bool getQueues(std::function<getQueues_inserter_f> insert) = 0;
+
+	/**
+	 * \brief Get Job structs information from batchsystem
+	 * 
+	 * Query batchsystem for job informations.
+	 * 
+	 * \param insert Callback to get next Job
+	 */
+	virtual bool getJobs(std::function<getJobs_inserter_f> insert) = 0;
+
+	/**
+	 * \brief Get batchsystem information
+	 * 
+	 * Get metadata for used batchsystem and version.
+	 * 
+	 * \param[out] info batchsystem info metadata 
+	 * \return true if done
+	 */
+	virtual bool getBatchInfo(BatchInfo& info) = 0;
+
+	/**
+	 * \brief Delete job by Id
+	 * 
+	 * \param job Id of job to delete
+	 * \param force Force delete
+	 */
+	virtual bool deleteJobById(const std::string& job, bool force) = 0;
+
+	/**
+	 * \brief Delete job(s) by user
+	 * 
+	 * \param user User of job(s) to delete
+	 * \param force Force delete
+	 */
+	virtual bool deleteJobByUser(const std::string& user, bool force) = 0;
+
+	/**
+	 * \brief Change Node state
+	 * 
+	 * \param name Name of node to change
+	 * \param state Event to trigger to change node state
+	 * \param force Wether to force node change
+	 * \param reason Reason of node change
+	 * \param appendReason Wether reason should be appended instead of overwritten
+	 */
+	virtual bool changeNodeState(const std::string& name, NodeChangeState state, bool force, const std::string& reason, bool appendReason) = 0;
+
+	/**
+	 * \brief Set the QueueState
+	 * 
+	 * Change the queue state.
+	 * 
+	 * \param name Name of the queue to change state
+	 * \param state State to change to
+	 * \param force Wether to force state change
+	 */
+	virtual bool setQueueState(const std::string& name, QueueState state, bool force) = 0;
+
+	/**
+	 * \brief Schedule job to run on batchsystem
+	 * 
+	 * \param opts Options for job to run
+	 * \param[out] jobName Job Id of scheduled job 
+	 * \return true if done
+	 */
+	virtual bool runJob(const JobOptions& opts, std::string& jobName) = 0;
+
+	/**
+	 * \brief Set the node comment
+	 * 
+	 * \param name Node to set comment for
+	 * \param comment Comment string to set
+	 * \param appendComment Wether to append comment instead of overwritting
+	 */
+	virtual bool setNodeComment(const std::string& name, bool, const std::string& comment, bool appendComment) = 0;
+
+	/**
+	 * \brief Prevent a pending job from being run
+	 * 
+	 * Reverse of \ref releaseJob_f operation.
+	 * 
+	 * \param job Id of job to hold
+	 * \param force Wether to force hold
+	 */
+	virtual bool holdJob(const std::string& job, bool force);
+
+
+	/**
+	 * \brief Release a job that has been hold before to start execution
+	 * 
+	 * Reverse of \ref holdJob_f operation.
+	 * 
+	 * \param job Id of job to release
+	 * \param force Wether to force release
+	 */
+	virtual bool releaseJob(const std::string& job, bool force);
+
+	/**
+	 * \brief Suspend a running job
+	 * 
+	 * Reverse of \ref resumeJob_f operation.
+	 * 
+	 * \param job Id of job to suspend
+	 * \param force Wether to force suspend
+	 */
+	virtual bool suspendJob(const std::string& job, bool force);
+
+	/**
+	 * \brief Resume a job that was suspended before
+	 * 
+	 * Reverse of \ref suspendJob_f operation.
+	 * 
+	 * \param job Id of job to resume
+	 * \param force Wether to force resume
+	 */
+	virtual bool resumeJob(const std::string& job, bool force);
+
+
+	/**
+	 * \brief Requeue a job into a waiting state
+	 * 
+	 * Running / supended / finished job is put back into a pending state.
+	 * 
+	 * \param job Id of job to requeue
+	 * \param force Wether to force reque
+	 */
+	virtual bool rescheduleRunningJobInQueue(const std::string& job, bool force);
 };
 
 }

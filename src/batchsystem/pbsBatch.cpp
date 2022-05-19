@@ -18,6 +18,12 @@ using namespace cw::batch::internal;
 
 namespace {
 
+const CmdOptions optsDetect{"pbs-config", {"--version"}};
+const CmdOptions optsVersion{"pbsnodes", {"--version"}};
+const CmdOptions optsGetQueues{"qstat", {"-Qf"}};
+const CmdOptions optsGetJobs{"qstat", {"-f", "-x"}};
+const CmdOptions optsGetNodes{"pbsnodes", {"-x"}};
+
 void toLowerCase(std::string& str) {
 	std::transform(str.begin(), str.end(), str.begin(), [](unsigned char c){ return std::tolower(c); });
 }
@@ -66,16 +72,32 @@ std::string PbsBatch::runJob(const JobOptions& opts) const {
 
 }
 
-BatchInfo PbsBatch::getBatchInfo() const {
-	BatchInfo info;
-	info.name = std::string("pbs");
-	info.version = trim_copy(runCommand(_func, {"pbsnodes", {"--version"}}));
-	return info;
+bool PbsBatch::getBatchInfo(BatchInfo& info) {
+	std::string out;
+	int ret = _func(out, optsVersion);
+	if (ret == -1) {
+		return false;
+	} else if (ret > 0) {
+		throw CommandFailed("Command failed", opts, ret);
+	} else {
+		info.name = std::string("pbs");
+		info.version = trim_copy(out);
+		return true;
+	}
 }
 
-bool PbsBatch::detect() const {
+bool PbsBatch::detect(bool& detected) {
 	std::string out;
-	return _func(out, {"pbs-config", {"--version"}}) == 0;
+	int ret = _func(out, optsDetect);
+	if (ret == -1) {
+		return false;
+	} else if (ret > 0) {
+		detected = false;
+		return true;
+	} else {
+		detected = true;
+		return true;
+	}
 }
 
 void PbsBatch::parseNodes(const std::string& output, std::function<getNodes_inserter_f> insert) {
@@ -156,22 +178,8 @@ void PbsBatch::parseNodes(const std::string& output, std::function<getNodes_inse
 	}
 }
 
-CmdOptions PbsBatch::getNodesCmd() {
-	return {"pbsnodes", {"-x"}};
-}
-
-void PbsBatch::getNodes(const std::vector<std::string>& filterNodes, std::function<getNodes_inserter_f> insert) const {
-	CmdOptions opts = getNodesCmd();
-	for (const auto& n : filterNodes) opts.args.push_back(n);
-	parseNodes(runCommand(_func, opts), insert);
-}
-
-void PbsBatch::getNodes(std::function<getNodes_inserter_f> insert) const {
-	parseNodes(runCommand(_func, getNodesCmd()), insert);
-}
-
-bool PbsBatch::getNodesAsync(const std::vector<std::string>& filterNodes, std::function<getNodes_inserter_f> insert) {
-	CmdOptions opts = getNodesCmd();
+bool PbsBatch::getNodes(const std::vector<std::string>& filterNodes, std::function<getNodes_inserter_f> insert) {
+	CmdOptions opts = optsGetNodes;
 	for (const auto& n : filterNodes) opts.args.push_back(n);
 
 	std::string out;
@@ -186,11 +194,9 @@ bool PbsBatch::getNodesAsync(const std::vector<std::string>& filterNodes, std::f
 	}
 }
 
-bool PbsBatch::getQueuesAsync(std::function<getQueues_inserter_f> insert) {
-	CmdOptions opts = getQueuesCmd();
-
+bool PbsBatch::getQueues(std::function<getQueues_inserter_f> insert) {
 	std::string out;
-	int ret = _func(out, opts);
+	int ret = _func(out, optsGetQueues);
 	if (ret == -1) {
 		return false;
 	} else if (ret > 0) {
@@ -378,12 +384,19 @@ void PbsBatch::parseJobs(const std::string& output, std::function<getJobs_insert
 	}
 }
 
-CmdOptions PbsBatch::getJobsCmd() {
-	return {"qstat", {"-f", "-x"}};
+bool PbsBatch::getJobs(std::function<getJobs_inserter_f> insert) {
+	std::string out;
+	int ret = _func(out, optsGetJobs);
+	if (ret == -1) {
+		return false;
+	} else if (ret > 0) {
+		throw CommandFailed("Command failed", opts, ret);
+	} else {
+		parseJobs(out, insert);
+		return true;
+	}
 }
-void PbsBatch::getJobs(std::function<getJobs_inserter_f> insert) const {
-	parseJobs(runCommand(_func, getJobsCmd()), insert);
-}
+
 
 
 void PbsBatch::parseQueues(const std::string& output, std::function<getQueues_inserter_f> insert) {
@@ -506,13 +519,6 @@ void PbsBatch::parseQueues(const std::string& output, std::function<getQueues_in
 			}
 		}
 	}
-}
-
-CmdOptions PbsBatch::getQueuesCmd() {
-	return {"qstat", {"-Qf"}};
-}
-void PbsBatch::getQueues(std::function<getQueues_inserter_f> insert) const {
-	parseQueues(runCommand(_func, getQueuesCmd()), insert);
 }
 
 void PbsBatch::setNodeComment(const std::string& name, bool, const std::string& comment, bool appendComment) const {

@@ -18,6 +18,12 @@ using namespace cw::batch::internal;
 
 namespace {
 
+const CmdOptions optsVersion{"slurmd", {"--version"}};
+const CmdOptions optsConfig{"scontrol", {"show", "config"}};
+const CmdOptions optsGetQueues{"scontrol", {"show", "partition", "--all"}};
+const CmdOptions optsGetNodes{"scontrol", {"show", "node"}};
+
+
 JobState parseJobState(const std::string& str) {
 	if(str=="PENDING")
 	{
@@ -185,35 +191,100 @@ namespace slurm {
 
 const std::string SlurmBatch::DefaultReason = "batchsystem_api";
 
-SlurmBatch::SlurmBatch(std::function<cmd_execute_f> func, bool useSacct): _func(func), _useSacct(useSacct) {}
-SlurmBatch::SlurmBatch(std::function<cmd_execute_f> func): _func(func) {
-	_useSacct = checkSacct();
-}
+SlurmBatch::SlurmBatch(std::function<cmd_execute_f> func): _func(func), _mode(job_mode::unchecked) {}
 
-bool SlurmBatch::checkSacct() const {
+bool SlurmBatch::checkSacct(bool& sacctSupported) {
 	// use sacct --helpformat as sacct would list all jobs, sacct --helpformat would not fail if slurmdbd is not working
+	CmdOptions opts{"sacct", {"--helpformat"}};
+
 	std::string out;
-	return (_func(out, {"sacct", {"--helpformat"}}) == 0);
+	int ret = _func(out, opts);
+	if (ret == -1) {
+		return false;
+	} else if (ret > 0) {
+		sacctSupported = false;
+		return true;
+	} else {
+		sacctSupported = true;
+		return true;
+	}
 }
 
-void SlurmBatch::useSacct(bool useSacct) {
-	_useSacct = useSacct;
+void SlurmBatch::setJobMode(job_mode mode) {
+	_mode = mode;
 }
 
-BatchInfo SlurmBatch::getBatchInfo() const {
-	BatchInfo info;
+job_mode SlurmBatch::getJobMode() const {
+	return _mode;
+}
+
+bool SlurmBatch::getBatchInfo(BatchInfo& info) {
+	if (_mode == job_mode::unchecked) {
+		bool sacctSupported;
+		if (!checkSacct(sacctSupported)) return false;
+		_mode = sacctSupported ? job_mode::sacct : job_mode::scontrol;
+	}
+	auto itVersion = _cache.find(optsVersion);
+	if (itVersion == _cache.end()) {
+		std::string out;
+		int ret = _func(out, optsVersion);
+		if (ret == -1) {
+			return false;
+		} else if (ret > 0) {
+			throw CommandFailed("Command failed", optsVersion, ret);
+		} else {
+			_cache[optsVersion] = trim_copy(out);
+		}
+	}
+	auto itConfig = _cache.find(optsConfig);
+	if (itConfig == _cache.end()) {
+		std::string out;
+		int ret = _func(out, optsConfig);
+		if (ret == -1) {
+			return false;
+		} else if (ret > 0) {
+			throw CommandFailed("Command failed", optsVersion, ret);
+		} else {
+			_cache[optsConfig] = trim_copy(out);
+		}
+	}
 	info.name = std::string("slurm");
-	info.version = trim_copy(runCommand(_func, {"slurmd", {"--version"}}));
-	info.info["config"] = trim_copy(runCommand(_func, {"scontrol", {"show", "config"}}));
-	info.info["sacctWorks"] = checkSacct() ? "true" : "false";
-	info.info["sacctUsed"] = _useSacct ? "true" : "false";
-	return info;
+	info.version = _cache[optsVersion];
+	info.info["config"] = _cache[optsConfig];
+	info.info["sacctUsed"] = _mode == job_mode::sacct ? "true" : "false";
+	return true;
+
+
+
+
+	std::string out;
+	int ret = _func(out, opts);
+	if (ret == -1) {
+		return false;
+	} else if (ret > 0) {
+		throw CommandFailed("Command failed", opts, ret);
+	} else {
+		info.name = std::string("pbs");
+		info.version = trim_copy(out);
+		return true;
+	}
 }
 
-bool SlurmBatch::detect() const {
+bool SlurmBatch::detect(bool& detected) {
+	CmdOptions opts{"sinfo", {"--version"}};
 	std::string out;
-	return _func(out, {"sinfo", {"--version"}}) == 0;
+	int ret = _func(out, opts);
+	if (ret == -1) {
+		return false;
+	} else if (ret > 0) {
+		detected = false;
+		return true;
+	} else {
+		detected = true;
+		return true;
+	}
 }
+
 
 void SlurmBatch::parseNodes(const std::string& output, std::function<getNodes_inserter_f> insert) {
 	std::stringstream commandResult(output);
@@ -318,26 +389,35 @@ void SlurmBatch::parseNodes(const std::string& output, std::function<getNodes_in
 	if (node.name.has_value()) insert(std::move(node));
 }
 
-CmdOptions SlurmBatch::getNodesCmd() {
-	return {"scontrol", {"show", "node", "--all"}};
-}
-void SlurmBatch::getNodes(const std::vector<std::string>& filterNodes, std::function<getNodes_inserter_f> insert) const {
-	CmdOptions opts{"scontrol", {"show"}};
+bool SlurmBatch::getNodes(const std::vector<std::string>& filterNodes, std::function<getNodes_inserter_f> insert) const {
+	CmdOptions opts = optsGetNodes;
 	if (filterNodes.empty()) {
+		opts.args.push_back("--all");
+	} else {
 		opts.args.push_back(internal::joinString(filterNodes.begin(), filterNodes.end(), ","));
 	}
-	parseNodes(runCommand(_func, opts), insert);
-}
-void SlurmBatch::getNodes(std::function<getNodes_inserter_f> insert) const {
-	parseNodes(runCommand(_func, getNodesCmd()), insert);
-}
-
-
-void SlurmBatch::getJobs(std::function<getJobs_inserter_f> insert) const {
-	if (_useSacct) {
-		getJobsSacct(insert); 
+	std::string out;
+	int ret = _func(out, opts);
+	if (ret == -1) {
+		return false;
+	} else if (ret > 0) {
+		throw CommandFailed("Command failed", opts, ret);
 	} else {
-		getJobsLegacy(insert); 
+		parseNodes(out, insert);
+		return true;
+	}
+}
+
+bool SlurmBatch::getJobs(std::function<getJobs_inserter_f> insert) {
+	if (_mode == job_mode::unchecked) {
+		bool sacctSupported;
+		if (!checkSacct(sacctSupported)) return false;
+		_mode = sacctSupported ? job_mode::sacct : job_mode::scontrol;
+	}
+	if (_mode == job_mode::sacct) {
+		return getJobsSacct(insert); 
+	} else {
+		return getJobsLegacy(insert); 
 	}
 }
 
@@ -528,8 +608,18 @@ void SlurmBatch::parseJobsLegacy(const std::string& output, std::function<getJob
 	});
 }
 
-void SlurmBatch::getJobsLegacy(std::function<getJobs_inserter_f> insert) const {
-	parseJobsLegacy(runCommand(_func, {"scontrol", {"show", "job", "--all"}}), insert);
+bool SlurmBatch::getJobsLegacy(std::function<getJobs_inserter_f> insert) {
+	CmdOptions opts{"scontrol", {"show", "job", "--all"}};
+	std::string out;
+	int ret = _func(out, opts);
+	if (ret == -1) {
+		return false;
+	} else if (ret > 0) {
+		throw CommandFailed("Command failed", opts, ret);
+	} else {
+		parseJobsLegacy(out, insert);
+		return true;
+	}
 }
 
 std::string SlurmBatch::runJob(const JobOptions& opts) const {
@@ -550,8 +640,8 @@ std::string SlurmBatch::runJob(const JobOptions& opts) const {
 	return trim_copy(runCommand(_func, {"sbatch", args}));
 }
 
-void SlurmBatch::getJobsSacct(std::function<getJobs_inserter_f> insert) const {
-	getJobsSacct(insert, "PD,R,RQ,S", {}); // show only active jobs
+bool SlurmBatch::getJobsSacct(std::function<getJobs_inserter_f> insert) const {
+	return getJobsSacct(insert, "PD,R,RQ,S", {}); // show only active jobs
 }
 
 void SlurmBatch::parseSacct(const std::string& output, std::function<bool(std::map<std::string, std::string>)> insert) {
@@ -592,23 +682,32 @@ void SlurmBatch::parseJobsSacct(const std::string& output, std::function<getJobs
 	});
 }
 
-void SlurmBatch::getJobsSacct(std::function<getJobs_inserter_f> insert, const std::string& stateFilter, const std::vector<std::string>& filterJobs) const {
-	std::vector<std::string> args{
+bool SlurmBatch::getJobsSacct(std::function<getJobs_inserter_f> insert, const std::string& stateFilter, const std::vector<std::string>& filterJobs) const {
+	CmdOptions opts{"sacct", {
 			"-X",
 			"-P",
 			"--format", 
 			"ALL", 
-	};
+	}};
 	if (!stateFilter.empty()) {
-		args.push_back("--state");
-		args.push_back(stateFilter);
+		opts.args.push_back("--state");
+		opts.args.push_back(stateFilter);
 	}
 	if (!filterJobs.empty()) {
-		args.push_back("-j");
-		args.push_back(internal::joinString(filterJobs.begin(), filterJobs.end(), ","));
-
+		opts.args.push_back("-j");
+		opts.args.push_back(internal::joinString(filterJobs.begin(), filterJobs.end(), ","));
 	}
-	parseJobsSacct(runCommand(_func, {"sacct", args}), insert);
+
+	std::string out;
+	int ret = _func(out, opts);
+	if (ret == -1) {
+		return false;
+	} else if (ret > 0) {
+		throw CommandFailed("Command failed", opts, ret);
+	} else {
+		parseJobsSacct(out, insert);
+		return true;
+	}
 }
 
 void SlurmBatch::parseQueues(const std::string& output, std::function<getQueues_inserter_f> insert) {
@@ -715,15 +814,26 @@ void SlurmBatch::parseQueues(const std::string& output, std::function<getQueues_
 	}
 }
 
-CmdOptions SlurmBatch::getQueuesCmd() {
-	return {"scontrol", {"show", "partition", "--all"}};
+
+bool SlurmBatch::getQueues(std::function<getQueues_inserter_f> insert) const {
+	std::string out;
+	int ret = _func(out, optsGetQueues);
+	if (ret == -1) {
+		return false;
+	} else if (ret > 0) {
+		throw CommandFailed("Command failed", opts, ret);
+	} else {
+		parseQueues(out, insert);
+		return true;
+	}
 }
-void SlurmBatch::getQueues(std::function<getQueues_inserter_f> insert) const {
-	parseQueues(runCommand(_func, getQueuesCmd()), insert);
+
+void SlurmBatch::resetCache() {
+	_cache.clear();
 }
 
 
-void SlurmBatch::changeNodeState(const std::string& name, NodeChangeState state, bool, const std::string& reason, bool) const {
+bool SlurmBatch::changeNodeState(const std::string& name, NodeChangeState state, bool, const std::string& reason, bool) const {
 
 	std::string stateString;
 	switch (state) {
@@ -735,33 +845,114 @@ void SlurmBatch::changeNodeState(const std::string& name, NodeChangeState state,
 	std::vector<std::string> args{"update", "NodeName=" + name, "State="+stateString};
 	// add reason if needed and force default if empty as needed by slurm!
 	if (state != NodeChangeState::Resume) args.push_back("Reason="+(reason.empty() ? SlurmBatch::DefaultReason : reason));
-	runCommand(_func, {"scontrol", args});
+
+	CmdOptions opts{"scontrol", args};
+
+	std::string out;
+	int ret = _func(out, opts);
+	if (ret == -1) {
+		return false;
+	} else if (ret > 0) {
+		throw CommandFailed("Command failed", opts, ret);
+	} else {
+		return true;
+	}
 }
 
-void SlurmBatch::setNodeComment(const std::string& name, bool, const std::string& comment, bool) const {
-	runCommand(_func, {"scontrol", {"update", "NodeName="+name, "Comment="+comment}});
+bool SlurmBatch::setNodeComment(const std::string& name, bool, const std::string& comment, bool) const {
+	CmdOptions opts{"scontrol", {"update", "NodeName="+name, "Comment="+comment}};
+
+	std::string out;
+	int ret = _func(out, opts);
+	if (ret == -1) {
+		return false;
+	} else if (ret > 0) {
+		throw CommandFailed("Command failed", opts, ret);
+	} else {
+		return true;
+	}
 }
 
-void SlurmBatch::releaseJob(const std::string& job, bool) const {
-	runCommand(_func, {"scontrol", {"release", job}});
+bool SlurmBatch::releaseJob(const std::string& job, bool) const {
+	CmdOptions opts{"scontrol", {"release", job}};
+
+	std::string out;
+	int ret = _func(out, opts);
+	if (ret == -1) {
+		return false;
+	} else if (ret > 0) {
+		throw CommandFailed("Command failed", opts, ret);
+	} else {
+		return true;
+	}
 }
-void SlurmBatch::holdJob(const std::string& job, bool) const {
-	runCommand(_func, {"scontrol", {"hold", job}});
+bool SlurmBatch::holdJob(const std::string& job, bool) const {
+	CmdOptions opts{"scontrol", {"hold", job}};
+
+	std::string out;
+	int ret = _func(out, opts);
+	if (ret == -1) {
+		return false;
+	} else if (ret > 0) {
+		throw CommandFailed("Command failed", opts, ret);
+	} else {
+		return true;
+	}
 }
-void SlurmBatch::deleteJobById(const std::string& job, bool) const {
-	runCommand(_func, {"scancel", {job}});
+bool SlurmBatch::deleteJobById(const std::string& job, bool) const {
+	CmdOptions opts{"scancel", {job}};
+
+	std::string out;
+	int ret = _func(out, opts);
+	if (ret == -1) {
+		return false;
+	} else if (ret > 0) {
+		throw CommandFailed("Command failed", opts, ret);
+	} else {
+		return true;
+	}
 }
-void SlurmBatch::deleteJobByUser(const std::string& user, bool) const {
-	runCommand(_func, {"scancel", {"-u", user}});
+bool SlurmBatch::deleteJobByUser(const std::string& user, bool) const {
+	CmdOptions opts{"scancel", {"-u", user}};
+
+	std::string out;
+	int ret = _func(out, opts);
+	if (ret == -1) {
+		return false;
+	} else if (ret > 0) {
+		throw CommandFailed("Command failed", opts, ret);
+	} else {
+		return true;
+	}
 }
-void SlurmBatch::suspendJob(const std::string& job, bool) const {
-	runCommand(_func, {"scontrol", {"suspend", job}});
+bool SlurmBatch::suspendJob(const std::string& job, bool) const {
+	CmdOptions opts{"scontrol", {"suspend", job}};
+
+	std::string out;
+	int ret = _func(out, opts);
+	if (ret == -1) {
+		return false;
+	} else if (ret > 0) {
+		throw CommandFailed("Command failed", opts, ret);
+	} else {
+		return true;
+	}
 }
-void SlurmBatch::resumeJob(const std::string& job, bool) const {
-	runCommand(_func, {"scontrol", {"resume", job}});
+bool SlurmBatch::resumeJob(const std::string& job, bool) const {
+	CmdOptions opts{"scontrol", {"resume", job}};
+
+	std::string out;
+	int ret = _func(out, opts);
+	if (ret == -1) {
+		return false;
+	} else if (ret > 0) {
+		throw CommandFailed("Command failed", opts, ret);
+	} else {
+		return true;
+	}
 }
 
-void SlurmBatch::setQueueState(const std::string& name, QueueState state, bool) const {
+bool SlurmBatch::setQueueState(const std::string& name, QueueState state, bool) const {
 	std::string stateStr;
 	switch (state) {
 		case QueueState::Unknown: throw std::runtime_error("unknown state");
@@ -771,11 +962,31 @@ void SlurmBatch::setQueueState(const std::string& name, QueueState state, bool) 
 		case QueueState::Draining: stateStr="DRAIN"; break;
 		default: throw std::runtime_error("unknown state");
 	}
-	runCommand(_func, {"scontrol", {"update", "PartitionName=" + name, "State="+stateStr}});
+	CmdOptions opts{"scontrol", {"update", "PartitionName=" + name, "State="+stateStr}};
+
+	std::string out;
+	int ret = _func(out, opts);
+	if (ret == -1) {
+		return false;
+	} else if (ret > 0) {
+		throw CommandFailed("Command failed", opts, ret);
+	} else {
+		return true;
+	}
 }
 
-void SlurmBatch::rescheduleRunningJobInQueue(const std::string& job, bool hold) const {
-	runCommand(_func, {"scontrol", {hold ? "requeuehold" : "requeue", job}});
+bool SlurmBatch::rescheduleRunningJobInQueue(const std::string& job, bool hold) const {
+	CmdOptions opts{"scontrol", {hold ? "requeuehold" : "requeue", job}};
+
+	std::string out;
+	int ret = _func(out, opts);
+	if (ret == -1) {
+		return false;
+	} else if (ret > 0) {
+		throw CommandFailed("Command failed", opts, ret);
+	} else {
+		return true;
+	}
 }
 
 }

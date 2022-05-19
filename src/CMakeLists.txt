@@ -1,11 +1,8 @@
 set( batchsystem_SRC
         batchsystem/batchsystem.cpp
         batchsystem/lsfBatch.cpp
-        batchsystem/lsf.cpp
         batchsystem/pbsBatch.cpp
-        batchsystem/pbs.cpp
         batchsystem/slurmBatch.cpp
-        batchsystem/slurm.cpp
         batchsystem/factory.cpp
         batchsystem/json.cpp
 )
@@ -19,11 +16,8 @@ set( batchsystem_HDR
         batchsystem/internal/timeToEpoch.h
         batchsystem/batchsystem.h
         batchsystem/lsfBatch.h
-        batchsystem/lsf.h
         batchsystem/pbsBatch.h
-        batchsystem/pbs.h
         batchsystem/slurmBatch.h
-        batchsystem/slurm.h
         batchsystem/json.h
         batchsystem/factory.h
         batchsystem/policyOptional.h
