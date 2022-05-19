@@ -16,9 +16,11 @@ namespace pbs {
 class PbsBatch : public BatchInterface {
 private:
 	std::function<cmd_execute_f> _func;
-	std::map<std::vector<std::string>, std::string> _cache;
+	std::map<CmdOptions, std::string> _cache;
 public:
 	virtual bool getNodesAsync(const std::vector<std::string>& filterNodes, std::function<getNodes_inserter_f> insert);
+	virtual bool getQueuesAsync(std::function<getQueues_inserter_f> insert);
+	virtual void resetCache();
 
 	PbsBatch(std::function<cmd_execute_f> func);
 	bool detect() const;

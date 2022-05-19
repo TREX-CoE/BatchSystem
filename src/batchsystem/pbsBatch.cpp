@@ -43,6 +43,10 @@ namespace pbs {
 
 PbsBatch::PbsBatch(std::function<cmd_execute_f> func): _func(func) {}
 
+void PbsBatch::resetCache() {
+	_cache.clear();
+}
+
 std::string PbsBatch::runJob(const JobOptions& opts) const {
 	std::vector<std::string> args;
 	if (opts.numberNodes.has_value()) {
@@ -175,12 +179,28 @@ bool PbsBatch::getNodesAsync(const std::vector<std::string>& filterNodes, std::f
 	if (ret == -1) {
 		return false;
 	} else if (ret > 0) {
-		throw CommandFailed("Command failed", {"pbsnodes", "-x"}, ret);
+		throw CommandFailed("Command failed", opts, ret);
 	} else {
 		parseNodes(out, insert);
 		return true;
 	}
 }
+
+bool PbsBatch::getQueuesAsync(std::function<getQueues_inserter_f> insert) {
+	CmdOptions opts = getQueuesCmd();
+
+	std::string out;
+	int ret = _func(out, opts);
+	if (ret == -1) {
+		return false;
+	} else if (ret > 0) {
+		throw CommandFailed("Command failed", opts, ret);
+	} else {
+		parseQueues(out, insert);
+		return true;
+	}
+}
+
 
 
 // see man pbs_job_attributes 

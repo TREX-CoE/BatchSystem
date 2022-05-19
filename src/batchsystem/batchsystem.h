@@ -246,6 +246,17 @@ struct Job {
 };
 
 /**
+ * \brief Shell command options to execute
+ *
+ */
+struct CmdOptions {
+	std::string cmd; //!< cmd to execute
+	std::vector<std::string> args; //!< args to pass to cmd
+};
+
+bool operator<(const CmdOptions& l, const CmdOptions& r);
+
+/**
  * \brief Exception for failed command execution
  * 
  * Exception supposed to be thrown from within BatchSystem implementation if a shell command failed.
@@ -261,7 +272,7 @@ public:
 	 * \param cmd Command name that failed
 	 * \param ret Return code of failed command
 	 */
-	CommandFailed(const std::string& msg, const std::string& cmd, int ret);
+	CommandFailed(const std::string& msg, const CmdOptions& cmd, int ret);
 
 	/**
 	 * \brief Get return code
@@ -452,15 +463,6 @@ typedef void resumeJob_f(const std::string& job, bool force);
 typedef void rescheduleRunningJobInQueue_f(const std::string& job, bool force);
 
 /**
- * \brief Shell command options to execute
- *
- */
-struct CmdOptions {
-	std::string cmd; //!< cmd to execute
-	std::vector<std::string> args; //!< args to pass to cmd
-};
-
-/**
  * \brief Callback for batchsystem implementations to call shell command.
  * 
  * \param[out] out Shell output is passed to this stringstream
@@ -510,6 +512,8 @@ struct BatchSystem
 class BatchInterface {
 public:
 	virtual bool getNodesAsync(const std::vector<std::string>& filterNodes, std::function<getNodes_inserter_f> insert) = 0;
+	virtual bool getQueuesAsync(std::function<getQueues_inserter_f> insert) = 0;
+	virtual void resetCache() = 0;
 	virtual ~BatchInterface() {}
 };
 

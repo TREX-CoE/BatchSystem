@@ -3,8 +3,12 @@
 namespace cw {
 namespace batch {
 
-CommandFailed::CommandFailed(const std::string& msg, const std::string& cmd, int ret): std::runtime_error(msg+"|"+cmd+" returned "+std::to_string(ret)), retno(ret) {}
+CommandFailed::CommandFailed(const std::string& msg, const CmdOptions& cmd, int ret): std::runtime_error(msg+"|"+cmd.cmd+" returned "+std::to_string(ret)), retno(ret) {}
 int CommandFailed::returncode() const { return retno; }
+
+bool operator<(const CmdOptions& l, const CmdOptions& r) {
+     return (l.cmd<r.cmd || (l.cmd==r.cmd && l.args<r.args));
+}
 
 const char* to_cstr(const JobState& state) {
 	switch (state) {
