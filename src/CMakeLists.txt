@@ -1,23 +1,22 @@
 set( batchsystem_SRC
         batchsystem/batchsystem.cpp
-        batchsystem/lsfBatch.cpp
-        batchsystem/pbsBatch.cpp
-        batchsystem/slurmBatch.cpp
+        batchsystem/lsf.cpp
+        batchsystem/pbs.cpp
+        batchsystem/slurm.cpp
         batchsystem/factory.cpp
         batchsystem/json.cpp
 )
 
 set( batchsystem_HDR
         batchsystem/internal/byteParse.h
-        batchsystem/internal/runCommand.h
         batchsystem/internal/splitString.h
         batchsystem/internal/streamCast.h
         batchsystem/internal/joinString.h
         batchsystem/internal/timeToEpoch.h
         batchsystem/batchsystem.h
-        batchsystem/lsfBatch.h
-        batchsystem/pbsBatch.h
-        batchsystem/slurmBatch.h
+        batchsystem/lsf.h
+        batchsystem/pbs.h
+        batchsystem/slurm.h
         batchsystem/json.h
         batchsystem/factory.h
         batchsystem/policyOptional.h

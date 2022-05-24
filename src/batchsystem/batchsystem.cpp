@@ -1,9 +1,23 @@
 #include "batchsystem/batchsystem.h"
 
+namespace {
+
+std::string to_string(const cw::batch::CmdOptions& opts) {
+	std::string s = opts.cmd;
+	if (!opts.args.empty()) {
+		for (const auto &arg : opts.args) {
+			s += " " + arg;
+		} 
+	}
+	return s;
+}
+
+}
+
 namespace cw {
 namespace batch {
 
-CommandFailed::CommandFailed(const std::string& msg, const CmdOptions& cmd, int ret): std::runtime_error(msg+"|"+cmd.cmd+" returned "+std::to_string(ret)), retno(ret) {}
+CommandFailed::CommandFailed(const std::string& msg, const CmdOptions& cmd, int ret): std::runtime_error(msg+"|"+to_string(cmd)+" returned "+std::to_string(ret)), retno(ret) {}
 int CommandFailed::returncode() const { return retno; }
 
 bool operator<(const CmdOptions& l, const CmdOptions& r) {

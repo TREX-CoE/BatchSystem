@@ -1,5 +1,5 @@
-#ifndef __CW_BATCHSYSTEM_LSF_BATCH_H__
-#define __CW_BATCHSYSTEM_LSF_BATCH_H__
+#ifndef __CW_BATCHSYSTEM_LSF_H__
+#define __CW_BATCHSYSTEM_LSF_H__
 
 #include "batchsystem/batchsystem.h"
 
@@ -13,11 +13,11 @@ namespace lsf {
  * Wrapped within generic interface via \ref cw::batch::lsf::create_batch.
  * 
  */
-class LsfBatch : public BatchInterface {
+class Lsf : public BatchInterface {
 private:
 	std::function<cmd_execute_f> _func;
 public:
-	LsfBatch(std::function<cmd_execute_f> func);
+	Lsf(std::function<cmd_execute_f> func);
 
 	static void parseNodes(const std::string& output, std::function<getNodes_inserter_f> insert);
 	static void parseJobs(const std::string& output, std::function<getJobs_inserter_f> insert);
@@ -44,4 +44,4 @@ public:
 }
 }
 
-#endif /* __CW_BATCHSYSTEM_LSF_BATCH_H__ */
+#endif /* __CW_BATCHSYSTEM_LSF_H__ */

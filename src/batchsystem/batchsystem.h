@@ -332,7 +332,7 @@ typedef int cmd_execute_f(std::string& out, const CmdOptions& opts);
  * that can be also used for custom implementations.
  * 
  * \note
- * Function objects can throw exceptions to signal errors.
+ * Methods can throw exceptions to signal errors.
  * Provided implementations do and custom implementations should throw a \ref CommandFailed exception,
  * if they call a shell command that fails.
  */

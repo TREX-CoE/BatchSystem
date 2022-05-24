@@ -1,4 +1,4 @@
-#include "batchsystem/pbsBatch.h"
+#include "batchsystem/pbs.h"
 
 #include <iostream>
 #include <sstream>
@@ -6,7 +6,6 @@
 
 #include <libxml++/libxml++.h>
 
-#include "batchsystem/internal/runCommand.h"
 #include "batchsystem/internal/trim.h"
 #include "batchsystem/internal/streamCast.h"
 #include "batchsystem/internal/splitString.h"
@@ -47,38 +46,47 @@ namespace cw {
 namespace batch {
 namespace pbs {
 
-PbsBatch::PbsBatch(std::function<cmd_execute_f> func): _func(func) {}
+Pbs::Pbs(std::function<cmd_execute_f> func): _func(func) {}
 
-void PbsBatch::resetCache() {
+void Pbs::resetCache() {
 	_cache.clear();
 }
 
-std::string PbsBatch::runJob(const JobOptions& opts) const {
-	std::vector<std::string> args;
+bool Pbs::runJob(const JobOptions& opts, std::string& jobName) {
+	CmdOptions cmd{"qsub", {}};
 	if (opts.numberNodes.has_value()) {
-		args.push_back("-l");
-		args.push_back("nodes="+std::to_string(opts.numberNodes.get()));
+		cmd.args.push_back("-l");
+		cmd.args.push_back("nodes="+std::to_string(opts.numberNodes.get()));
 	}
 	if (opts.numberTasks.has_value()) {
-		args.push_back("-l");
-		args.push_back("procs="+std::to_string(opts.numberTasks.get()));
+		cmd.args.push_back("-l");
+		cmd.args.push_back("procs="+std::to_string(opts.numberTasks.get()));
 	}
 	if (opts.numberGpus.has_value()) {
-		args.push_back("-l");
-		args.push_back("gpus="+std::to_string(opts.numberGpus.get()));
+		cmd.args.push_back("-l");
+		cmd.args.push_back("gpus="+std::to_string(opts.numberGpus.get()));
 	}
-	args.push_back(opts.path.get());
-	return trim_copy(runCommand(_func, {"qsub", args}));
+	cmd.args.push_back(opts.path.get());
 
+	std::string out;
+	int ret = _func(out, cmd);
+	if (ret == -1) {
+		return false;
+	} else if (ret > 0) {
+		throw CommandFailed("Command failed", cmd, ret);
+	} else {
+		jobName = trim_copy(out);
+		return true;
+	}
 }
 
-bool PbsBatch::getBatchInfo(BatchInfo& info) {
+bool Pbs::getBatchInfo(BatchInfo& info) {
 	std::string out;
 	int ret = _func(out, optsVersion);
 	if (ret == -1) {
 		return false;
 	} else if (ret > 0) {
-		throw CommandFailed("Command failed", opts, ret);
+		throw CommandFailed("Command failed", optsVersion, ret);
 	} else {
 		info.name = std::string("pbs");
 		info.version = trim_copy(out);
@@ -86,7 +94,7 @@ bool PbsBatch::getBatchInfo(BatchInfo& info) {
 	}
 }
 
-bool PbsBatch::detect(bool& detected) {
+bool Pbs::detect(bool& detected) {
 	std::string out;
 	int ret = _func(out, optsDetect);
 	if (ret == -1) {
@@ -100,7 +108,7 @@ bool PbsBatch::detect(bool& detected) {
 	}
 }
 
-void PbsBatch::parseNodes(const std::string& output, std::function<getNodes_inserter_f> insert) {
+void Pbs::parseNodes(const std::string& output, std::function<getNodes_inserter_f> insert) {
 	xmlpp::DomParser parser;
 	std::string s(output);
 	ltrim(s); // skip empty lines etc.
@@ -178,7 +186,7 @@ void PbsBatch::parseNodes(const std::string& output, std::function<getNodes_inse
 	}
 }
 
-bool PbsBatch::getNodes(const std::vector<std::string>& filterNodes, std::function<getNodes_inserter_f> insert) {
+bool Pbs::getNodes(const std::vector<std::string>& filterNodes, std::function<getNodes_inserter_f> insert) {
 	CmdOptions opts = optsGetNodes;
 	for (const auto& n : filterNodes) opts.args.push_back(n);
 
@@ -194,13 +202,13 @@ bool PbsBatch::getNodes(const std::vector<std::string>& filterNodes, std::functi
 	}
 }
 
-bool PbsBatch::getQueues(std::function<getQueues_inserter_f> insert) {
+bool Pbs::getQueues(std::function<getQueues_inserter_f> insert) {
 	std::string out;
 	int ret = _func(out, optsGetQueues);
 	if (ret == -1) {
 		return false;
 	} else if (ret > 0) {
-		throw CommandFailed("Command failed", opts, ret);
+		throw CommandFailed("Command failed", optsGetQueues, ret);
 	} else {
 		parseQueues(out, insert);
 		return true;
@@ -210,7 +218,7 @@ bool PbsBatch::getQueues(std::function<getQueues_inserter_f> insert) {
 
 
 // see man pbs_job_attributes 
-void PbsBatch::parseJobs(const std::string& output, std::function<getJobs_inserter_f> insert) {
+void Pbs::parseJobs(const std::string& output, std::function<getJobs_inserter_f> insert) {
 	xmlpp::DomParser parser;
 	parser.parse_memory(output);
 	const auto root = parser.get_document()->get_root_node();
@@ -384,13 +392,13 @@ void PbsBatch::parseJobs(const std::string& output, std::function<getJobs_insert
 	}
 }
 
-bool PbsBatch::getJobs(std::function<getJobs_inserter_f> insert) {
+bool Pbs::getJobs(std::function<getJobs_inserter_f> insert) {
 	std::string out;
 	int ret = _func(out, optsGetJobs);
 	if (ret == -1) {
 		return false;
 	} else if (ret > 0) {
-		throw CommandFailed("Command failed", opts, ret);
+		throw CommandFailed("Command failed", optsGetJobs, ret);
 	} else {
 		parseJobs(out, insert);
 		return true;
@@ -399,7 +407,7 @@ bool PbsBatch::getJobs(std::function<getJobs_inserter_f> insert) {
 
 
 
-void PbsBatch::parseQueues(const std::string& output, std::function<getQueues_inserter_f> insert) {
+void Pbs::parseQueues(const std::string& output, std::function<getQueues_inserter_f> insert) {
 	std::stringstream commandResult(output);
 
 	std::string tmp, queueType;
@@ -521,11 +529,21 @@ void PbsBatch::parseQueues(const std::string& output, std::function<getQueues_in
 	}
 }
 
-void PbsBatch::setNodeComment(const std::string& name, bool, const std::string& comment, bool appendComment) const {
-	runCommand(_func, {"pbsnodes", {name, appendComment ? "-A" : "-N", comment}});
+bool Pbs::setNodeComment(const std::string& name, bool, const std::string& comment, bool appendComment) {
+	CmdOptions opts{"pbsnodes", {name, appendComment ? "-A" : "-N", comment}};
+
+	std::string out;
+	int ret = _func(out, opts);
+	if (ret == -1) {
+		return false;
+	} else if (ret > 0) {
+		throw CommandFailed("Command failed", opts, ret);
+	} else {
+		return true;
+	}
 }
 
-void PbsBatch::setQueueState(const std::string& name, QueueState state, bool) const {
+bool Pbs::setQueueState(const std::string& name, QueueState state, bool) {
 	bool enabled = false;
 	bool started = false;
 	switch (state) {
@@ -536,10 +554,20 @@ void PbsBatch::setQueueState(const std::string& name, QueueState state, bool) co
 		case QueueState::Draining: enabled=false; started=true; break;
 		default: throw std::runtime_error("invalid state"); break;
 	}
-	runCommand(_func, {"qmgr", {"-c", "set queue " + name + " enabled="+(enabled ? "true" : "false") + ",started="+(started ? "true" : "false")}});
+	CmdOptions opts{"qmgr", {"-c", "set queue " + name + " enabled="+(enabled ? "true" : "false") + ",started="+(started ? "true" : "false")}};
+
+	std::string out;
+	int ret = _func(out, opts);
+	if (ret == -1) {
+		return false;
+	} else if (ret > 0) {
+		throw CommandFailed("Command failed", opts, ret);
+	} else {
+		return true;
+	}
 }
 
-void PbsBatch::changeNodeState(const std::string& name, NodeChangeState state, bool, const std::string& reason, bool appendReason) const {
+bool Pbs::changeNodeState(const std::string& name, NodeChangeState state, bool, const std::string& reason, bool appendReason) {
 	std::string stateArg;
 	switch (state) {
 		case NodeChangeState::Resume: stateArg="-r"; break;
@@ -547,51 +575,141 @@ void PbsBatch::changeNodeState(const std::string& name, NodeChangeState state, b
 		case NodeChangeState::Undrain: stateArg="-c"; break;
 		default: throw std::runtime_error("invalid state");
 	}
-	runCommand(_func, {"pbsnodes", {stateArg, name, appendReason ? "-A" : "-N", reason}});
-}
-void PbsBatch::releaseJob(const std::string& job, bool) const {
-	runCommand(_func, {"qrls", {job}});
-}
-void PbsBatch::holdJob(const std::string& job, bool) const {
-	runCommand(_func, {"qhold", {job}});
-}
-void PbsBatch::suspendJob(const std::string& job, bool) const {
-	runCommand(_func, {"qsig", {"-s", "suspend", job}});
-}
-void PbsBatch::resumeJob(const std::string& job, bool) const {
-	runCommand(_func, {"qsig", {"-s", "resume", job}});
-}
-void PbsBatch::getJobsByUser(const std::string& user, std::function<bool(std::string)> inserter) const {
-	std::string userjobsStr = runCommand(_func, {"qselect", {"-u", user}});
-	splitString(userjobsStr, "\n", [&](size_t start, size_t end) {
-		std::string job=trim_copy(userjobsStr.substr(start, end));
-		if (!job.empty()) {
-			if (!inserter(job)) return false;
-		}
+	CmdOptions opts{"pbsnodes", {stateArg, name, appendReason ? "-A" : "-N", reason}};
+
+	std::string out;
+	int ret = _func(out, opts);
+	if (ret == -1) {
+		return false;
+	} else if (ret > 0) {
+		throw CommandFailed("Command failed", opts, ret);
+	} else {
 		return true;
-	});
+	}
+
+}
+bool Pbs::releaseJob(const std::string& job, bool) {
+	CmdOptions opts{"qrls", {job}};
+	std::string out;
+	int ret = _func(out, opts);
+	if (ret == -1) {
+		return false;
+	} else if (ret > 0) {
+		throw CommandFailed("Command failed", opts, ret);
+	} else {
+		return true;
+	}
+}
+bool Pbs::holdJob(const std::string& job, bool) {
+	CmdOptions opts{"qhold", {job}};
+	std::string out;
+	int ret = _func(out, opts);
+	if (ret == -1) {
+		return false;
+	} else if (ret > 0) {
+		throw CommandFailed("Command failed", opts, ret);
+	} else {
+		return true;
+	}
+}
+bool Pbs::suspendJob(const std::string& job, bool) {
+	CmdOptions opts{"qsig", {"-s", "suspend", job}};
+	std::string out;
+	int ret = _func(out, opts);
+	if (ret == -1) {
+		return false;
+	} else if (ret > 0) {
+		throw CommandFailed("Command failed", opts, ret);
+	} else {
+		return true;
+	}
+}
+bool Pbs::resumeJob(const std::string& job, bool) {
+	CmdOptions opts{"qsig", {"-s", "resume", job}};
+	std::string out;
+	int ret = _func(out, opts);
+	if (ret == -1) {
+		return false;
+	} else if (ret > 0) {
+		throw CommandFailed("Command failed", opts, ret);
+	} else {
+		return true;
+	}
+}
+bool Pbs::getJobsByUser(const std::string& user, std::function<bool(std::string)> inserter) {
+	CmdOptions opts{"qselect", {"-u", user}};
+	auto itConfig = _cache.find(opts);
+	if (itConfig == _cache.end()) {
+		std::string out;
+		int ret = _func(out, opts);
+		if (ret == -1) {
+			return false;
+		} else if (ret > 0) {
+			throw CommandFailed("Command failed", opts, ret);
+		} else {
+			_cache[opts] = out;
+			splitString(out, "\n", [&](size_t start, size_t end) {
+				std::string job=trim_copy(out.substr(start, end));
+				if (!job.empty()) {
+					if (!inserter(job)) return false;
+				}
+				return true;
+			});
+			return true;
+		}
+	}
+	return true;
 }
 
-void PbsBatch::deleteJobByUser(const std::string& user, bool force) const {
+bool Pbs::deleteJobByUser(const std::string& user, bool force) {
 	std::vector<std::string> args;
-	if (force) args.push_back("-p"); // purge forces job to be deleted
+	CmdOptions opts{"qdel", {}};
 
 	// qdel -u only supported by SGE https://stackoverflow.com/questions/28857807/use-qdel-to-delete-all-my-jobs-at-once-not-one-at-a-time
 	// instead manually query jobs of user first and then delete them
-	getJobsByUser(user, [&](std::string job){args.push_back(job);return true;});
-	runCommand(_func, {"qdel", args});
+	if (!getJobsByUser(user, [&](std::string job){opts.args.push_back(job);return true;})) return false;
+
+	if (force) opts.args.push_back("-p"); // purge forces job to be deleted
+	std::string out;
+	int ret = _func(out, opts);
+	if (ret == -1) {
+		return false;
+	} else if (ret > 0) {
+		throw CommandFailed("Command failed", optsVersion, ret);
+	} else {
+		return true;
+	}
 }
-void PbsBatch::deleteJobById(const std::string& job, bool force) const {
-	std::vector<std::string> args;
-	if (force) args.push_back("-p"); // purge forces job to be deleted
-	args.push_back(job);
-	runCommand(_func, {"qdel", args});
+bool Pbs::deleteJobById(const std::string& job, bool force) {
+	CmdOptions opts{"qdel", {}};
+	if (force) opts.args.push_back("-p"); // purge forces job to be deleted
+	opts.args.push_back(job);
+
+	std::string out;
+	int ret = _func(out, opts);
+	if (ret == -1) {
+		return false;
+	} else if (ret > 0) {
+		throw CommandFailed("Command failed", opts, ret);
+	} else {
+		return true;
+	}
+
 }
-void PbsBatch::rescheduleRunningJobInQueue(const std::string& name, bool force) const {
-	std::vector<std::string> args;
-	if (force) args.push_back("-f");
-	args.push_back(name);
-	runCommand(_func, {"qrerun", args});
+bool Pbs::rescheduleRunningJobInQueue(const std::string& name, bool force) {
+	CmdOptions opts{"qrerun", {}};
+	if (force) opts.args.push_back("-f");
+	opts.args.push_back(name);
+
+	std::string out;
+	int ret = _func(out, opts);
+	if (ret == -1) {
+		return false;
+	} else if (ret > 0) {
+		throw CommandFailed("Command failed", opts, ret);
+	} else {
+		return true;
+	}
 }
 
 }

@@ -1,5 +1,5 @@
-#ifndef __CW_BATCHSYSTEM_SLURM_BATCH_H__
-#define __CW_BATCHSYSTEM_SLURM_BATCH_H__
+#ifndef __CW_BATCHSYSTEM_SLURM_H__
+#define __CW_BATCHSYSTEM_SLURM_H__
 
 #include "batchsystem/batchsystem.h"
 
@@ -13,7 +13,7 @@ namespace slurm {
  * Wrapped within generic interface via \ref cw::batch::slurm::create_batch.
  * 
  */
-class SlurmBatch : public BatchInterface {
+class Slurm : public BatchInterface {
 	std::function<cmd_execute_f> _func;
 	std::map<CmdOptions, std::string> _cache;
 	enum class job_mode {
@@ -31,7 +31,7 @@ public:
 	 * \param[out] inf Interface object to set
 	 * \param _func Function to call shell commands
 	 */
-	SlurmBatch(std::function<cmd_execute_f> func);
+	Slurm(std::function<cmd_execute_f> func);
 
 
 	static void parseQueues(const std::string& output, std::function<getQueues_inserter_f> insert);
@@ -50,12 +50,12 @@ public:
 	 * 
 	 * \param mode Wether to use sacct instead of scontrol
 	 */
-	void setJobMode(job_mode mode);
+	void setJobMode(Slurm::job_mode mode);
 
 	/**
-	 * @brief Get wether sacct is used.
+	 * \brief Get wether sacct is used.
 	 */
-	job_mode getJobMode() const;
+	Slurm::job_mode getJobMode() const;
 
 	/**
 	 * \brief Convert generic Key-Value mapping to job struct with correct datatypes
@@ -94,7 +94,7 @@ public:
 	 * 
 	 * \param insert 
 	 */
-	bool getJobsLegacy(std::function<getJobs_inserter_f> insert);
+	bool getJobsLegacy(std::function<getJobs_inserter_f> insert) const;
 
 	static void parseJobsSacct(const std::string& output, std::function<getJobs_inserter_f> insert);
 
@@ -105,7 +105,7 @@ public:
 	 * 
 	 * \param insert 
 	 */
-	bool getJobsSacct(std::function<getJobs_inserter_f> insert);
+	bool getJobsSacct(std::function<getJobs_inserter_f> insert) const;
 
 	/**
 	 * \brief Explicitly get jobs via acct
@@ -116,8 +116,7 @@ public:
 	 * \param stateFilter Comma separated States to filter
 	 * \param filterJobs jobs to filter
 	 */
-	bool getJobsSacct(std::function<getJobs_inserter_f> insert, const std::string& stateFilter);
-	bool getJobsSacct(std::function<getJobs_inserter_f> insert, const std::string& stateFilter, const std::vector<std::string>& filterJobs);
+	bool getJobsSacct(std::function<getJobs_inserter_f> insert, const std::string& stateFilter, const std::vector<std::string>& filterJobs) const;
 
 	bool detect(bool& detected) override;
 	void resetCache() override;
@@ -125,14 +124,12 @@ public:
 	bool getQueues(std::function<getQueues_inserter_f> insert) override;
 
 	/**
-	 * @brief Get the Jobs object
+	 * \brief Get the Jobs object
 	 * 
 	 * Calls sacct to check wether it is available and queryable (slurmdbd running) and use that instead of scontrol for job infos
 	 * if not set via \ref useSacct before.
 	 * 
-	 * @param insert 
-	 * @return true 
-	 * @return false 
+	 * \param insert 
 	 */
 	bool getJobs(std::function<getJobs_inserter_f> insert) override;
 	bool getBatchInfo(BatchInfo& info) override;
@@ -156,10 +153,13 @@ public:
 	bool setNodeComment(const std::string& name, bool, const std::string& comment, bool appendComment) override;
 	bool holdJob(const std::string& job, bool force) override;
 	bool releaseJob(const std::string& job, bool force) override;
+	bool suspendJob(const std::string& job, bool force) override;
+	bool resumeJob(const std::string& job, bool force) override;
+	bool rescheduleRunningJobInQueue(const std::string& job, bool force) override;
 };
 
 }
 }
 }
 
-#endif /* __CW_BATCHSYSTEM_SLURM_BATCH_H__ */
+#endif /* __CW_BATCHSYSTEM_SLURM_H__ */

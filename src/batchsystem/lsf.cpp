@@ -1,11 +1,10 @@
-#include "batchsystem/lsfBatch.h"
+#include "batchsystem/lsf.h"
 
 #include <iostream>
 #include <sstream>
 #include <vector>
 #include <functional>
 
-#include "batchsystem/internal/runCommand.h"
 #include "batchsystem/internal/trim.h"
 #include "batchsystem/internal/streamCast.h"
 #include "batchsystem/internal/splitString.h"
@@ -26,9 +25,9 @@ namespace cw {
 namespace batch {
 namespace lsf {
 
-LsfBatch::LsfBatch(std::function<cmd_execute_f> func): _func(func) {}
+Lsf::Lsf(std::function<cmd_execute_f> func): _func(func) {}
 
-void LsfBatch::parseNodes(const std::string& output, std::function<getNodes_inserter_f> insert) {
+void Lsf::parseNodes(const std::string& output, std::function<getNodes_inserter_f> insert) {
 	std::vector<int>	cellLengths;
 
 	std::stringstream commandResult(output);
@@ -138,7 +137,7 @@ void LsfBatch::parseNodes(const std::string& output, std::function<getNodes_inse
 	}
 }
 
-bool LsfBatch::getNodes(const std::vector<std::string>& filterNodes, std::function<getNodes_inserter_f> insert) const {
+bool Lsf::getNodes(const std::vector<std::string>& filterNodes, std::function<getNodes_inserter_f> insert) {
 	CmdOptions opts = optsGetNodes;
 	for (const auto& n : filterNodes) opts.args.push_back(n);
 
@@ -154,7 +153,7 @@ bool LsfBatch::getNodes(const std::vector<std::string>& filterNodes, std::functi
 	}
 }
 
-bool LsfBatch::detect(bool& detected) {
+bool Lsf::detect(bool& detected) {
 	std::string out;
 	int ret = _func(out, optsDetect);
 	if (ret == -1) {
@@ -168,7 +167,7 @@ bool LsfBatch::detect(bool& detected) {
 	}
 }
 
-void LsfBatch::parseJobs(const std::string& output, std::function<getJobs_inserter_f> insert) {
+void Lsf::parseJobs(const std::string& output, std::function<getJobs_inserter_f> insert) {
 	std::stringstream commandResult(output);
 
 	std::vector<int> cellLengths;
@@ -303,20 +302,20 @@ void LsfBatch::parseJobs(const std::string& output, std::function<getJobs_insert
 	}
 }
 
-bool LsfBatch::getJobs(std::function<getJobs_inserter_f> insert) const {
+bool Lsf::getJobs(std::function<getJobs_inserter_f> insert) {
 	std::string out;
 	int ret = _func(out, optsGetJobs);
 	if (ret == -1) {
 		return false;
 	} else if (ret > 0) {
-		throw CommandFailed("Command failed", opts, ret);
+		throw CommandFailed("Command failed", optsGetJobs, ret);
 	} else {
 		parseJobs(out, insert);
 		return true;
 	}
 }
 
-void LsfBatch::parseQueues(const std::string& output, std::function<getQueues_inserter_f> insert) {
+void Lsf::parseQueues(const std::string& output, std::function<getQueues_inserter_f> insert) {
 	std::vector<int>	cellLengths;
 
 	std::stringstream commandResult(output);
@@ -439,20 +438,20 @@ void LsfBatch::parseQueues(const std::string& output, std::function<getQueues_in
 	}
 }
 
-bool LsfBatch::getQueues(std::function<getQueues_inserter_f> insert) const {
+bool Lsf::getQueues(std::function<getQueues_inserter_f> insert) {
 	std::string out;
 	int ret = _func(out, optsGetQueues);
 	if (ret == -1) {
 		return false;
 	} else if (ret > 0) {
-		throw CommandFailed("Command failed", opts, ret);
+		throw CommandFailed("Command failed", optsGetQueues, ret);
 	} else {
 		parseQueues(out, insert);
 		return true;
 	}
 }
 
-bool LsfBatch::setQueueState(const std::string& name, QueueState state, bool) const {
+bool Lsf::setQueueState(const std::string& name, QueueState state, bool) {
 	CmdOptions opts;
 
 	switch (state) {
@@ -479,7 +478,7 @@ bool LsfBatch::setQueueState(const std::string& name, QueueState state, bool) co
 	}
 }
 
-bool LsfBatch::changeNodeState(const std::string& name, NodeChangeState state, bool, const std::string&, bool) const {
+bool Lsf::changeNodeState(const std::string& name, NodeChangeState state, bool, const std::string&, bool) {
 	CmdOptions opts;
 	std::string stateArg;
 	switch (state) {
@@ -507,7 +506,7 @@ bool LsfBatch::changeNodeState(const std::string& name, NodeChangeState state, b
 
 }
 
-bool LsfBatch::releaseJob(const std::string& job, bool) const {
+bool Lsf::releaseJob(const std::string& job, bool) {
 	CmdOptions opts{"bresume", {job}};
 
 	std::string out;
@@ -520,7 +519,7 @@ bool LsfBatch::releaseJob(const std::string& job, bool) const {
 		return true;
 	}
 }
-bool LsfBatch::holdJob(const std::string& job, bool) const {
+bool Lsf::holdJob(const std::string& job, bool) {
 	CmdOptions opts{"bstop", {job}};
 
 	std::string out;
@@ -533,7 +532,7 @@ bool LsfBatch::holdJob(const std::string& job, bool) const {
 		return true;
 	}
 }
-bool LsfBatch::deleteJobByUser(const std::string& user, bool) const {
+bool Lsf::deleteJobByUser(const std::string& user, bool) {
 	CmdOptions opts{"bkill", {"-u", user}};
 
 	std::string out;
@@ -546,7 +545,7 @@ bool LsfBatch::deleteJobByUser(const std::string& user, bool) const {
 		return true;
 	}
 }
-bool LsfBatch::deleteJobById(const std::string& job, bool) const {
+bool Lsf::deleteJobById(const std::string& job, bool) {
 	CmdOptions opts{"bkill", {job}};
 
 	std::string out;
