@@ -378,7 +378,8 @@ public:
 	 * \param filterNodes Query only selected nodes or all if empty
 	 * \param insert Callback to get next Node
 	 */
-	virtual bool getNodes(const std::vector<std::string>& filterNodes, std::function<getNodes_inserter_f> insert) = 0;
+	virtual bool getNodes(const std::vector<std::string>& filterNodes, std::function<getNodes_inserter_f> insert);
+	virtual bool getNodes(supported);
 
 	/**
 	 * \brief Get Queue structs information from batchsystem
@@ -387,7 +388,8 @@ public:
 	 * 
 	 * \param insert Callback to get next Queue
 	 */
-	virtual bool getQueues(std::function<getQueues_inserter_f> insert) = 0;
+	virtual bool getQueues(std::function<getQueues_inserter_f> insert);
+	virtual bool getQueues(supported);
 
 	/**
 	 * \brief Get Job structs information from batchsystem
@@ -396,7 +398,8 @@ public:
 	 * 
 	 * \param insert Callback to get next Job
 	 */
-	virtual bool getJobs(std::function<getJobs_inserter_f> insert) = 0;
+	virtual bool getJobs(std::function<getJobs_inserter_f> insert);
+	virtual bool getJobs(supported);
 
 	/**
 	 * \brief Get batchsystem information
@@ -406,7 +409,8 @@ public:
 	 * \param[out] info batchsystem info metadata 
 	 * \return true if done
 	 */
-	virtual bool getBatchInfo(BatchInfo& info) = 0;
+	virtual bool getBatchInfo(BatchInfo& info);
+	virtual bool getBatchInfo(supported);
 
 	/**
 	 * \brief Delete job by Id
@@ -414,7 +418,8 @@ public:
 	 * \param job Id of job to delete
 	 * \param force Force delete
 	 */
-	virtual bool deleteJobById(const std::string& job, bool force) = 0;
+	virtual bool deleteJobById(const std::string& job, bool force);
+	virtual bool deleteJobById(supported);
 
 	/**
 	 * \brief Delete job(s) by user
@@ -422,7 +427,8 @@ public:
 	 * \param user User of job(s) to delete
 	 * \param force Force delete
 	 */
-	virtual bool deleteJobByUser(const std::string& user, bool force) = 0;
+	virtual bool deleteJobByUser(const std::string& user, bool force);
+	virtual bool deleteJobByUser(supported);
 
 	/**
 	 * \brief Change Node state
@@ -433,7 +439,8 @@ public:
 	 * \param reason Reason of node change
 	 * \param appendReason Wether reason should be appended instead of overwritten
 	 */
-	virtual bool changeNodeState(const std::string& name, NodeChangeState state, bool force, const std::string& reason, bool appendReason) = 0;
+	virtual bool changeNodeState(const std::string& name, NodeChangeState state, bool force, const std::string& reason, bool appendReason);
+	virtual bool changeNodeState(supported);
 
 	/**
 	 * \brief Set the QueueState
@@ -444,7 +451,8 @@ public:
 	 * \param state State to change to
 	 * \param force Wether to force state change
 	 */
-	virtual bool setQueueState(const std::string& name, QueueState state, bool force) = 0;
+	virtual bool setQueueState(const std::string& name, QueueState state, bool force);
+	virtual bool setQueueState(supported);
 
 	/**
 	 * \brief Schedule job to run on batchsystem
@@ -453,7 +461,8 @@ public:
 	 * \param[out] jobName Job Id of scheduled job 
 	 * \return true if done
 	 */
-	virtual bool runJob(const JobOptions& opts, std::string& jobName) = 0;
+	virtual bool runJob(const JobOptions& opts, std::string& jobName);
+	virtual bool runJob(supported);
 
 	/**
 	 * \brief Set the node comment
@@ -463,6 +472,7 @@ public:
 	 * \param appendComment Wether to append comment instead of overwritting
 	 */
 	virtual bool setNodeComment(const std::string& name, bool, const std::string& comment, bool appendComment);
+	virtual bool setNodeComment(supported);
 
 	/**
 	 * \brief Prevent a pending job from being run
@@ -473,6 +483,7 @@ public:
 	 * \param force Wether to force hold
 	 */
 	virtual bool holdJob(const std::string& job, bool force);
+	virtual bool holdJob(supported);
 
 
 	/**
@@ -484,6 +495,7 @@ public:
 	 * \param force Wether to force release
 	 */
 	virtual bool releaseJob(const std::string& job, bool force);
+	virtual bool releaseJob(supported);
 
 	/**
 	 * \brief Suspend a running job
@@ -494,6 +506,7 @@ public:
 	 * \param force Wether to force suspend
 	 */
 	virtual bool suspendJob(const std::string& job, bool force);
+	virtual bool suspendJob(supported);
 
 	/**
 	 * \brief Resume a job that was suspended before
@@ -504,6 +517,7 @@ public:
 	 * \param force Wether to force resume
 	 */
 	virtual bool resumeJob(const std::string& job, bool force);
+	virtual bool resumeJob(supported);
 
 
 	/**

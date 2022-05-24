@@ -43,6 +43,22 @@ public:
 	bool suspendJob(const std::string& job, bool force) override;
 	bool resumeJob(const std::string& job, bool force) override;
 	bool rescheduleRunningJobInQueue(const std::string& job, bool force) override;
+
+	bool getNodes(supported) override;
+	bool getQueues(supported) override;
+	bool getJobs(supported) override;
+	bool getBatchInfo(supported) override;
+	bool deleteJobById(supported) override;
+	bool deleteJobByUser(supported) override;
+	bool changeNodeState(supported) override;
+	bool setQueueState(supported) override;
+	bool runJob(supported) override;
+	bool setNodeComment(supported) override;
+	bool holdJob(supported) override;
+	bool releaseJob(supported) override;
+	bool suspendJob(supported) override;
+	bool resumeJob(supported) override;
+	bool rescheduleRunningJobInQueue(supported) override;
 };
 
 

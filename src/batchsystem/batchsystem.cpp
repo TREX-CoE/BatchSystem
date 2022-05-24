@@ -23,23 +23,35 @@ NotImplemented::NotImplemented(const char* msg): std::logic_error(msg) { }
 BatchInterface::~BatchInterface() {}
 
 void BatchInterface::resetCache() {}
-/*
-bool BatchInterface::detect(bool& detected) = 0;
-bool BatchInterface::getNodes(const std::vector<std::string>& filterNodes, std::function<getNodes_inserter_f> insert) = 0;
-bool BatchInterface::getQueues(std::function<getQueues_inserter_f> insert) = 0;
-bool BatchInterface::getJobs(std::function<getJobs_inserter_f> insert) = 0;
-bool BatchInterface::getBatchInfo(BatchInfo& info) = 0;
-bool BatchInterface::deleteJobById(const std::string& job, bool force) = 0;
-bool BatchInterface::deleteJobByUser(const std::string& user, bool force) = 0;
-bool BatchInterface::changeNodeState(const std::string& name, NodeChangeState state, bool force, const std::string& reason, bool appendReason) = 0;
-bool BatchInterface::setQueueState(const std::string& name, QueueState state, bool force) = 0;
-bool BatchInterface::runJob(const JobOptions& opts, std::string& jobName) = 0;
-*/
+
+bool BatchInterface::getNodes(const std::vector<std::string>&, std::function<getNodes_inserter_f>) { throw NotImplemented(__func__); }
+bool BatchInterface::getNodes(supported) { return false; }
+bool BatchInterface::getQueues(std::function<getQueues_inserter_f>) { throw NotImplemented(__func__); }
+bool BatchInterface::getQueues(supported) { return false; }
+bool BatchInterface::getJobs(std::function<getJobs_inserter_f>) { throw NotImplemented(__func__); }
+bool BatchInterface::getJobs(supported) { return false; }
+bool BatchInterface::getBatchInfo(BatchInfo&) { throw NotImplemented(__func__); }
+bool BatchInterface::getBatchInfo(supported) { return false; }
+bool BatchInterface::deleteJobById(const std::string&, bool) { throw NotImplemented(__func__); }
+bool BatchInterface::deleteJobById(supported) { return false; }
+bool BatchInterface::deleteJobByUser(const std::string&, bool) { throw NotImplemented(__func__); }
+bool BatchInterface::deleteJobByUser(supported) { return false; }
+bool BatchInterface::changeNodeState(const std::string&, NodeChangeState, bool, const std::string&, bool) { throw NotImplemented(__func__); }
+bool BatchInterface::changeNodeState(supported) { return false; }
+bool BatchInterface::setQueueState(const std::string&, QueueState, bool) { throw NotImplemented(__func__); }
+bool BatchInterface::setQueueState(supported) { return false; }
+bool BatchInterface::runJob(const JobOptions&, std::string&) { throw NotImplemented(__func__); }
+bool BatchInterface::runJob(supported) { return false; }
 bool BatchInterface::setNodeComment(const std::string&, bool, const std::string&, bool) { throw NotImplemented(__func__); }
+bool BatchInterface::setNodeComment(supported) { return false; }
 bool BatchInterface::holdJob(const std::string&, bool) { throw NotImplemented(__func__); }
+bool BatchInterface::holdJob(supported) { return false; }
 bool BatchInterface::releaseJob(const std::string&, bool) { throw NotImplemented(__func__); }
+bool BatchInterface::releaseJob(supported) { return false; }
 bool BatchInterface::suspendJob(const std::string&, bool) { throw NotImplemented(__func__); }
+bool BatchInterface::suspendJob(supported) { return false; }
 bool BatchInterface::resumeJob(const std::string&, bool) { throw NotImplemented(__func__); }
+bool BatchInterface::resumeJob(supported) { return false; }
 bool BatchInterface::rescheduleRunningJobInQueue(const std::string&, bool) { throw NotImplemented(__func__); }
 bool BatchInterface::rescheduleRunningJobInQueue(supported) { return false; }
 

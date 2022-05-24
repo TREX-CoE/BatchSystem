@@ -192,6 +192,23 @@ const std::string Slurm::DefaultReason = "batchsystem_api";
 
 Slurm::Slurm(std::function<cmd_execute_f> func): _func(func), _mode(job_mode::unchecked) {}
 
+bool Slurm::getNodes(supported) { return true; }
+bool Slurm::getQueues(supported) { return true; }
+bool Slurm::getJobs(supported) { return true; }
+bool Slurm::getBatchInfo(supported) { return true; }
+bool Slurm::deleteJobById(supported) { return true; }
+bool Slurm::deleteJobByUser(supported) { return true; }
+bool Slurm::changeNodeState(supported) { return true; }
+bool Slurm::setQueueState(supported) { return true; }
+bool Slurm::runJob(supported) { return true; }
+bool Slurm::setNodeComment(supported) { return true; }
+bool Slurm::holdJob(supported) { return true; }
+bool Slurm::releaseJob(supported) { return true; }
+bool Slurm::suspendJob(supported) { return true; }
+bool Slurm::resumeJob(supported) { return true; }
+bool Slurm::rescheduleRunningJobInQueue(supported) { return true; }
+
+
 bool Slurm::checkSacct(bool& sacctSupported) {
 	// use sacct --helpformat as sacct would list all jobs, sacct --helpformat would not fail if slurmdbd is not working
 	CmdOptions opts{"sacct", {"--helpformat"}};
