@@ -18,6 +18,7 @@ const CmdOptions optsDetect{"bjobs", {"--version"}};
 const CmdOptions optsGetNodes{"bhosts", {}};
 const CmdOptions optsGetJobs{"bjobs", {"-u", "all"}};
 const CmdOptions optsGetQueues{"bqueues", {}};
+const CmdOptions optsVersion{"lsid", {}};
 
 }
 
@@ -26,6 +27,51 @@ namespace batch {
 namespace lsf {
 
 Lsf::Lsf(std::function<cmd_execute_f> func): _func(func) {}
+
+bool Lsf::getBatchInfo(BatchInfo& info) {
+	std::string out;
+	int ret = _func(out, optsVersion);
+	if (ret == -1) {
+		return false;
+	} else if (ret > 0) {
+		throw CommandFailed("Command failed", optsVersion, ret);
+	} else {
+		info.name = std::string("lfs");
+		info.version = trim_copy(out);
+		return true;
+	}
+}
+
+bool Lsf::runJob(const JobOptions& opts, std::string& jobName) {
+	CmdOptions cmd{"qsub", {}};
+	if (opts.numberNodes.has_value()) {
+		cmd.args.push_back("-nnodes");
+		cmd.args.push_back(std::to_string(opts.numberNodes.get()));
+	}
+	if (opts.numberTasks.has_value()) {
+		cmd.args.push_back("-n");
+		cmd.args.push_back(std::to_string(opts.numberTasks.get()));
+	}
+	cmd.args.push_back(opts.path.get());
+
+	std::string out;
+	int ret = _func(out, cmd);
+	if (ret == -1) {
+		return false;
+	} else if (ret > 0) {
+		throw CommandFailed("Command failed", cmd, ret);
+	} else {
+		auto start = out.find_first_of("<");
+		auto end = out.find_first_of(">");
+		
+		if (start != std::string::npos && end != std::string::npos && end > start) {
+			jobName = out.substr(start+1, end-start);
+		} else {
+			throw std::runtime_error(std::string("Failed to parse job name from: ")+out);
+		}
+		return true;
+	}
+}
 
 void Lsf::parseNodes(const std::string& output, std::function<getNodes_inserter_f> insert) {
 	std::vector<int>	cellLengths;

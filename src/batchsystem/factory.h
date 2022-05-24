@@ -4,6 +4,7 @@
 #include "batchsystem/batchsystem.h"
 
 #include <array>
+#include <memory>
 
 namespace cw {
 namespace batch {
@@ -26,9 +27,7 @@ enum class System {
  */
 const std::array<System,3> Systems = {System::Slurm, System::Pbs, System::Lsf};
 
-
-bool detect(const System& system, std::function<cmd_execute_f> _func);
-void create_batch(BatchSystem& inf, const System& system, std::function<cmd_execute_f> _func);
+std::unique_ptr<BatchInterface> create_batch(const System& system, std::function<cmd_execute_f> _func);
 
 }
 }

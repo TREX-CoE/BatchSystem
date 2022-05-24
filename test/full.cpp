@@ -5,10 +5,8 @@
 #include <functional>
 
 #include "batchsystem/batchsystem.h"
-#include "batchsystem/slurm.h"
 #include "batchsystem/json.h"
-#include "batchsystem/slurmBatch.h"
-#include "batchsystem/pbsBatch.h"
+#include "batchsystem/factory.h"
 
 using namespace std::placeholders;
 
@@ -36,12 +34,11 @@ int runCommand(const std::string& rootdir, std::string& out, const cw::batch::Cm
 
 TEST_CASE("Test system", "[full]") {
     SECTION("Batch system") {
-        BatchSystem batchSystem;
 
-        slurm::create_batch(batchSystem, std::bind(runCommand, TESTDATA_DIR+"/1/", _1, _2));
+        std::unique_ptr<BatchInterface> batch = create_batch(System::Slurm, [](std::string& out, const CmdOptions& opts){ return runCommand(TESTDATA_DIR+"/1/", out, opts); });
 
         std::vector<Job> jobs;
-        batchSystem.getJobs([&](Job j){ jobs.push_back(j); return true; });
+        batch->getJobs([&](Job j){ jobs.push_back(j); return true; });
         CHECK(jobs.size() == 5);
         CHECK(jobs[0].id.get()=="4");
 

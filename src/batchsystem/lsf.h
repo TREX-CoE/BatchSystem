@@ -24,7 +24,6 @@ public:
 	static void parseQueues(const std::string& output, std::function<getQueues_inserter_f> insert);
 
 	bool detect(bool& detected) override;
-	void resetCache() override;
 	bool getNodes(const std::vector<std::string>& filterNodes, std::function<getNodes_inserter_f> insert) override;
 	bool getQueues(std::function<getQueues_inserter_f> insert) override;
 	bool getJobs(std::function<getJobs_inserter_f> insert) override;
@@ -34,7 +33,6 @@ public:
 	bool changeNodeState(const std::string& name, NodeChangeState state, bool force, const std::string& reason, bool appendReason) override;
 	bool setQueueState(const std::string& name, QueueState state, bool force) override;
 	bool runJob(const JobOptions& opts, std::string& jobName) override;
-	bool setNodeComment(const std::string& name, bool, const std::string& comment, bool appendComment) override;
 	bool holdJob(const std::string& job, bool force) override;
 	bool releaseJob(const std::string& job, bool force) override;
 

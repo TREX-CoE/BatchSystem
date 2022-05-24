@@ -284,6 +284,12 @@ public:
 	int returncode() const;
 };
 
+class NotImplemented : public std::logic_error
+{
+public:
+    NotImplemented(const char* msg);
+};
+
 /**
  * \brief Get next Node struct from batchsystem
  * 
@@ -326,6 +332,12 @@ typedef bool getQueues_inserter_f(Queue queue);
 typedef int cmd_execute_f(std::string& out, const CmdOptions& opts);
 
 /**
+ * @brief Tag to check wether method is supported / implemented.
+ * 
+ */
+struct supported {};
+
+/**
  * \brief Struct of batchsystem interface functions
  * 
  * This is the public interface used by the provided pbs / slurm / lsf implementations,
@@ -338,7 +350,7 @@ typedef int cmd_execute_f(std::string& out, const CmdOptions& opts);
  */
 class BatchInterface {
 public:
-	virtual ~BatchInterface() {}
+	virtual ~BatchInterface();
 	
 	/**
 	 * @brief Check to detect batch interface.
@@ -351,8 +363,10 @@ public:
 	/**
 	 * @brief Reset internal cache
 	 * 
+	 * Noop if implementation does not use cache.
+	 * 
 	 */
-	virtual void resetCache() = 0;
+	virtual void resetCache();
 
 	/**
 	 * \brief Get Node structs information from batchsystem
@@ -448,7 +462,7 @@ public:
 	 * \param comment Comment string to set
 	 * \param appendComment Wether to append comment instead of overwritting
 	 */
-	virtual bool setNodeComment(const std::string& name, bool, const std::string& comment, bool appendComment) = 0;
+	virtual bool setNodeComment(const std::string& name, bool, const std::string& comment, bool appendComment);
 
 	/**
 	 * \brief Prevent a pending job from being run
@@ -501,6 +515,7 @@ public:
 	 * \param force Wether to force reque
 	 */
 	virtual bool rescheduleRunningJobInQueue(const std::string& job, bool force);
+	virtual bool rescheduleRunningJobInQueue(supported);
 };
 
 }
