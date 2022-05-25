@@ -86,6 +86,8 @@ void serialize(const BatchInfo& batchInfo, rapidjson::Document& document);
  */
 std::string serialize(const BatchInfo& batchInfo);
 
+std::function<bool(BatchInterface&)> command(rapidjson::Document& document, BatchInterface& batch);
+
 }
 }
 }

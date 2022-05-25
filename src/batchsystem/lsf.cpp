@@ -28,17 +28,17 @@ namespace lsf {
 
 Lsf::Lsf(std::function<cmd_execute_f> func): _func(func) {}
 
-bool Lsf::getNodes(supported) { return true; }
-bool Lsf::getQueues(supported) { return true; }
-bool Lsf::getJobs(supported) { return true; }
-bool Lsf::getBatchInfo(supported) { return true; }
-bool Lsf::deleteJobById(supported) { return true; }
-bool Lsf::deleteJobByUser(supported) { return true; }
-bool Lsf::changeNodeState(supported) { return true; }
-bool Lsf::setQueueState(supported) { return true; }
-bool Lsf::runJob(supported) { return true; }
-bool Lsf::holdJob(supported) { return true; }
-bool Lsf::releaseJob(supported) { return true; }
+bool Lsf::getNodes(supported_t) { return true; }
+bool Lsf::getQueues(supported_t) { return true; }
+bool Lsf::getJobs(supported_t) { return true; }
+bool Lsf::getBatchInfo(supported_t) { return true; }
+bool Lsf::deleteJobById(supported_t) { return true; }
+bool Lsf::deleteJobByUser(supported_t) { return true; }
+bool Lsf::changeNodeState(supported_t) { return true; }
+bool Lsf::setQueueState(supported_t) { return true; }
+bool Lsf::runJob(supported_t) { return true; }
+bool Lsf::holdJob(supported_t) { return true; }
+bool Lsf::releaseJob(supported_t) { return true; }
 
 bool Lsf::getBatchInfo(BatchInfo& info) {
 	std::string out;

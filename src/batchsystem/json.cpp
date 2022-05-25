@@ -1,8 +1,10 @@
 #include "batchsystem/json.h"
 
 #include <algorithm>
+#include <iostream>
 #include <cctype>
 #include <string>
+#include <cstring>
 
 #include <rapidjson/stringbuffer.h>
 #include <rapidjson/writer.h>
@@ -242,6 +244,61 @@ std::string serialize(const BatchInfo& batchInfo) {
         Document d;
         serialize(batchInfo, d);
         return jsonToString(d);
+}
+
+std::function<bool(BatchInterface&)> command(rapidjson::Document& document, BatchInterface& batch) {
+        if (!document.IsObject()) throw std::runtime_error("Is not an object");
+        if (!document.HasMember("command")) throw std::runtime_error("No command selected");
+        auto& command = document["command"];
+        if (!command.IsString()) throw std::runtime_error("Command is not a string");
+        auto cmd = command.GetString();
+        if (strcmp(cmd,"deleteJobById")==0) {
+                if (!batch.deleteJobById(supported)) goto unsupported;
+                if (!document.HasMember("job")) throw std::runtime_error("No job given");
+                auto& job = document["job"];
+                if (!job.IsString()) throw std::runtime_error("Job is not a string");
+                bool force = document.HasMember("force") && document["force"].IsBool() && document["force"].GetBool();
+                return [force, jobName=std::string(job.GetString())](BatchInterface& inf){ return inf.deleteJobById(jobName, force); };
+
+        } else if (strcmp(cmd,"deleteJobByUser")==0) {
+                if (!batch.deleteJobByUser(supported)) goto unsupported;
+
+        } else if (strcmp(cmd,"changeNodeState")==0) {
+                if (!batch.changeNodeState(supported)) goto unsupported;
+
+        } else if (strcmp(cmd,"setQueueState")==0) {
+                if (!batch.setQueueState(supported)) goto unsupported;
+
+        } else if (strcmp(cmd,"runJob")==0) {
+                if (!batch.runJob(supported)) goto unsupported;
+
+        } else if (strcmp(cmd,"setNodeComment")==0) {
+                if (!batch.setNodeComment(supported)) goto unsupported;
+
+        } else if (strcmp(cmd,"holdJob")==0) {
+                if (!batch.holdJob(supported)) goto unsupported;
+
+        } else if (strcmp(cmd,"releaseJob")==0) {
+                if (!batch.releaseJob(supported)) goto unsupported;
+
+        } else if (strcmp(cmd,"suspendJob")==0) {
+                if (!batch.suspendJob(supported)) goto unsupported;
+
+        } else if (strcmp(cmd,"resumeJob")==0) {
+                if (!batch.resumeJob(supported)) goto unsupported;
+
+        } else if (strcmp(cmd,"rescheduleRunningJobInQueue")==0) {
+                if (!batch.rescheduleRunningJobInQueue(supported)) goto unsupported;
+
+        } else {
+                throw std::runtime_error("Unknown command string");
+        }
+
+        return [](BatchInterface& inf){ return inf.rescheduleRunningJobInQueue("job", true); };
+
+        unsupported:
+
+        throw std::runtime_error("Unsupported command by batch interface");
 }
 
 }

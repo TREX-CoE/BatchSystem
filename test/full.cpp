@@ -46,4 +46,17 @@ TEST_CASE("Test system", "[full]") {
         for (const auto& j : jobs) out += json::serialize(j) + "\n";
         //std::cout << out << std::endl;
     }
+
+    SECTION("commands json") {
+
+        std::unique_ptr<BatchInterface> batch = create_batch(System::Slurm, [](std::string& out, const CmdOptions& opts){ return runCommand(TESTDATA_DIR+"/1/", out, opts); });
+
+        rapidjson::Document document;
+        std::string str = "{ \"command\" : \"runJob\" }";
+        document.Parse<0>(str.c_str());
+
+        const auto fn = json::command(document, *batch);
+        (void)fn;
+    }
 }
+

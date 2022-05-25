@@ -192,21 +192,21 @@ const std::string Slurm::DefaultReason = "batchsystem_api";
 
 Slurm::Slurm(std::function<cmd_execute_f> func): _func(func), _mode(job_mode::unchecked) {}
 
-bool Slurm::getNodes(supported) { return true; }
-bool Slurm::getQueues(supported) { return true; }
-bool Slurm::getJobs(supported) { return true; }
-bool Slurm::getBatchInfo(supported) { return true; }
-bool Slurm::deleteJobById(supported) { return true; }
-bool Slurm::deleteJobByUser(supported) { return true; }
-bool Slurm::changeNodeState(supported) { return true; }
-bool Slurm::setQueueState(supported) { return true; }
-bool Slurm::runJob(supported) { return true; }
-bool Slurm::setNodeComment(supported) { return true; }
-bool Slurm::holdJob(supported) { return true; }
-bool Slurm::releaseJob(supported) { return true; }
-bool Slurm::suspendJob(supported) { return true; }
-bool Slurm::resumeJob(supported) { return true; }
-bool Slurm::rescheduleRunningJobInQueue(supported) { return true; }
+bool Slurm::getNodes(supported_t) { return true; }
+bool Slurm::getQueues(supported_t) { return true; }
+bool Slurm::getJobs(supported_t) { return true; }
+bool Slurm::getBatchInfo(supported_t) { return true; }
+bool Slurm::deleteJobById(supported_t) { return true; }
+bool Slurm::deleteJobByUser(supported_t) { return true; }
+bool Slurm::changeNodeState(supported_t) { return true; }
+bool Slurm::setQueueState(supported_t) { return true; }
+bool Slurm::runJob(supported_t) { return true; }
+bool Slurm::setNodeComment(supported_t) { return true; }
+bool Slurm::holdJob(supported_t) { return true; }
+bool Slurm::releaseJob(supported_t) { return true; }
+bool Slurm::suspendJob(supported_t) { return true; }
+bool Slurm::resumeJob(supported_t) { return true; }
+bool Slurm::rescheduleRunningJobInQueue(supported_t) { return true; }
 
 
 bool Slurm::checkSacct(bool& sacctSupported) {

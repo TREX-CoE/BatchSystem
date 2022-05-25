@@ -34,17 +34,17 @@ public:
 	bool holdJob(const std::string& job, bool force) override;
 	bool releaseJob(const std::string& job, bool force) override;
 
-	bool getNodes(supported) override;
-	bool getQueues(supported) override;
-	bool getJobs(supported) override;
-	bool getBatchInfo(supported) override;
-	bool deleteJobById(supported) override;
-	bool deleteJobByUser(supported) override;
-	bool changeNodeState(supported) override;
-	bool setQueueState(supported) override;
-	bool runJob(supported) override;
-	bool holdJob(supported) override;
-	bool releaseJob(supported) override;
+	bool getNodes(supported_t) override;
+	bool getQueues(supported_t) override;
+	bool getJobs(supported_t) override;
+	bool getBatchInfo(supported_t) override;
+	bool deleteJobById(supported_t) override;
+	bool deleteJobByUser(supported_t) override;
+	bool changeNodeState(supported_t) override;
+	bool setQueueState(supported_t) override;
+	bool runJob(supported_t) override;
+	bool holdJob(supported_t) override;
+	bool releaseJob(supported_t) override;
 };
 
 }
