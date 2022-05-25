@@ -10,26 +10,29 @@ namespace slurm {
 /**
  * \brief Concrete implementation of batchsystem for Slurm
  * 
- * Wrapped within generic interface via \ref cw::batch::slurm::create_batch.
- * 
  */
 class Slurm : public BatchInterface {
 	std::function<cmd_execute_f> _func;
 	std::map<CmdOptions, std::string> _cache;
+	/**
+	 * @brief Which command to use for getting job info
+	 * 
+	 * Determines which command to use in \ref getJobs.
+	 * 
+	 */
 	enum class job_mode {
-		unchecked,
-		sacct,
-		scontrol,
+		unchecked, //!< auto detect whether sacct is supported or fallback to scontrol
+		sacct, //!< use sacct
+		scontrol, //!< use scontrol
 	};
 	job_mode _mode;
 public:
 	static const std::string DefaultReason;
 
 	/**
-	 * \brief Initialize batchsystem interface with Slurm implementation (autodetect sacct)
+	 * \brief Initialize batchsystem interface with Slurm implementation
 	 * 
-	 * \param[out] inf Interface object to set
-	 * \param _func Function to call shell commands
+	 * \param func Function to call shell commands
 	 */
 	Slurm(std::function<cmd_execute_f> func);
 
@@ -127,7 +130,7 @@ public:
 	 * \brief Get the Jobs object
 	 * 
 	 * Calls sacct to check wether it is available and queryable (slurmdbd running) and use that instead of scontrol for job infos
-	 * if not set via \ref useSacct before.
+	 * if not set via \ref setJobMode before.
 	 * 
 	 * \param insert 
 	 */

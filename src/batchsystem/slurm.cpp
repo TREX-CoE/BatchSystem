@@ -215,7 +215,7 @@ bool Slurm::checkSacct(bool& sacctSupported) {
 
 	std::string out;
 	int ret = _func(out, opts);
-	if (ret == -1) {
+	if (ret == not_finished) {
 		return false;
 	} else if (ret > 0) {
 		sacctSupported = false;
@@ -244,7 +244,7 @@ bool Slurm::getBatchInfo(BatchInfo& info) {
 	if (itVersion == _cache.end()) {
 		std::string out;
 		int ret = _func(out, optsVersion);
-		if (ret == -1) {
+		if (ret == not_finished) {
 			return false;
 		} else if (ret > 0) {
 			throw CommandFailed("Command failed", optsVersion, ret);
@@ -256,7 +256,7 @@ bool Slurm::getBatchInfo(BatchInfo& info) {
 	if (itConfig == _cache.end()) {
 		std::string out;
 		int ret = _func(out, optsConfig);
-		if (ret == -1) {
+		if (ret == not_finished) {
 			return false;
 		} else if (ret > 0) {
 			throw CommandFailed("Command failed", optsConfig, ret);
@@ -275,7 +275,7 @@ bool Slurm::detect(bool& detected) {
 	CmdOptions opts{"sinfo", {"--version"}};
 	std::string out;
 	int ret = _func(out, opts);
-	if (ret == -1) {
+	if (ret == not_finished) {
 		return false;
 	} else if (ret > 0) {
 		detected = false;
@@ -399,7 +399,7 @@ bool Slurm::getNodes(const std::vector<std::string>& filterNodes, std::function<
 	}
 	std::string out;
 	int ret = _func(out, opts);
-	if (ret == -1) {
+	if (ret == not_finished) {
 		return false;
 	} else if (ret > 0) {
 		throw CommandFailed("Command failed", opts, ret);
@@ -613,7 +613,7 @@ bool Slurm::getJobsLegacy(std::function<getJobs_inserter_f> insert) const {
 	CmdOptions opts{"scontrol", {"show", "job", "--all"}};
 	std::string out;
 	int ret = _func(out, opts);
-	if (ret == -1) {
+	if (ret == not_finished) {
 		return false;
 	} else if (ret > 0) {
 		throw CommandFailed("Command failed", opts, ret);
@@ -641,7 +641,7 @@ bool Slurm::runJob(const JobOptions& opts, std::string& jobName) {
 
 	std::string out;
 	int ret = _func(out, cmd);
-	if (ret == -1) {
+	if (ret == not_finished) {
 		return false;
 	} else if (ret > 0) {
 		throw CommandFailed("Command failed", cmd, ret);
@@ -711,7 +711,7 @@ bool Slurm::getJobsSacct(std::function<getJobs_inserter_f> insert, const std::st
 
 	std::string out;
 	int ret = _func(out, opts);
-	if (ret == -1) {
+	if (ret == not_finished) {
 		return false;
 	} else if (ret > 0) {
 		throw CommandFailed("Command failed", opts, ret);
@@ -829,7 +829,7 @@ void Slurm::parseQueues(const std::string& output, std::function<getQueues_inser
 bool Slurm::getQueues(std::function<getQueues_inserter_f> insert) {
 	std::string out;
 	int ret = _func(out, optsGetQueues);
-	if (ret == -1) {
+	if (ret == not_finished) {
 		return false;
 	} else if (ret > 0) {
 		throw CommandFailed("Command failed", optsGetQueues, ret);
@@ -861,7 +861,7 @@ bool Slurm::changeNodeState(const std::string& name, NodeChangeState state, bool
 
 	std::string out;
 	int ret = _func(out, opts);
-	if (ret == -1) {
+	if (ret == not_finished) {
 		return false;
 	} else if (ret > 0) {
 		throw CommandFailed("Command failed", opts, ret);
@@ -875,7 +875,7 @@ bool Slurm::setNodeComment(const std::string& name, bool, const std::string& com
 
 	std::string out;
 	int ret = _func(out, opts);
-	if (ret == -1) {
+	if (ret == not_finished) {
 		return false;
 	} else if (ret > 0) {
 		throw CommandFailed("Command failed", opts, ret);
@@ -889,7 +889,7 @@ bool Slurm::releaseJob(const std::string& job, bool) {
 
 	std::string out;
 	int ret = _func(out, opts);
-	if (ret == -1) {
+	if (ret == not_finished) {
 		return false;
 	} else if (ret > 0) {
 		throw CommandFailed("Command failed", opts, ret);
@@ -902,7 +902,7 @@ bool Slurm::holdJob(const std::string& job, bool) {
 
 	std::string out;
 	int ret = _func(out, opts);
-	if (ret == -1) {
+	if (ret == not_finished) {
 		return false;
 	} else if (ret > 0) {
 		throw CommandFailed("Command failed", opts, ret);
@@ -915,7 +915,7 @@ bool Slurm::deleteJobById(const std::string& job, bool) {
 
 	std::string out;
 	int ret = _func(out, opts);
-	if (ret == -1) {
+	if (ret == not_finished) {
 		return false;
 	} else if (ret > 0) {
 		throw CommandFailed("Command failed", opts, ret);
@@ -928,7 +928,7 @@ bool Slurm::deleteJobByUser(const std::string& user, bool) {
 
 	std::string out;
 	int ret = _func(out, opts);
-	if (ret == -1) {
+	if (ret == not_finished) {
 		return false;
 	} else if (ret > 0) {
 		throw CommandFailed("Command failed", opts, ret);
@@ -941,7 +941,7 @@ bool Slurm::suspendJob(const std::string& job, bool) {
 
 	std::string out;
 	int ret = _func(out, opts);
-	if (ret == -1) {
+	if (ret == not_finished) {
 		return false;
 	} else if (ret > 0) {
 		throw CommandFailed("Command failed", opts, ret);
@@ -954,7 +954,7 @@ bool Slurm::resumeJob(const std::string& job, bool) {
 
 	std::string out;
 	int ret = _func(out, opts);
-	if (ret == -1) {
+	if (ret == not_finished) {
 		return false;
 	} else if (ret > 0) {
 		throw CommandFailed("Command failed", opts, ret);
@@ -977,7 +977,7 @@ bool Slurm::setQueueState(const std::string& name, QueueState state, bool) {
 
 	std::string out;
 	int ret = _func(out, opts);
-	if (ret == -1) {
+	if (ret == not_finished) {
 		return false;
 	} else if (ret > 0) {
 		throw CommandFailed("Command failed", opts, ret);
@@ -991,7 +991,7 @@ bool Slurm::rescheduleRunningJobInQueue(const std::string& job, bool hold) {
 
 	std::string out;
 	int ret = _func(out, opts);
-	if (ret == -1) {
+	if (ret == not_finished) {
 		return false;
 	} else if (ret > 0) {
 		throw CommandFailed("Command failed", opts, ret);

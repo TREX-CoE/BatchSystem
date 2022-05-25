@@ -10,8 +10,6 @@ namespace lsf {
 /**
  * \brief Concrete implementation of batchsystem for LSF
  * 
- * Wrapped within generic interface via \ref cw::batch::lsf::create_batch.
- * 
  */
 class Lsf : public BatchInterface {
 private:

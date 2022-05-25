@@ -43,7 +43,7 @@ bool Lsf::releaseJob(supported) { return true; }
 bool Lsf::getBatchInfo(BatchInfo& info) {
 	std::string out;
 	int ret = _func(out, optsVersion);
-	if (ret == -1) {
+	if (ret == not_finished) {
 		return false;
 	} else if (ret > 0) {
 		throw CommandFailed("Command failed", optsVersion, ret);
@@ -68,7 +68,7 @@ bool Lsf::runJob(const JobOptions& opts, std::string& jobName) {
 
 	std::string out;
 	int ret = _func(out, cmd);
-	if (ret == -1) {
+	if (ret == not_finished) {
 		return false;
 	} else if (ret > 0) {
 		throw CommandFailed("Command failed", cmd, ret);
@@ -201,7 +201,7 @@ bool Lsf::getNodes(const std::vector<std::string>& filterNodes, std::function<ge
 
 	std::string out;
 	int ret = _func(out, opts);
-	if (ret == -1) {
+	if (ret == not_finished) {
 		return false;
 	} else if (ret > 0) {
 		throw CommandFailed("Command failed", opts, ret);
@@ -214,7 +214,7 @@ bool Lsf::getNodes(const std::vector<std::string>& filterNodes, std::function<ge
 bool Lsf::detect(bool& detected) {
 	std::string out;
 	int ret = _func(out, optsDetect);
-	if (ret == -1) {
+	if (ret == not_finished) {
 		return false;
 	} else if (ret > 0) {
 		detected = false;
@@ -363,7 +363,7 @@ void Lsf::parseJobs(const std::string& output, std::function<getJobs_inserter_f>
 bool Lsf::getJobs(std::function<getJobs_inserter_f> insert) {
 	std::string out;
 	int ret = _func(out, optsGetJobs);
-	if (ret == -1) {
+	if (ret == not_finished) {
 		return false;
 	} else if (ret > 0) {
 		throw CommandFailed("Command failed", optsGetJobs, ret);
@@ -499,7 +499,7 @@ void Lsf::parseQueues(const std::string& output, std::function<getQueues_inserte
 bool Lsf::getQueues(std::function<getQueues_inserter_f> insert) {
 	std::string out;
 	int ret = _func(out, optsGetQueues);
-	if (ret == -1) {
+	if (ret == not_finished) {
 		return false;
 	} else if (ret > 0) {
 		throw CommandFailed("Command failed", optsGetQueues, ret);
@@ -527,7 +527,7 @@ bool Lsf::setQueueState(const std::string& name, QueueState state, bool) {
 
 	std::string out;
 	int ret = _func(out, opts);
-	if (ret == -1) {
+	if (ret == not_finished) {
 		return false;
 	} else if (ret > 0) {
 		throw CommandFailed("Command failed", opts, ret);
@@ -554,7 +554,7 @@ bool Lsf::changeNodeState(const std::string& name, NodeChangeState state, bool, 
 
 	std::string out;
 	int ret = _func(out, opts);
-	if (ret == -1) {
+	if (ret == not_finished) {
 		return false;
 	} else if (ret > 0) {
 		throw CommandFailed("Command failed", opts, ret);
@@ -569,7 +569,7 @@ bool Lsf::releaseJob(const std::string& job, bool) {
 
 	std::string out;
 	int ret = _func(out, opts);
-	if (ret == -1) {
+	if (ret == not_finished) {
 		return false;
 	} else if (ret > 0) {
 		throw CommandFailed("Command failed", opts, ret);
@@ -582,7 +582,7 @@ bool Lsf::holdJob(const std::string& job, bool) {
 
 	std::string out;
 	int ret = _func(out, opts);
-	if (ret == -1) {
+	if (ret == not_finished) {
 		return false;
 	} else if (ret > 0) {
 		throw CommandFailed("Command failed", opts, ret);
@@ -595,7 +595,7 @@ bool Lsf::deleteJobByUser(const std::string& user, bool) {
 
 	std::string out;
 	int ret = _func(out, opts);
-	if (ret == -1) {
+	if (ret == not_finished) {
 		return false;
 	} else if (ret > 0) {
 		throw CommandFailed("Command failed", opts, ret);
@@ -608,7 +608,7 @@ bool Lsf::deleteJobById(const std::string& job, bool) {
 
 	std::string out;
 	int ret = _func(out, opts);
-	if (ret == -1) {
+	if (ret == not_finished) {
 		return false;
 	} else if (ret > 0) {
 		throw CommandFailed("Command failed", opts, ret);

@@ -10,8 +10,6 @@ namespace pbs {
 /**
  * \brief Concrete implementation of batchsystem for PBS
  * 
- * Wrapped within generic interface via \ref cw::batch::pbs::create_batch.
- * 
  */
 class Pbs : public BatchInterface {
 private:

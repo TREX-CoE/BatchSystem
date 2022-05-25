@@ -87,7 +87,7 @@ bool Pbs::runJob(const JobOptions& opts, std::string& jobName) {
 
 	std::string out;
 	int ret = _func(out, cmd);
-	if (ret == -1) {
+	if (ret == not_finished) {
 		return false;
 	} else if (ret > 0) {
 		throw CommandFailed("Command failed", cmd, ret);
@@ -100,7 +100,7 @@ bool Pbs::runJob(const JobOptions& opts, std::string& jobName) {
 bool Pbs::getBatchInfo(BatchInfo& info) {
 	std::string out;
 	int ret = _func(out, optsVersion);
-	if (ret == -1) {
+	if (ret == not_finished) {
 		return false;
 	} else if (ret > 0) {
 		throw CommandFailed("Command failed", optsVersion, ret);
@@ -114,7 +114,7 @@ bool Pbs::getBatchInfo(BatchInfo& info) {
 bool Pbs::detect(bool& detected) {
 	std::string out;
 	int ret = _func(out, optsDetect);
-	if (ret == -1) {
+	if (ret == not_finished) {
 		return false;
 	} else if (ret > 0) {
 		detected = false;
@@ -209,7 +209,7 @@ bool Pbs::getNodes(const std::vector<std::string>& filterNodes, std::function<ge
 
 	std::string out;
 	int ret = _func(out, opts);
-	if (ret == -1) {
+	if (ret == not_finished) {
 		return false;
 	} else if (ret > 0) {
 		throw CommandFailed("Command failed", opts, ret);
@@ -222,7 +222,7 @@ bool Pbs::getNodes(const std::vector<std::string>& filterNodes, std::function<ge
 bool Pbs::getQueues(std::function<getQueues_inserter_f> insert) {
 	std::string out;
 	int ret = _func(out, optsGetQueues);
-	if (ret == -1) {
+	if (ret == not_finished) {
 		return false;
 	} else if (ret > 0) {
 		throw CommandFailed("Command failed", optsGetQueues, ret);
@@ -412,7 +412,7 @@ void Pbs::parseJobs(const std::string& output, std::function<getJobs_inserter_f>
 bool Pbs::getJobs(std::function<getJobs_inserter_f> insert) {
 	std::string out;
 	int ret = _func(out, optsGetJobs);
-	if (ret == -1) {
+	if (ret == not_finished) {
 		return false;
 	} else if (ret > 0) {
 		throw CommandFailed("Command failed", optsGetJobs, ret);
@@ -551,7 +551,7 @@ bool Pbs::setNodeComment(const std::string& name, bool, const std::string& comme
 
 	std::string out;
 	int ret = _func(out, opts);
-	if (ret == -1) {
+	if (ret == not_finished) {
 		return false;
 	} else if (ret > 0) {
 		throw CommandFailed("Command failed", opts, ret);
@@ -575,7 +575,7 @@ bool Pbs::setQueueState(const std::string& name, QueueState state, bool) {
 
 	std::string out;
 	int ret = _func(out, opts);
-	if (ret == -1) {
+	if (ret == not_finished) {
 		return false;
 	} else if (ret > 0) {
 		throw CommandFailed("Command failed", opts, ret);
@@ -596,7 +596,7 @@ bool Pbs::changeNodeState(const std::string& name, NodeChangeState state, bool, 
 
 	std::string out;
 	int ret = _func(out, opts);
-	if (ret == -1) {
+	if (ret == not_finished) {
 		return false;
 	} else if (ret > 0) {
 		throw CommandFailed("Command failed", opts, ret);
@@ -609,7 +609,7 @@ bool Pbs::releaseJob(const std::string& job, bool) {
 	CmdOptions opts{"qrls", {job}};
 	std::string out;
 	int ret = _func(out, opts);
-	if (ret == -1) {
+	if (ret == not_finished) {
 		return false;
 	} else if (ret > 0) {
 		throw CommandFailed("Command failed", opts, ret);
@@ -621,7 +621,7 @@ bool Pbs::holdJob(const std::string& job, bool) {
 	CmdOptions opts{"qhold", {job}};
 	std::string out;
 	int ret = _func(out, opts);
-	if (ret == -1) {
+	if (ret == not_finished) {
 		return false;
 	} else if (ret > 0) {
 		throw CommandFailed("Command failed", opts, ret);
@@ -633,7 +633,7 @@ bool Pbs::suspendJob(const std::string& job, bool) {
 	CmdOptions opts{"qsig", {"-s", "suspend", job}};
 	std::string out;
 	int ret = _func(out, opts);
-	if (ret == -1) {
+	if (ret == not_finished) {
 		return false;
 	} else if (ret > 0) {
 		throw CommandFailed("Command failed", opts, ret);
@@ -645,7 +645,7 @@ bool Pbs::resumeJob(const std::string& job, bool) {
 	CmdOptions opts{"qsig", {"-s", "resume", job}};
 	std::string out;
 	int ret = _func(out, opts);
-	if (ret == -1) {
+	if (ret == not_finished) {
 		return false;
 	} else if (ret > 0) {
 		throw CommandFailed("Command failed", opts, ret);
@@ -659,7 +659,7 @@ bool Pbs::getJobsByUser(const std::string& user, std::function<bool(std::string)
 	if (itConfig == _cache.end()) {
 		std::string out;
 		int ret = _func(out, opts);
-		if (ret == -1) {
+		if (ret == not_finished) {
 			return false;
 		} else if (ret > 0) {
 			throw CommandFailed("Command failed", opts, ret);
@@ -689,7 +689,7 @@ bool Pbs::deleteJobByUser(const std::string& user, bool force) {
 	if (force) opts.args.push_back("-p"); // purge forces job to be deleted
 	std::string out;
 	int ret = _func(out, opts);
-	if (ret == -1) {
+	if (ret == not_finished) {
 		return false;
 	} else if (ret > 0) {
 		throw CommandFailed("Command failed", optsVersion, ret);
@@ -704,7 +704,7 @@ bool Pbs::deleteJobById(const std::string& job, bool force) {
 
 	std::string out;
 	int ret = _func(out, opts);
-	if (ret == -1) {
+	if (ret == not_finished) {
 		return false;
 	} else if (ret > 0) {
 		throw CommandFailed("Command failed", opts, ret);
@@ -720,7 +720,7 @@ bool Pbs::rescheduleRunningJobInQueue(const std::string& name, bool force) {
 
 	std::string out;
 	int ret = _func(out, opts);
-	if (ret == -1) {
+	if (ret == not_finished) {
 		return false;
 	} else if (ret > 0) {
 		throw CommandFailed("Command failed", opts, ret);

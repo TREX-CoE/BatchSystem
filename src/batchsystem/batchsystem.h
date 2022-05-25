@@ -1,6 +1,17 @@
 #ifndef __CW_BATCHSYSTEM_BATCHSYSTEM__
 #define __CW_BATCHSYSTEM_BATCHSYSTEM__
 
+/**
+ * \mainpage Batchsystem
+ * 
+ * Batchsystem is a generic wrapper for different batchsystem implementations like PBS / Slurm or LSF
+ * to provide a uniform interface to query batchsystem infos and trigger actions.
+ * 
+ * \note
+ * For the complete API documentation go to this namespace:
+ * \ref cw::batch
+ */
+
 #include <string>
 #include <vector>
 #include <ctime>
@@ -18,8 +29,6 @@ namespace cw {
  * \brief Batchsystem interface
  * 
  * Generic batchsystem interface to allow querying / sending commands to different batchsystems.
- * 
- * \section usage Usage
  * 
  * \code
  * // define batchinterface variable
@@ -284,9 +293,20 @@ public:
 	int returncode() const;
 };
 
+/**
+ * \brief Exception to signal not implemented virtual method.
+ * 
+ * Used in \ref BatchInterface for optional methods.
+ * 
+ */
 class NotImplemented : public std::logic_error
 {
 public:
+	/**
+	 * @brief Construct a new NotImplemented exception
+	 * 
+	 * @param msg String literal for not implemented function name (e.g. pass `__func__` macro)
+	 */
     NotImplemented(const char* msg);
 };
 
@@ -323,17 +343,30 @@ typedef bool getJobs_inserter_f(Job job);
  */
 typedef bool getQueues_inserter_f(Queue queue);
 
+
+/**
+ * \brief Value to signal that command is still running
+ * 
+ * Sentinel value of command exit code integer (returned by \ref cmd_execute_f) to signal that asynchronous command has not finished yet.
+ * 
+ */
+constexpr int not_finished = -1;
+
 /**
  * \brief Callback for batchsystem implementations to call shell command.
  * 
+ * \note Command can be run asynchronously by returning \ref not_finished to signal it is still running and retry on next command run.
+ * 
  * \param[out] out Shell output is passed to this stringstream
  * \param opts Command and arguments to run
+ * \return exit code of command (0 for success, else for failure) or \ref not_finished to signal not finished yet
  */
 typedef int cmd_execute_f(std::string& out, const CmdOptions& opts);
 
 /**
- * @brief Tag to check wether method is supported / implemented.
+ * @brief Tag to check whether method is supported / implemented.
  * 
+ * Special empty struct value tag to check whether a method in \ref BatchInterface is supported by implementation / derived class.
  */
 struct supported {};
 
@@ -343,10 +376,21 @@ struct supported {};
  * This is the public interface used by the provided pbs / slurm / lsf implementations,
  * that can be also used for custom implementations.
  * 
- * \note
+ * \par Implementation exceptions
  * Methods can throw exceptions to signal errors.
  * Provided implementations do and custom implementations should throw a \ref CommandFailed exception,
  * if they call a shell command that fails.
+ * 
+ * \par Optional methods exceptions
+ * Optional methods of interface (not pure virtual methods) throw \ref NotImplemented if not overriden.
+ * 
+ * \par Optional methods supported check
+ * Each optional method has a separate overload with only one \ref supported tag argument
+ * to check wether method is supported to check without triggering action. These methods return false if not overriden.
+ * 
+ * \par Non-blocking support
+ * Every async method returns a bool for non-blocking execution. Until a method has not finished it returns false.
+ * This way methods can be run blocking like this `while(!batch.method());` or non-blocking e.g. by polling the return value in an event loop.
  */
 class BatchInterface {
 public:
@@ -356,7 +400,6 @@ public:
 	 * @brief Check to detect batch interface.
 	 * 
 	 * @param[out] detected Set whether batch system is detected 
-	 * @return true if done
 	 */
 	virtual bool detect(bool& detected) = 0;
 
@@ -477,7 +520,7 @@ public:
 	/**
 	 * \brief Prevent a pending job from being run
 	 * 
-	 * Reverse of \ref releaseJob_f operation.
+	 * Reverse of \ref releaseJob operation.
 	 * 
 	 * \param job Id of job to hold
 	 * \param force Wether to force hold
@@ -489,7 +532,7 @@ public:
 	/**
 	 * \brief Release a job that has been hold before to start execution
 	 * 
-	 * Reverse of \ref holdJob_f operation.
+	 * Reverse of \ref holdJob operation.
 	 * 
 	 * \param job Id of job to release
 	 * \param force Wether to force release
@@ -500,7 +543,7 @@ public:
 	/**
 	 * \brief Suspend a running job
 	 * 
-	 * Reverse of \ref resumeJob_f operation.
+	 * Reverse of \ref resumeJob operation.
 	 * 
 	 * \param job Id of job to suspend
 	 * \param force Wether to force suspend
@@ -511,7 +554,7 @@ public:
 	/**
 	 * \brief Resume a job that was suspended before
 	 * 
-	 * Reverse of \ref suspendJob_f operation.
+	 * Reverse of \ref suspendJob operation.
 	 * 
 	 * \param job Id of job to resume
 	 * \param force Wether to force resume

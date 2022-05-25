@@ -1,3 +1,6 @@
+#ifndef __CW_BATCHSYSTEM_POLICY_OPTIONAL_H__
+#define __CW_BATCHSYSTEM_POLICY_OPTIONAL_H__
+
 namespace cw {
 
 /**
@@ -9,8 +12,6 @@ namespace cw {
  * - empty designator and check customizable via Policy structs (\ref policies)
  * 
  * \see policies
- * 
- * \section usage Usage example
  * 
  * Use \ref policy_optional::policy_optional::has_value to check if value is set and \ref policy_optional::policy_optional::get to access it.
  * 
@@ -157,3 +158,5 @@ using string_optional = policy_optional<std::string, string_policy>;
 
 }
 }
+
+#endif /* __CW_BATCHSYSTEM_POLICY_OPTIONAL_H__ */
