@@ -48,21 +48,21 @@ namespace pbs {
 
 Pbs::Pbs(std::function<cmd_execute_f> func): _func(func) {}
 
-bool Pbs::getNodes(supported) { return false; }
-bool Pbs::getQueues(supported) { return false; }
-bool Pbs::getJobs(supported) { return false; }
-bool Pbs::getBatchInfo(supported) { return false; }
-bool Pbs::deleteJobById(supported) { return false; }
-bool Pbs::deleteJobByUser(supported) { return false; }
-bool Pbs::changeNodeState(supported) { return false; }
-bool Pbs::setQueueState(supported) { return false; }
-bool Pbs::runJob(supported) { return false; }
-bool Pbs::setNodeComment(supported) { return false; }
-bool Pbs::holdJob(supported) { return false; }
-bool Pbs::releaseJob(supported) { return false; }
-bool Pbs::suspendJob(supported) { return false; }
-bool Pbs::resumeJob(supported) { return false; }
-bool Pbs::rescheduleRunningJobInQueue(supported) { return false; }
+bool Pbs::getNodes(supported) { return true; }
+bool Pbs::getQueues(supported) { return true; }
+bool Pbs::getJobs(supported) { return true; }
+bool Pbs::getBatchInfo(supported) { return true; }
+bool Pbs::deleteJobById(supported) { return true; }
+bool Pbs::deleteJobByUser(supported) { return true; }
+bool Pbs::changeNodeState(supported) { return true; }
+bool Pbs::setQueueState(supported) { return true; }
+bool Pbs::runJob(supported) { return true; }
+bool Pbs::setNodeComment(supported) { return true; }
+bool Pbs::holdJob(supported) { return true; }
+bool Pbs::releaseJob(supported) { return true; }
+bool Pbs::suspendJob(supported) { return true; }
+bool Pbs::resumeJob(supported) { return true; }
+bool Pbs::rescheduleRunningJobInQueue(supported) { return true; }
 
 
 void Pbs::resetCache() {
