@@ -19,9 +19,7 @@ public:
 		scontrol, //!< use scontrol
 	};
 private:
-	std::function<cmd_execute_f> _func;
-	cmd_f _f;
-	std::map<CmdOptions, std::string> _cache;
+	cmd_f _func;
 	/**
 	 * @brief Which command to use for getting job info
 	 * 
@@ -37,20 +35,11 @@ public:
 	 * 
 	 * \param func Function to call shell commands
 	 */
-	Slurm(std::function<cmd_execute_f> func);
+	Slurm(cmd_f func);
 
 
 	static void parseQueues(const std::string& output, std::function<getQueues_inserter_f> insert);
 	
-	/**
-	 * \brief Check if sacct executable is present and can be queried
-	 * 
-	 * Calls "sacct --helpformat" to check if command can be called and works (slurmdbd running)
-	 * 
-	 * \param[out] sacctSupported Wether command succeeded with 0 exit code
-	 */
-	bool checkSacct(bool& sacctSupported);
-
 	/**
 	 * \brief Set to use sacct or scontrol
 	 * 
@@ -91,43 +80,10 @@ public:
 
 	static void parseNodes(const std::string& output, const std::function<getNodes_inserter_f>& insert);
 
-	static void parseJobs(const std::string& output, std::function<getJobs_inserter_f> insert);
-
 	static void parseJobsLegacy(const std::string& output, std::function<getJobs_inserter_f> insert);
-
-	/**
-	 * \brief Explicitly get jobs via scontrol
-	 * 
-	 * \param insert 
-	 */
-	bool getJobsLegacy(std::function<getJobs_inserter_f> insert) const;
-
 	static void parseJobsSacct(const std::string& output, std::function<getJobs_inserter_f> insert);
 
-	/**
-	 * \brief Explicitly get jobs via acct
-	 * 
-	 * Uses a filter to only get active jobs.
-	 * 
-	 * \param insert 
-	 */
-	bool getJobsSacct(std::function<getJobs_inserter_f> insert) const;
-
-	/**
-	 * \brief Explicitly get jobs via acct
-	 * 
-	 * Allows filtering jobs manually.
-	 * 
-	 * \param insert 
-	 * \param stateFilter Comma separated States to filter
-	 * \param filterJobs jobs to filter
-	 */
-	bool getJobsSacct(std::function<getJobs_inserter_f> insert, const std::string& stateFilter, const std::vector<std::string>& filterJobs) const;
-
-	bool detect(bool& detected) override;
-	void resetCache() override;
-	bool getNodes(const std::vector<std::string>& filterNodes, std::function<getNodes_inserter_f> insert) override;
-	bool getQueues(std::function<getQueues_inserter_f> insert) override;
+	std::function<bool(const std::function<getNodes_inserter_f>& insert)> getNodes(std::vector<std::string> filterNodes) override;
 
 	/**
 	 * \brief Get the Jobs object
@@ -135,13 +91,22 @@ public:
 	 * Calls sacct to check wether it is available and queryable (slurmdbd running) and use that instead of scontrol for job infos
 	 * if not set via \ref setJobMode before.
 	 * 
+	 * Uses a filter to only get active jobs.
+	 * 
 	 * \param insert 
+	 * \param filterJobs jobs to filter
 	 */
-	bool getJobs(std::function<getJobs_inserter_f> insert) override;
-	bool getBatchInfo(BatchInfo& info) override;
-	bool deleteJobById(const std::string& job, bool force) override;
-	bool deleteJobByUser(const std::string& user, bool force) override;
-
+	std::function<bool(const std::function<getJobs_inserter_f>& insert)> getJobs(std::vector<std::string> filterJobs) override;
+	std::function<bool(const std::function<getQueues_inserter_f>& insert)> getQueues() override;
+	std::function<bool()> rescheduleRunningJobInQueue(const std::string& job, bool force) override;
+	std::function<bool()> setQueueState(const std::string& name, QueueState state, bool force) override;
+	std::function<bool()> resumeJob(const std::string& job, bool force) override;
+	std::function<bool()> suspendJob(const std::string& job, bool force) override;
+	std::function<bool()> deleteJobByUser(const std::string& user, bool force) override;
+	std::function<bool()> deleteJobById(const std::string& job, bool force) override;
+	std::function<bool()> holdJob(const std::string& job, bool force) override;
+	std::function<bool()> releaseJob(const std::string& job, bool force) override;
+	std::function<bool()> setNodeComment(const std::string& name, bool force, const std::string& comment, bool appendComment) override;
 	/**
 	 * \brief Change Node state
 	 * 
@@ -153,33 +118,19 @@ public:
 	 * \param reason 
 	 * \param appendReason 
 	 */
-	bool changeNodeState(const std::string& name, NodeChangeState state, bool force, const std::string& reason, bool appendReason) override;
-	bool setQueueState(const std::string& name, QueueState state, bool force) override;
-	bool runJob(const JobOptions& opts, std::string& jobName) override;
-	bool setNodeComment(const std::string& name, bool, const std::string& comment, bool appendComment) override;
-	bool holdJob(const std::string& job, bool force) override;
-	bool releaseJob(const std::string& job, bool force) override;
-	bool suspendJob(const std::string& job, bool force) override;
-	bool resumeJob(const std::string& job, bool force) override;
-	bool rescheduleRunningJobInQueue(const std::string& job, bool force) override;
+	std::function<bool()> changeNodeState(const std::string& name, NodeChangeState state, bool force, const std::string& reason, bool appendReason) override;
+	std::function<bool(std::string&)> runJob(const JobOptions& opts) override;
+	std::function<bool(bool&)> detect() override;
+	std::function<bool(BatchInfo&)> getBatchInfo() override;
 
-	std::function<bool(const std::function<getNodes_inserter_f>& insert)> getNodes2(std::vector<std::string> filterNodes);
-	std::function<bool(const std::function<getJobs_inserter_f>& insert)> getJobs2(std::vector<std::string> filterJobs);
-	std::function<bool(const std::function<getQueues_inserter_f>& insert)> getQueues2();
-	std::function<bool()> rescheduleRunningJobInQueue2(const std::string& job, bool force);
-	std::function<bool()> setQueueState2(const std::string& name, QueueState state, bool force);
-	std::function<bool()> resumeJob2(const std::string& job, bool force);
-	std::function<bool()> suspendJob2(const std::string& job, bool force);
-	std::function<bool()> deleteJobByUser2(const std::string& user, bool force);
-	std::function<bool()> deleteJobById2(const std::string& job, bool force);
-	std::function<bool()> holdJob2(const std::string& job, bool force);
-	std::function<bool()> releaseJob2(const std::string& job, bool force);
-	std::function<bool()> setNodeComment2(const std::string& name, bool force, const std::string& comment, bool appendComment);
-	std::function<bool()> changeNodeState2(const std::string& name, NodeChangeState state, bool force, const std::string& reason, bool appendReason);
-	std::function<bool(std::string&)> runJob2(const JobOptions& opts);
-	std::function<bool(bool&)> detect2();
-	std::function<bool(bool&)> checkSacct2();
-	std::function<bool(BatchInfo&)> getBatchInfo2();
+	/**
+	 * \brief Check if sacct executable is present and can be queried
+	 * 
+	 * Calls "sacct --helpformat" to check if command can be called and works (slurmdbd running)
+	 * 
+	 * \param[out] sacctSupported Wether command succeeded with 0 exit code
+	 */
+	std::function<bool(bool&)> checkSacct();
 
 
 	bool getNodes(supported_t) override;

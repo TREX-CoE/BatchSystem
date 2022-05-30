@@ -27,7 +27,7 @@ enum class System {
  */
 const std::array<System,3> Systems = {System::Slurm, System::Pbs, System::Lsf};
 
-std::unique_ptr<BatchInterface> create_batch(const System& system, std::function<cmd_execute_f> _func);
+std::unique_ptr<BatchInterface> create_batch(const System& system, cmd_f _func);
 
 }
 }

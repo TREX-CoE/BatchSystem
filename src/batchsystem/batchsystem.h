@@ -70,6 +70,15 @@ struct Cmd {
     runopt opts;
 };
 
+/**
+ * \brief Callback for batchsystem implementations to call shell command.
+ * 
+ * \note Command can be run asynchronously by returning \ref not_finished to signal it is still running and retry on next command run.
+ * 
+ * \param[out] out Shell output is passed to this stringstream
+ * \param opts Command and arguments to run
+ * \return exit code of command (0 for success, else for failure) or \ref not_finished to signal not finished yet
+ */
 using cmd_f = std::function<void(Result& res, const Cmd& cmd)>;
 
 
@@ -277,42 +286,13 @@ struct Job {
 };
 
 /**
- * \brief Shell command options to execute
- *
- */
-struct CmdOptions {
-	std::string cmd; //!< cmd to execute
-	std::vector<std::string> args; //!< args to pass to cmd
-};
-
-bool operator<(const CmdOptions& l, const CmdOptions& r);
-
-/**
  * \brief Exception for failed command execution
  * 
  * Exception supposed to be thrown from within BatchSystem implementation if a shell command failed.
  */
 class CommandFailed : public std::runtime_error {
-private:	
-	int retno;
 public:
-	/**
-	 * \brief Construct a new CommandFailed exception
-	 * 
-	 * \param msg Custom error message
-	 * \param cmd Command name that failed
-	 * \param ret Return code of failed command
-	 */
-	CommandFailed(const std::string& msg, const CmdOptions& cmd, int ret);
-
-	/**
-	 * \brief Get return code
-	 * 
-	 * Get return code of failed command.
-	 * 
-	 * \return Return code
-	 */
-	int returncode() const;
+	using std::runtime_error::runtime_error;
 };
 
 /**
@@ -375,17 +355,6 @@ typedef bool getQueues_inserter_f(Queue queue);
 constexpr static int not_finished = -1;
 
 /**
- * \brief Callback for batchsystem implementations to call shell command.
- * 
- * \note Command can be run asynchronously by returning \ref not_finished to signal it is still running and retry on next command run.
- * 
- * \param[out] out Shell output is passed to this stringstream
- * \param opts Command and arguments to run
- * \return exit code of command (0 for success, else for failure) or \ref not_finished to signal not finished yet
- */
-typedef int cmd_execute_f(std::string& out, const CmdOptions& opts);
-
-/**
  * @brief Tag to check whether method is supported / implemented.
  * 
  * Special empty struct value tag to check whether a method in \ref BatchInterface is supported by implementation / derived class.
@@ -429,15 +398,7 @@ public:
 	 * 
 	 * @param[out] detected Set whether batch system is detected 
 	 */
-	virtual bool detect(bool& detected) = 0;
-
-	/**
-	 * @brief Reset internal cache
-	 * 
-	 * Noop if implementation does not use cache.
-	 * 
-	 */
-	virtual void resetCache();
+	virtual std::function<bool(bool& detected)> detect() = 0;
 
 	/**
 	 * \brief Get Node structs information from batchsystem
@@ -449,7 +410,7 @@ public:
 	 * \param filterNodes Query only selected nodes or all if empty
 	 * \param insert Callback to get next Node
 	 */
-	virtual bool getNodes(const std::vector<std::string>& filterNodes, std::function<getNodes_inserter_f> insert);
+	virtual std::function<bool(const std::function<getNodes_inserter_f>& insert)> getNodes(std::vector<std::string> filterNodes);
 	virtual bool getNodes(supported_t);
 
 	/**
@@ -459,7 +420,7 @@ public:
 	 * 
 	 * \param insert Callback to get next Queue
 	 */
-	virtual bool getQueues(std::function<getQueues_inserter_f> insert);
+	virtual std::function<bool(const std::function<getQueues_inserter_f>& insert)> getQueues();
 	virtual bool getQueues(supported_t);
 
 	/**
@@ -469,7 +430,7 @@ public:
 	 * 
 	 * \param insert Callback to get next Job
 	 */
-	virtual bool getJobs(std::function<getJobs_inserter_f> insert);
+	virtual std::function<bool(const std::function<getJobs_inserter_f>& insert)> getJobs(std::vector<std::string> filterJobs);
 	virtual bool getJobs(supported_t);
 
 	/**
@@ -480,7 +441,7 @@ public:
 	 * \param[out] info batchsystem info metadata 
 	 * \return true if done
 	 */
-	virtual bool getBatchInfo(BatchInfo& info);
+	virtual std::function<bool(BatchInfo& info)> getBatchInfo();
 	virtual bool getBatchInfo(supported_t);
 
 	/**
@@ -489,7 +450,7 @@ public:
 	 * \param job Id of job to delete
 	 * \param force Force delete
 	 */
-	virtual bool deleteJobById(const std::string& job, bool force);
+	virtual std::function<bool()> deleteJobById(const std::string& job, bool force);
 	virtual bool deleteJobById(supported_t);
 
 	/**
@@ -498,7 +459,7 @@ public:
 	 * \param user User of job(s) to delete
 	 * \param force Force delete
 	 */
-	virtual bool deleteJobByUser(const std::string& user, bool force);
+	virtual std::function<bool()> deleteJobByUser(const std::string& user, bool force);
 	virtual bool deleteJobByUser(supported_t);
 
 	/**
@@ -510,7 +471,7 @@ public:
 	 * \param reason Reason of node change
 	 * \param appendReason Wether reason should be appended instead of overwritten
 	 */
-	virtual bool changeNodeState(const std::string& name, NodeChangeState state, bool force, const std::string& reason, bool appendReason);
+	virtual std::function<bool()> changeNodeState(const std::string& name, NodeChangeState state, bool force, const std::string& reason, bool appendReason);
 	virtual bool changeNodeState(supported_t);
 
 	/**
@@ -522,7 +483,7 @@ public:
 	 * \param state State to change to
 	 * \param force Wether to force state change
 	 */
-	virtual bool setQueueState(const std::string& name, QueueState state, bool force);
+	virtual std::function<bool()> setQueueState(const std::string& name, QueueState state, bool force);
 	virtual bool setQueueState(supported_t);
 
 	/**
@@ -532,7 +493,7 @@ public:
 	 * \param[out] jobName Job Id of scheduled job 
 	 * \return true if done
 	 */
-	virtual bool runJob(const JobOptions& opts, std::string& jobName);
+	virtual std::function<bool(std::string& jobName)> runJob(const JobOptions& opts);
 	virtual bool runJob(supported_t);
 
 	/**
@@ -542,7 +503,7 @@ public:
 	 * \param comment Comment string to set
 	 * \param appendComment Wether to append comment instead of overwritting
 	 */
-	virtual bool setNodeComment(const std::string& name, bool, const std::string& comment, bool appendComment);
+	virtual std::function<bool()> setNodeComment(const std::string& name, bool force, const std::string& comment, bool appendComment);
 	virtual bool setNodeComment(supported_t);
 
 	/**
@@ -553,7 +514,7 @@ public:
 	 * \param job Id of job to hold
 	 * \param force Wether to force hold
 	 */
-	virtual bool holdJob(const std::string& job, bool force);
+	virtual std::function<bool()> holdJob(const std::string& job, bool force);
 	virtual bool holdJob(supported_t);
 
 
@@ -565,7 +526,7 @@ public:
 	 * \param job Id of job to release
 	 * \param force Wether to force release
 	 */
-	virtual bool releaseJob(const std::string& job, bool force);
+	virtual std::function<bool()> releaseJob(const std::string& job, bool force);
 	virtual bool releaseJob(supported_t);
 
 	/**
@@ -576,7 +537,7 @@ public:
 	 * \param job Id of job to suspend
 	 * \param force Wether to force suspend
 	 */
-	virtual bool suspendJob(const std::string& job, bool force);
+	virtual std::function<bool()> suspendJob(const std::string& job, bool force);
 	virtual bool suspendJob(supported_t);
 
 	/**
@@ -587,7 +548,7 @@ public:
 	 * \param job Id of job to resume
 	 * \param force Wether to force resume
 	 */
-	virtual bool resumeJob(const std::string& job, bool force);
+	virtual std::function<bool()> resumeJob(const std::string& job, bool force);
 	virtual bool resumeJob(supported_t);
 
 
@@ -599,28 +560,8 @@ public:
 	 * \param job Id of job to requeue
 	 * \param force Wether to force reque
 	 */
-	virtual bool rescheduleRunningJobInQueue(const std::string& job, bool force);
+	virtual std::function<bool()> rescheduleRunningJobInQueue(const std::string& job, bool force);
 	virtual bool rescheduleRunningJobInQueue(supported_t);
-
-
-	virtual std::function<bool(const std::function<getNodes_inserter_f>& insert)> getNodes2(std::vector<std::string> filterNodes);
-	virtual std::function<bool(const std::function<getJobs_inserter_f>& insert)> getJobs2(std::vector<std::string> filterJobs);
-	virtual std::function<bool(const std::function<getQueues_inserter_f>& insert)> getQueues2();
-	virtual std::function<bool()> rescheduleRunningJobInQueue2(const std::string& job, bool force);
-	virtual std::function<bool()> setQueueState2(const std::string& name, QueueState state, bool force);
-	virtual std::function<bool()> resumeJob2(const std::string& job, bool force);
-	virtual std::function<bool()> suspendJob2(const std::string& job, bool force);
-	virtual std::function<bool()> deleteJobByUser2(const std::string& user, bool force);
-	virtual std::function<bool()> deleteJobById2(const std::string& job, bool force);
-	virtual std::function<bool()> holdJob2(const std::string& job, bool force);
-	virtual std::function<bool()> releaseJob2(const std::string& job, bool force);
-	virtual std::function<bool()> setNodeComment2(const std::string& name, bool force, const std::string& comment, bool appendComment);
-	virtual std::function<bool()> changeNodeState2(const std::string& name, NodeChangeState state, bool force, const std::string& reason, bool appendReason);
-	virtual std::function<bool(std::string&)> runJob2(const JobOptions& opts);
-	virtual std::function<bool(bool&)> detect2();
-	virtual std::function<bool(bool&)> checkSacct2();
-	virtual std::function<bool(BatchInfo&)> getBatchInfo2();
-
 };
 
 }

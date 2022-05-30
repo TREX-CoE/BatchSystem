@@ -7,7 +7,7 @@
 namespace cw {
 namespace batch {
 
-std::unique_ptr<BatchInterface> create_batch(const System& system, std::function<cmd_execute_f> _func) {
+std::unique_ptr<BatchInterface> create_batch(const System& system, cmd_f _func) {
     switch (system) {
         case System::Pbs: return std::unique_ptr<BatchInterface>{new pbs::Pbs(_func)};
         case System::Slurm: return std::unique_ptr<BatchInterface>{new slurm::Slurm(_func)};

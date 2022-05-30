@@ -18,12 +18,6 @@ using namespace cw::batch::internal;
 
 namespace {
 
-const CmdOptions optsVersion{"slurmd", {"--version"}};
-const CmdOptions optsConfig{"scontrol", {"show", "config"}};
-const CmdOptions optsGetQueues{"scontrol", {"show", "partition", "--all"}};
-const CmdOptions optsGetNodes{"scontrol", {"show", "node"}};
-
-
 JobState parseJobState(const std::string& str) {
 	if(str=="PENDING")
 	{
@@ -191,7 +185,7 @@ namespace slurm {
 
 const std::string Slurm::DefaultReason = "batchsystem_api";
 
-Slurm::Slurm(std::function<cmd_execute_f> func): _func(func), _mode(job_mode::unchecked) {}
+Slurm::Slurm(cmd_f func): _func(func), _mode(job_mode::unchecked) {}
 
 bool Slurm::getNodes(supported_t) { return true; }
 bool Slurm::getQueues(supported_t) { return true; }
@@ -209,24 +203,6 @@ bool Slurm::suspendJob(supported_t) { return true; }
 bool Slurm::resumeJob(supported_t) { return true; }
 bool Slurm::rescheduleRunningJobInQueue(supported_t) { return true; }
 
-
-bool Slurm::checkSacct(bool& sacctSupported) {
-	// use sacct --helpformat as sacct would list all jobs, sacct --helpformat would not fail if slurmdbd is not working
-	CmdOptions opts{"sacct", {"--helpformat"}};
-
-	std::string out;
-	int ret = _func(out, opts);
-	if (ret == not_finished) {
-		return false;
-	} else if (ret > 0) {
-		sacctSupported = false;
-		return true;
-	} else {
-		sacctSupported = true;
-		return true;
-	}
-}
-
 void Slurm::setJobMode(Slurm::job_mode mode) {
 	_mode = mode;
 }
@@ -234,59 +210,6 @@ void Slurm::setJobMode(Slurm::job_mode mode) {
 Slurm::job_mode Slurm::getJobMode() const {
 	return _mode;
 }
-
-bool Slurm::getBatchInfo(BatchInfo& info) {
-	if (_mode == job_mode::unchecked) {
-		bool sacctSupported;
-		if (!checkSacct(sacctSupported)) return false;
-		_mode = sacctSupported ? job_mode::sacct : job_mode::scontrol;
-	}
-	auto itVersion = _cache.find(optsVersion);
-	if (itVersion == _cache.end()) {
-		std::string out;
-		int ret = _func(out, optsVersion);
-		if (ret == not_finished) {
-			return false;
-		} else if (ret > 0) {
-			throw CommandFailed("Command failed", optsVersion, ret);
-		} else {
-			_cache[optsVersion] = trim_copy(out);
-		}
-	}
-	auto itConfig = _cache.find(optsConfig);
-	if (itConfig == _cache.end()) {
-		std::string out;
-		int ret = _func(out, optsConfig);
-		if (ret == not_finished) {
-			return false;
-		} else if (ret > 0) {
-			throw CommandFailed("Command failed", optsConfig, ret);
-		} else {
-			_cache[optsConfig] = trim_copy(out);
-		}
-	}
-	info.name = std::string("slurm");
-	info.version = _cache[optsVersion];
-	info.info["config"] = _cache[optsConfig];
-	info.info["sacctUsed"] = _mode == job_mode::sacct ? "true" : "false";
-	return true;
-}
-
-bool Slurm::detect(bool& detected) {
-	CmdOptions opts{"sinfo", {"--version"}};
-	std::string out;
-	int ret = _func(out, opts);
-	if (ret == not_finished) {
-		return false;
-	} else if (ret > 0) {
-		detected = false;
-		return true;
-	} else {
-		detected = true;
-		return true;
-	}
-}
-
 
 void Slurm::parseNodes(const std::string& output, const std::function<getNodes_inserter_f>& insert) {
 	std::stringstream commandResult(output);
@@ -389,147 +312,6 @@ void Slurm::parseNodes(const std::string& output, const std::function<getNodes_i
 	}
 	// check after last line if as uninserted node
 	if (node.name.has_value()) insert(std::move(node));
-}
-
-class ParseNodes {
-	std::stringstream commandResult;
-public:
-	ParseNodes(std::string output_): commandResult(output_) {}
-
-	bool operator()(Node& node) {
-		
-
-		std::stringstream buffer;
-		std::string tmp, name, value, nodeName;
-
-		while(commandResult.good())
-		{
-			getline(commandResult,tmp);
-			// skip empty lines
-			if (tmp.empty()) continue;
-			// skip Node a not found lines
-			if (tmp.rfind("Node ", 0) == 0) continue;
-
-			buffer.clear();
-			buffer.str("");
-
-			buffer << tmp;
-
-			while(buffer.good())
-			{
-				buffer >> tmp;
-
-				size_t pos=tmp.find('=');
-				if(pos!=tmp.npos)
-				{
-					name=tmp.substr(0,pos);
-					value=tmp.substr(pos+1);
-
-					if(name=="NodeName")
-					{
-						if (node.name.has_value()) {
-							return true;
-						}
-						node.name=value;
-					}
-					else if(!node.name.get().empty())
-					{
-						if(name=="State")
-						{
-							node.rawState = value;
-							if(value=="ALLOCATED" || value=="ALLOCATED*" || value=="MIXED" || value=="MIXED*" || value=="COMPLETING" || value=="COMPLETED" || value=="IDLE")
-							{
-								node.state = NodeState::Online;
-							}
-							else if(value=="DOWN" || value=="DOWN*" || value=="DOWN+DRAIN" || value=="DOWN*+DRAIN" || value=="DRAINED" || value=="DRAINING" || value=="IDLE+DRAIN" || value=="IDLE*+DRAIN" || value=="ALLOCATED+DRAIN" || value=="ALLOCATED*+DRAIN" || value=="MIXED+DRAIN" || value=="MIXED*+DRAIN")
-							{
-								node.state = NodeState::Disabled;
-							}
-							else if(value=="IDLE+POWER")
-							{
-								node.state = NodeState::Powersave;
-							}
-							else if(value=="MAINT" || value=="MAINT*")
-							{
-								node.state = NodeState::Maintainence;
-							}
-							else if(value=="RESERVED" || value=="RESERVED*")
-							{
-								node.state = NodeState::Reserved;
-							}
-							else if(value=="FAIL" || value=="FAILING")
-							{
-								node.state = NodeState::Offline;
-							}
-							else if(value=="FAILED" || value=="CANCELLED")
-							{
-								node.state = NodeState::Failed;
-							}
-							else
-							{
-								node.state = NodeState::Unknown;
-							}
-						}
-						else if(name=="CPUTot")
-						{
-							stream_cast(value, node.cpus.get());
-							node.cpusReserved = 0;
-						}
-						else if(name=="CPUAlloc")
-						{
-							stream_cast(value, node.cpusReserved.get());
-						}
-						else if(name=="Comment")
-						{
-							if (value != "(null)") node.comment = value;
-						}
-						else if(name=="Reason")
-						{
-							node.reason = value;
-						}
-					}
-				}
-			}
-		}
-		// check after last line if as uninserted node
-		if (node.name.has_value()) return true;
-
-		return false;
-	}
-
-};
-
-
-bool Slurm::getNodes(const std::vector<std::string>& filterNodes, std::function<getNodes_inserter_f> insert) {
-	CmdOptions opts = optsGetNodes;
-	if (filterNodes.empty()) {
-		opts.args.push_back("--all");
-	} else {
-		opts.args.push_back(internal::joinString(filterNodes.begin(), filterNodes.end(), ","));
-	}
-	std::string out;
-	int ret = _func(out, opts);
-	if (ret == not_finished) {
-		return false;
-	} else if (ret > 0) {
-		throw CommandFailed("Command failed", opts, ret);
-	} else {
-		parseNodes(out, insert);
-		return true;
-	}
-}
-
-bool Slurm::getJobs(std::function<getJobs_inserter_f> insert) {
-	if (_mode == job_mode::unchecked) {
-		bool sacctSupported;
-		if (!checkSacct(sacctSupported)) return false;
-		_mode = sacctSupported ? job_mode::sacct : job_mode::scontrol;
-	}
-	if (_mode == job_mode::sacct) {
-		return getJobsSacct(insert); 
-	} else {
-		return getJobsLegacy(insert); 
-	}
 }
 
 void Slurm::parseShowJob(const std::string& output, std::function<bool(std::map<std::string, std::string>)> insert) {
@@ -719,52 +501,6 @@ void Slurm::parseJobsLegacy(const std::string& output, std::function<getJobs_ins
 	});
 }
 
-bool Slurm::getJobsLegacy(std::function<getJobs_inserter_f> insert) const {
-	CmdOptions opts{"scontrol", {"show", "job", "--all"}};
-	std::string out;
-	int ret = _func(out, opts);
-	if (ret == not_finished) {
-		return false;
-	} else if (ret > 0) {
-		throw CommandFailed("Command failed", opts, ret);
-	} else {
-		parseJobsLegacy(out, insert);
-		return true;
-	}
-}
-
-bool Slurm::runJob(const JobOptions& opts, std::string& jobName) {
-	CmdOptions cmd{"sbatch", {"--parsable"}}; // --parsable to only print job id
-	if (opts.numberNodes.has_value()) {
-		cmd.args.push_back("-N");
-		cmd.args.push_back(opts.numberNodesMax.has_value() ? std::to_string(opts.numberNodes.get()) : (std::to_string(opts.numberNodes.get())+"-"+std::to_string(opts.numberNodesMax.get())));
-	}
-	if (opts.numberTasks.has_value()) {
-		cmd.args.push_back("-n");
-		cmd.args.push_back(std::to_string(opts.numberTasks.get()));
-	}
-	if (opts.numberGpus.has_value()) {
-		cmd.args.push_back("-G");
-		cmd.args.push_back(std::to_string(opts.numberGpus.get()));
-	}
-	cmd.args.push_back(opts.path.get());
-
-	std::string out;
-	int ret = _func(out, cmd);
-	if (ret == not_finished) {
-		return false;
-	} else if (ret > 0) {
-		throw CommandFailed("Command failed", cmd, ret);
-	} else {
-		jobName = trim_copy(out);
-		return true;
-	}
-}
-
-bool Slurm::getJobsSacct(std::function<getJobs_inserter_f> insert) const {
-	return getJobsSacct(insert, "PD,R,RQ,S", {}); // show only active jobs
-}
-
 void Slurm::parseSacct(const std::string& output, std::function<bool(std::map<std::string, std::string>)> insert) {
 	std::stringstream commandResult(output);
 
@@ -801,34 +537,6 @@ void Slurm::parseJobsSacct(const std::string& output, std::function<getJobs_inse
 		if (!insert(job)) return false;
 		return true;
 	});
-}
-
-bool Slurm::getJobsSacct(std::function<getJobs_inserter_f> insert, const std::string& stateFilter, const std::vector<std::string>& filterJobs) const {
-	CmdOptions opts{"sacct", {
-			"-X",
-			"-P",
-			"--format", 
-			"ALL", 
-	}};
-	if (!stateFilter.empty()) {
-		opts.args.push_back("--state");
-		opts.args.push_back(stateFilter);
-	}
-	if (!filterJobs.empty()) {
-		opts.args.push_back("-j");
-		opts.args.push_back(internal::joinString(filterJobs.begin(), filterJobs.end(), ","));
-	}
-
-	std::string out;
-	int ret = _func(out, opts);
-	if (ret == not_finished) {
-		return false;
-	} else if (ret > 0) {
-		throw CommandFailed("Command failed", opts, ret);
-	} else {
-		parseJobsSacct(out, insert);
-		return true;
-	}
 }
 
 void Slurm::parseQueues(const std::string& output, std::function<getQueues_inserter_f> insert) {
@@ -935,51 +643,6 @@ void Slurm::parseQueues(const std::string& output, std::function<getQueues_inser
 	}
 }
 
-
-bool Slurm::getQueues(std::function<getQueues_inserter_f> insert) {
-	std::string out;
-	int ret = _func(out, optsGetQueues);
-	if (ret == not_finished) {
-		return false;
-	} else if (ret > 0) {
-		throw CommandFailed("Command failed", optsGetQueues, ret);
-	} else {
-		parseQueues(out, insert);
-		return true;
-	}
-}
-
-void Slurm::resetCache() {
-	_cache.clear();
-}
-
-
-bool Slurm::changeNodeState(const std::string& name, NodeChangeState state, bool, const std::string& reason, bool) {
-
-	std::string stateString;
-	switch (state) {
-		case NodeChangeState::Resume: stateString="RESUME"; break;
-		case NodeChangeState::Drain: stateString="DRAIN"; break;
-		case NodeChangeState::Undrain: stateString="UNDRAIN"; break;
-		default: throw std::runtime_error("invalid state"); 
-	} 
-	std::vector<std::string> args{"update", "NodeName=" + name, "State="+stateString};
-	// add reason if needed and force default if empty as needed by slurm!
-	if (state != NodeChangeState::Resume) args.push_back("Reason="+(reason.empty() ? Slurm::DefaultReason : reason));
-
-	CmdOptions opts{"scontrol", args};
-
-	std::string out;
-	int ret = _func(out, opts);
-	if (ret == not_finished) {
-		return false;
-	} else if (ret > 0) {
-		throw CommandFailed("Command failed", opts, ret);
-	} else {
-		return true;
-	}
-}
-
 class ChangeNodeState: public SingleCmd {
 private:
 	std::string name;
@@ -1008,7 +671,7 @@ public:
 			}
 			// fall through
             case State::Waiting:
-                if (!checkWaiting()) return false; 
+                if (!checkWaiting("scontrol update")) return false; 
                 // fall through
             case State::Done:
 				return true;
@@ -1016,20 +679,6 @@ public:
         }
     }
 };
-
-bool Slurm::setNodeComment(const std::string& name, bool, const std::string& comment, bool) {
-	CmdOptions opts{"scontrol", {"update", "NodeName="+name, "Comment="+comment}};
-
-	std::string out;
-	int ret = _func(out, opts);
-	if (ret == not_finished) {
-		return false;
-	} else if (ret > 0) {
-		throw CommandFailed("Command failed", opts, ret);
-	} else {
-		return true;
-	}
-}
 
 class SetNodeComment: public SingleCmd {
 private:
@@ -1046,7 +695,7 @@ public:
                 state=State::Waiting;
                 // fall through
             case State::Waiting:
-                if (!checkWaiting()) return false; 
+                if (!checkWaiting("scontrol update")) return false; 
                 // fall through
             case State::Done:
 				return true;
@@ -1054,20 +703,6 @@ public:
         }
     }
 };
-
-bool Slurm::releaseJob(const std::string& job, bool) {
-	CmdOptions opts{"scontrol", {"release", job}};
-
-	std::string out;
-	int ret = _func(out, opts);
-	if (ret == not_finished) {
-		return false;
-	} else if (ret > 0) {
-		throw CommandFailed("Command failed", opts, ret);
-	} else {
-		return true;
-	}
-}
 
 class ReleaseJob: public SingleCmd {
 private:
@@ -1082,7 +717,7 @@ public:
                 state=State::Waiting;
                 // fall through
             case State::Waiting:
-                if (!checkWaiting()) return false; 
+                if (!checkWaiting("scontrol release")) return false; 
                 // fall through
             case State::Done:
 				return true;
@@ -1090,20 +725,6 @@ public:
         }
     }
 };
-
-bool Slurm::holdJob(const std::string& job, bool) {
-	CmdOptions opts{"scontrol", {"hold", job}};
-
-	std::string out;
-	int ret = _func(out, opts);
-	if (ret == not_finished) {
-		return false;
-	} else if (ret > 0) {
-		throw CommandFailed("Command failed", opts, ret);
-	} else {
-		return true;
-	}
-}
 
 class HoldJob: public SingleCmd {
 private:
@@ -1118,7 +739,7 @@ public:
                 state=State::Waiting;
                 // fall through
             case State::Waiting:
-                if (!checkWaiting()) return false; 
+                if (!checkWaiting("scontrol hold")) return false; 
                 // fall through
             case State::Done:
 				return true;
@@ -1126,21 +747,6 @@ public:
         }
     }
 };
-
-
-bool Slurm::deleteJobById(const std::string& job, bool) {
-	CmdOptions opts{"scancel", {job}};
-
-	std::string out;
-	int ret = _func(out, opts);
-	if (ret == not_finished) {
-		return false;
-	} else if (ret > 0) {
-		throw CommandFailed("Command failed", opts, ret);
-	} else {
-		return true;
-	}
-}
 
 class DeleteJobById: public SingleCmd {
 private:
@@ -1155,7 +761,7 @@ public:
                 state=State::Waiting;
                 // fall through
             case State::Waiting:
-                if (!checkWaiting()) return false; 
+                if (!checkWaiting("scancel")) return false; 
                 // fall through
             case State::Done:
 				return true;
@@ -1163,21 +769,6 @@ public:
         }
     }
 };
-
-
-bool Slurm::deleteJobByUser(const std::string& user, bool) {
-	CmdOptions opts{"scancel", {"-u", user}};
-
-	std::string out;
-	int ret = _func(out, opts);
-	if (ret == not_finished) {
-		return false;
-	} else if (ret > 0) {
-		throw CommandFailed("Command failed", opts, ret);
-	} else {
-		return true;
-	}
-}
 
 class DeleteJobByUser: public SingleCmd {
 private:
@@ -1192,7 +783,7 @@ public:
                 state=State::Waiting;
                 // fall through
             case State::Waiting:
-                if (!checkWaiting()) return false; 
+                if (!checkWaiting("scancel -u")) return false; 
                 // fall through
             case State::Done:
 				return true;
@@ -1200,20 +791,6 @@ public:
         }
     }
 };
-
-bool Slurm::suspendJob(const std::string& job, bool) {
-	CmdOptions opts{"scontrol", {"suspend", job}};
-
-	std::string out;
-	int ret = _func(out, opts);
-	if (ret == not_finished) {
-		return false;
-	} else if (ret > 0) {
-		throw CommandFailed("Command failed", opts, ret);
-	} else {
-		return true;
-	}
-}
 
 class SuspendJob: public SingleCmd {
 private:
@@ -1228,7 +805,7 @@ public:
                 state=State::Waiting;
                 // fall through
             case State::Waiting:
-                if (!checkWaiting()) return false; 
+                if (!checkWaiting("scontrol suspend")) return false; 
                 // fall through
             case State::Done:
 				return true;
@@ -1236,20 +813,6 @@ public:
         }
     }
 };
-
-bool Slurm::resumeJob(const std::string& job, bool) {
-	CmdOptions opts{"scontrol", {"resume", job}};
-
-	std::string out;
-	int ret = _func(out, opts);
-	if (ret == not_finished) {
-		return false;
-	} else if (ret > 0) {
-		throw CommandFailed("Command failed", opts, ret);
-	} else {
-		return true;
-	}
-}
 
 class ResumeJob: public SingleCmd {
 private:
@@ -1264,7 +827,7 @@ public:
                 state=State::Waiting;
                 // fall through
             case State::Waiting:
-                if (!checkWaiting()) return false; 
+                if (!checkWaiting("scontrol resume")) return false; 
                 // fall through
             case State::Done:
 				return true;
@@ -1272,43 +835,6 @@ public:
         }
     }
 };
-
-bool Slurm::setQueueState(const std::string& name, QueueState state, bool) {
-	std::string stateStr;
-	switch (state) {
-		case QueueState::Unknown: throw std::runtime_error("unknown state");
-		case QueueState::Open: stateStr="UP"; break;
-		case QueueState::Closed: stateStr="DOWN"; break;
-		case QueueState::Inactive: stateStr="INACTIVE"; break;
-		case QueueState::Draining: stateStr="DRAIN"; break;
-		default: throw std::runtime_error("unknown state");
-	}
-	CmdOptions opts{"scontrol", {"update", "PartitionName=" + name, "State="+stateStr}};
-
-	std::string out;
-	int ret = _func(out, opts);
-	if (ret == not_finished) {
-		return false;
-	} else if (ret > 0) {
-		throw CommandFailed("Command failed", opts, ret);
-	} else {
-		return true;
-	}
-}
-
-bool Slurm::rescheduleRunningJobInQueue(const std::string& job, bool hold) {
-	CmdOptions opts{"scontrol", {hold ? "requeuehold" : "requeue", job}};
-
-	std::string out;
-	int ret = _func(out, opts);
-	if (ret == not_finished) {
-		return false;
-	} else if (ret > 0) {
-		throw CommandFailed("Command failed", opts, ret);
-	} else {
-		return true;
-	}
-}
 
 class SetQueueState: public SingleCmd {
 private:
@@ -1334,7 +860,7 @@ public:
 			}
 			// fall through
             case State::Waiting:
-                if (!checkWaiting()) return false; 
+                if (!checkWaiting("scontrol update")) return false; 
                 // fall through
             case State::Done: {
 				return true;
@@ -1404,7 +930,7 @@ public:
                 state=State::Waiting;
                 // fall through
             case State::Waiting:
-                if (!checkWaiting()) return false; 
+                if (!checkWaiting("scontrol")) return false; 
                 // fall through
             case State::Done:
 				return true;
@@ -1433,7 +959,7 @@ public:
 			}
                 // fall through
             case State::Waiting:
-                if (!checkWaiting()) return false; 
+                if (!checkWaiting("scontrol show node")) return false; 
                 // fall through
             case State::Done: 
 				Slurm::parseNodes(res.out, insert);
@@ -1455,7 +981,7 @@ public:
 			}
                 // fall through
             case State::Waiting:
-                if (!checkWaiting()) return false; 
+                if (!checkWaiting("scontrol show partition")) return false; 
                 // fall through
             case State::Done: 
 				Slurm::parseQueues(res.out, insert);
@@ -1474,6 +1000,7 @@ public:
     bool operator()(std::string& jobName) {
         switch (state) {
             case State::Starting: {
+				// --parsable to only print job id
 				Cmd c{"sbatch", {"--parsable"}, {}, runopt_capture_stdout};
 				if (opts.numberNodes.has_value()) {
 					c.args.push_back("-N");
@@ -1494,7 +1021,7 @@ public:
 			}
                 // fall through
             case State::Waiting:
-                if (!checkWaiting()) return false; 
+                if (!checkWaiting("sbatch")) return false; 
                 // fall through
             case State::Done: 
 				jobName = trim_copy(res.out);
@@ -1507,7 +1034,7 @@ public:
 
 class GetJobs {
 private:
-    cmd_f cmd;
+    cmd_f& cmd;
     Result sacctSupported;
     Result jobs;
 	std::string stateFilter;
@@ -1524,7 +1051,7 @@ private:
     };
     State state;
 public:
-    GetJobs(cmd_f cmd_, Slurm::job_mode mode_, std::string stateFilter_, std::vector<std::string> filterJobs_): cmd(cmd_), stateFilter(stateFilter_), filterJobs(filterJobs_) {
+    GetJobs(cmd_f& cmd_, Slurm::job_mode mode_, std::string stateFilter_, std::vector<std::string> filterJobs_): cmd(cmd_), stateFilter(stateFilter_), filterJobs(filterJobs_) {
 		switch (mode_) {
 			case Slurm::job_mode::unchecked: state = State::SacctCheckStart; break;
 			case Slurm::job_mode::scontrol: state = State::ScontrolStart; break;
@@ -1570,7 +1097,7 @@ public:
 				if (jobs.exit==-1) {
 					return false;
 				} else if (jobs.exit!=0) {
-					throw std::runtime_error("Failed");
+					throw CommandFailed("sacct -X -P --format ALL");
 				}
 				state=State::SacctDone;
 			}
@@ -1589,7 +1116,7 @@ public:
 				if (jobs.exit==-1) {
 					return false;
 				} else if (jobs.exit!=0) {
-					throw std::runtime_error("Failed");
+					throw CommandFailed("scontrol show job --all");
 				}
 				state=State::ScontrolDone;
 			}
@@ -1605,21 +1132,21 @@ public:
 
 class GetBatchInfo {
 private:
-    cmd_f cmd;
+    cmd_f& cmd;
     Result version;
     Result config;
     enum class State {
-        Start,
+        Starting,
         Waiting,
 		Done,
     };
-    State state = State::Start;
+    State state = State::Starting;
 public:
-    GetBatchInfo(cmd_f cmd_): cmd(cmd_) {}
+    GetBatchInfo(cmd_f& cmd_): cmd(cmd_) {}
 
     bool operator()(BatchInfo& info) {
         switch (state) {
-			case State::Start: {
+			case State::Starting: {
 				// start in parallel
 				cmd(version, {"slurmd", {"--version"}, {}, runopt_capture_stdout});
 				cmd(config, {"scontrol", {"show", "config"}, {}, runopt_capture_stdout});
@@ -1628,7 +1155,7 @@ public:
 			// fall through
 			case State::Waiting: {
 				if (version.exit>0 || config.exit>0) {
-					throw std::runtime_error("failed");
+					throw CommandFailed("slurmd --version | scontrol show config");
 				} else if (version.exit==0 && config.exit==0) {
 					state = State::Done;
 				} else {
@@ -1647,23 +1174,23 @@ public:
 };
 
 
-std::function<bool(const std::function<getNodes_inserter_f>& insert)> Slurm::getNodes2(std::vector<std::string> filterNodes) { return GetNodes(_f, filterNodes); }
-std::function<bool(const std::function<getJobs_inserter_f>& insert)> Slurm::getJobs2(std::vector<std::string> filterJobs) { return GetJobs(_f, getJobMode(), "PD,R,RQ,S", filterJobs); }
-std::function<bool(const std::function<getQueues_inserter_f>& insert)> Slurm::getQueues2() { return GetQueues(_f); }
-std::function<bool()> Slurm::rescheduleRunningJobInQueue2(const std::string& job, bool force) { return RescheduleRunningJobInQueue(_f, job, force); }
-std::function<bool()> Slurm::setQueueState2(const std::string& name, QueueState state, bool force) { return SetQueueState(_f, name, state, force); }
-std::function<bool()> Slurm::resumeJob2(const std::string& job, bool force) { return ResumeJob(_f, job, force); }
-std::function<bool()> Slurm::suspendJob2(const std::string& job, bool force) { return SuspendJob(_f, job, force); }
-std::function<bool()> Slurm::deleteJobByUser2(const std::string& user, bool force) { return DeleteJobByUser(_f, user, force); }
-std::function<bool()> Slurm::deleteJobById2(const std::string& job, bool force) { return DeleteJobById(_f, job, force); }
-std::function<bool()> Slurm::holdJob2(const std::string& job, bool force) { return HoldJob(_f, job, force); }
-std::function<bool()> Slurm::releaseJob2(const std::string& job, bool force) { return ReleaseJob(_f, job, force); }
-std::function<bool()> Slurm::setNodeComment2(const std::string& name, bool force, const std::string& comment, bool appendComment) { return SetNodeComment(_f, name, force, comment, appendComment); }
-std::function<bool()> Slurm::changeNodeState2(const std::string& name, NodeChangeState state, bool force, const std::string& reason, bool appendReason) { return ChangeNodeState(_f, name, state, force, reason, appendReason); }
-std::function<bool(std::string&)> Slurm::runJob2(const JobOptions& opts) { return RunJob(_f, opts); }
-std::function<bool(bool&)> Slurm::detect2() { return Detect(_f); }
-std::function<bool(bool&)> Slurm::checkSacct2() { return CheckSacct(_f); }
-std::function<bool(BatchInfo&)> Slurm::getBatchInfo2() { return GetBatchInfo(_f); }
+std::function<bool(const std::function<getNodes_inserter_f>& insert)> Slurm::getNodes(std::vector<std::string> filterNodes) { return GetNodes(_func, filterNodes); }
+std::function<bool(const std::function<getJobs_inserter_f>& insert)> Slurm::getJobs(std::vector<std::string> filterJobs) { return GetJobs(_func, getJobMode(), "PD,R,RQ,S", filterJobs); }
+std::function<bool(const std::function<getQueues_inserter_f>& insert)> Slurm::getQueues() { return GetQueues(_func); }
+std::function<bool()> Slurm::rescheduleRunningJobInQueue(const std::string& job, bool force) { return RescheduleRunningJobInQueue(_func, job, force); }
+std::function<bool()> Slurm::setQueueState(const std::string& name, QueueState state, bool force) { return SetQueueState(_func, name, state, force); }
+std::function<bool()> Slurm::resumeJob(const std::string& job, bool force) { return ResumeJob(_func, job, force); }
+std::function<bool()> Slurm::suspendJob(const std::string& job, bool force) { return SuspendJob(_func, job, force); }
+std::function<bool()> Slurm::deleteJobByUser(const std::string& user, bool force) { return DeleteJobByUser(_func, user, force); }
+std::function<bool()> Slurm::deleteJobById(const std::string& job, bool force) { return DeleteJobById(_func, job, force); }
+std::function<bool()> Slurm::holdJob(const std::string& job, bool force) { return HoldJob(_func, job, force); }
+std::function<bool()> Slurm::releaseJob(const std::string& job, bool force) { return ReleaseJob(_func, job, force); }
+std::function<bool()> Slurm::setNodeComment(const std::string& name, bool force, const std::string& comment, bool appendComment) { return SetNodeComment(_func, name, force, comment, appendComment); }
+std::function<bool()> Slurm::changeNodeState(const std::string& name, NodeChangeState state, bool force, const std::string& reason, bool appendReason) { return ChangeNodeState(_func, name, state, force, reason, appendReason); }
+std::function<bool(std::string&)> Slurm::runJob(const JobOptions& opts) { return RunJob(_func, opts); }
+std::function<bool(bool&)> Slurm::detect() { return Detect(_func); }
+std::function<bool(bool&)> Slurm::checkSacct() { return CheckSacct(_func); }
+std::function<bool(BatchInfo&)> Slurm::getBatchInfo() { return GetBatchInfo(_func); }
 
 }
 }

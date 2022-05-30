@@ -8,25 +8,16 @@
 #include "batchsystem/internal/trim.h"
 #include "batchsystem/internal/streamCast.h"
 #include "batchsystem/internal/splitString.h"
+#include "batchsystem/internal/singleCmd.h"
 
 using namespace cw::batch;
 using namespace cw::batch::internal;
-
-namespace {
-
-const CmdOptions optsDetect{"bjobs", {"--version"}};
-const CmdOptions optsGetNodes{"bhosts", {}};
-const CmdOptions optsGetJobs{"bjobs", {"-u", "all"}};
-const CmdOptions optsGetQueues{"bqueues", {}};
-const CmdOptions optsVersion{"lsid", {}};
-
-}
 
 namespace cw {
 namespace batch {
 namespace lsf {
 
-Lsf::Lsf(std::function<cmd_execute_f> func): _func(func) {}
+Lsf::Lsf(cmd_f func): _func(func) {}
 
 bool Lsf::getNodes(supported_t) { return true; }
 bool Lsf::getQueues(supported_t) { return true; }
@@ -40,50 +31,7 @@ bool Lsf::runJob(supported_t) { return true; }
 bool Lsf::holdJob(supported_t) { return true; }
 bool Lsf::releaseJob(supported_t) { return true; }
 
-bool Lsf::getBatchInfo(BatchInfo& info) {
-	std::string out;
-	int ret = _func(out, optsVersion);
-	if (ret == not_finished) {
-		return false;
-	} else if (ret > 0) {
-		throw CommandFailed("Command failed", optsVersion, ret);
-	} else {
-		info.name = std::string("lfs");
-		info.version = trim_copy(out);
-		return true;
-	}
-}
 
-bool Lsf::runJob(const JobOptions& opts, std::string& jobName) {
-	CmdOptions cmd{"qsub", {}};
-	if (opts.numberNodes.has_value()) {
-		cmd.args.push_back("-nnodes");
-		cmd.args.push_back(std::to_string(opts.numberNodes.get()));
-	}
-	if (opts.numberTasks.has_value()) {
-		cmd.args.push_back("-n");
-		cmd.args.push_back(std::to_string(opts.numberTasks.get()));
-	}
-	cmd.args.push_back(opts.path.get());
-
-	std::string out;
-	int ret = _func(out, cmd);
-	if (ret == not_finished) {
-		return false;
-	} else if (ret > 0) {
-		throw CommandFailed("Command failed", cmd, ret);
-	} else {
-		auto start = out.find_first_of("<");
-		auto end = out.find_first_of(">");
-		
-		if (start != std::string::npos && end != std::string::npos && end > start) {
-			jobName = out.substr(start+1, end-start);
-		} else {
-			throw std::runtime_error(std::string("Failed to parse job name from: ")+out);
-		}
-		return true;
-	}
-}
 
 void Lsf::parseNodes(const std::string& output, std::function<getNodes_inserter_f> insert) {
 	std::vector<int>	cellLengths;
@@ -195,35 +143,8 @@ void Lsf::parseNodes(const std::string& output, std::function<getNodes_inserter_
 	}
 }
 
-bool Lsf::getNodes(const std::vector<std::string>& filterNodes, std::function<getNodes_inserter_f> insert) {
-	CmdOptions opts = optsGetNodes;
-	for (const auto& n : filterNodes) opts.args.push_back(n);
 
-	std::string out;
-	int ret = _func(out, opts);
-	if (ret == not_finished) {
-		return false;
-	} else if (ret > 0) {
-		throw CommandFailed("Command failed", opts, ret);
-	} else {
-		parseNodes(out, insert);
-		return true;
-	}
-}
 
-bool Lsf::detect(bool& detected) {
-	std::string out;
-	int ret = _func(out, optsDetect);
-	if (ret == not_finished) {
-		return false;
-	} else if (ret > 0) {
-		detected = false;
-		return true;
-	} else {
-		detected = true;
-		return true;
-	}
-}
 
 void Lsf::parseJobs(const std::string& output, std::function<getJobs_inserter_f> insert) {
 	std::stringstream commandResult(output);
@@ -360,19 +281,6 @@ void Lsf::parseJobs(const std::string& output, std::function<getJobs_inserter_f>
 	}
 }
 
-bool Lsf::getJobs(std::function<getJobs_inserter_f> insert) {
-	std::string out;
-	int ret = _func(out, optsGetJobs);
-	if (ret == not_finished) {
-		return false;
-	} else if (ret > 0) {
-		throw CommandFailed("Command failed", optsGetJobs, ret);
-	} else {
-		parseJobs(out, insert);
-		return true;
-	}
-}
-
 void Lsf::parseQueues(const std::string& output, std::function<getQueues_inserter_f> insert) {
 	std::vector<int>	cellLengths;
 
@@ -496,126 +404,346 @@ void Lsf::parseQueues(const std::string& output, std::function<getQueues_inserte
 	}
 }
 
-bool Lsf::getQueues(std::function<getQueues_inserter_f> insert) {
-	std::string out;
-	int ret = _func(out, optsGetQueues);
-	if (ret == not_finished) {
-		return false;
-	} else if (ret > 0) {
-		throw CommandFailed("Command failed", optsGetQueues, ret);
-	} else {
-		parseQueues(out, insert);
-		return true;
+class DeleteJobByUser: public SingleCmd {
+private:
+	std::string user;
+	bool force;
+public:
+	DeleteJobByUser(cmd_f& cmd_, const std::string& user_, bool force_): SingleCmd(cmd_), user(user_), force(force_) {}
+    bool operator()() {
+        switch (state) {
+            case State::Starting:
+                cmd(res, {"bkill", {"-u", user}, {}, runopt_none});
+                state=State::Waiting;
+                // fall through
+            case State::Waiting:
+                if (!checkWaiting("bkill -u")) return false; 
+                // fall through
+            case State::Done:
+				return true;
+			default: throw std::runtime_error("invalid state");
+        }
+    }
+};
+
+class ChangeNodeState: public SingleCmd {
+private:
+	std::string name;
+	NodeChangeState nodeState;
+	bool force;
+	std::string reason;
+	bool appendReason;
+public:
+	ChangeNodeState(cmd_f& cmd_, const std::string& name_, NodeChangeState nodeState_, bool force_, const std::string& reason_, bool appendReason_): SingleCmd(cmd_), name(name_), nodeState(nodeState_), force(force_), reason(reason_), appendReason(appendReason_) {}
+    bool operator()() {
+        switch (state) {
+            case State::Starting: {
+				std::string subcmd;
+				switch (nodeState) {
+					case NodeChangeState::Resume: 
+						subcmd = "hopen";
+						break;
+					case NodeChangeState::Drain:
+						subcmd = "hclose";
+						break;
+					case NodeChangeState::Undrain:
+						throw std::runtime_error("Undrain not supported for LSF");
+					default:
+						throw std::runtime_error("invalid state");
+				}
+                cmd(res, {"badmin", {subcmd, name}, {}, runopt_none});
+                state=State::Waiting;
+			}
+			// fall through
+            case State::Waiting:
+                if (!checkWaiting("badmin")) return false; 
+                // fall through
+            case State::Done:
+				return true;
+			default: throw std::runtime_error("invalid state");
+        }
+    }
+};
+
+class ReleaseJob: public SingleCmd {
+private:
+	std::string job;
+	bool force;
+public:
+	ReleaseJob(cmd_f& cmd_, const std::string& job_, bool force_): SingleCmd(cmd_), job(job_), force(force_) {}
+    bool operator()() {
+        switch (state) {
+            case State::Starting:
+                cmd(res, {"bresume", {job}, {}, runopt_none});
+                state=State::Waiting;
+                // fall through
+            case State::Waiting:
+                if (!checkWaiting("bresume")) return false; 
+                // fall through
+            case State::Done:
+				return true;
+			default: throw std::runtime_error("invalid state");
+        }
+    }
+};
+
+
+class HoldJob: public SingleCmd {
+private:
+	std::string job;
+	bool force;
+public:
+	HoldJob(cmd_f& cmd_, const std::string& job_, bool force_): SingleCmd(cmd_), job(job_), force(force_) {}
+    bool operator()() {
+        switch (state) {
+            case State::Starting:
+                cmd(res, {"bstop", {job}, {}, runopt_none});
+                state=State::Waiting;
+                // fall through
+            case State::Waiting:
+                if (!checkWaiting("bstop")) return false; 
+                // fall through
+            case State::Done:
+				return true;
+			default: throw std::runtime_error("invalid state");
+        }
+    }
+};
+
+
+class DeleteJobById: public SingleCmd {
+private:
+	std::string job;
+	bool force;
+public:
+	DeleteJobById(cmd_f& cmd_, const std::string& job_, bool force_): SingleCmd(cmd_), job(job_), force(force_) {}
+    bool operator()() {
+        switch (state) {
+            case State::Starting:
+				// purge forces job to be deleted
+                cmd(res, {"bkill", {job}, {}, runopt_none});
+                state=State::Waiting;
+                // fall through
+            case State::Waiting:
+                if (!checkWaiting("qdel")) return false; 
+                // fall through
+            case State::Done:
+				return true;
+			default: throw std::runtime_error("invalid state");
+        }
+    }
+};
+
+class SetQueueState: public SingleCmd {
+private:
+	std::string name;
+	QueueState queueState;
+	bool force;
+public:
+	SetQueueState(cmd_f& cmd_, const std::string& name_, QueueState state_, bool force_): SingleCmd(cmd_), name(name_), queueState(state_), force(force_) {}
+    bool operator()() {
+        switch (state) {
+            case State::Starting: {
+				std::string subcmd;
+				switch (queueState) {
+					case QueueState::Unknown: throw std::runtime_error("unknown state");
+					case QueueState::Open:
+						subcmd = "qopen";
+						break;
+					case QueueState::Closed:
+						subcmd = "qclose";
+						break;
+					case QueueState::Inactive: throw std::runtime_error("inactive not supported");
+					case QueueState::Draining: throw std::runtime_error("draining not supported");
+					default: throw std::runtime_error("invalid state");
+				}
+				cmd(res, {"badmin", {subcmd, name}, {}, runopt_none});
+                state=State::Waiting;
+			}
+			// fall through
+            case State::Waiting:
+                if (!checkWaiting("badmin")) return false; 
+                // fall through
+            case State::Done: {
+				return true;
+			}
+			default: throw std::runtime_error("invalid state");
+        }
 	}
-}
+};
 
-bool Lsf::setQueueState(const std::string& name, QueueState state, bool) {
-	CmdOptions opts;
+class Detect: public SingleCmd {
+public:
+	using SingleCmd::SingleCmd;
+    bool operator()(bool& detected) {
+        switch (state) {
+            case State::Starting:
+                cmd(res, {"bjobs", {"--version"}, {}, runopt_none});
+                state=State::Waiting;
+                // fall through
+            case State::Waiting:
+				if (res.exit==-1) {
+					return false;
+				}
+				state = State::Done;
+                // fall through
+            case State::Done:
+				detected = res.exit==0;
+				return true;
+			default: throw std::runtime_error("invalid state");
+        }
+    }
+};
 
-	switch (state) {
-		case QueueState::Unknown: throw std::runtime_error("unknown state");
-		case QueueState::Open:
-			opts = {"badmin", {"qopen", name}};
-			break;
-		case QueueState::Closed:
-			opts = {"badmin", {"qclose", name}};
-			break;
-		case QueueState::Inactive: throw std::runtime_error("inactive not supported");
-		case QueueState::Draining: throw std::runtime_error("draining not supported");
-		default: throw std::runtime_error("invalid state");
+class GetNodes: public SingleCmd {
+private:
+	std::vector<std::string> filterNodes;
+public:
+	GetNodes(cmd_f& cmd_, std::vector<std::string> filterNodes_): SingleCmd(cmd_), filterNodes(filterNodes_) {}
+    bool operator()(const std::function<getNodes_inserter_f>& insert) {
+        switch (state) {
+            case State::Starting: {
+				std::vector<std::string> args{};
+				for (const auto& n : filterNodes) args.push_back(n);
+                cmd(res, {"bhosts", args, {}, runopt_capture_stdout});
+                state=State::Waiting;
+			}
+                // fall through
+            case State::Waiting:
+                if (!checkWaiting("bhosts")) return false; 
+                // fall through
+            case State::Done: 
+				Lsf::parseNodes(res.out, insert);
+				return true;
+			default: throw std::runtime_error("invalid state");
+        }
+    }
+};
+
+class GetQueues: public SingleCmd {
+public:
+	using SingleCmd::SingleCmd;
+    bool operator()(const std::function<getQueues_inserter_f>& insert) {
+        switch (state) {
+            case State::Starting: {
+                cmd(res, {"bqueues", {}, {}, runopt_capture_stdout});
+                state=State::Waiting;
+			}
+                // fall through
+            case State::Waiting:
+                if (!checkWaiting("bqueues")) return false; 
+                // fall through
+            case State::Done: 
+				Lsf::parseQueues(res.out, insert);
+				return true;
+			default: throw std::runtime_error("invalid state");
+        }
+    }
+};
+
+class RunJob: public SingleCmd {
+private:
+	JobOptions opts;
+public:
+	RunJob(cmd_f& cmd_, JobOptions opts_): SingleCmd(cmd_), opts(opts_) {}
+
+    bool operator()(std::string& jobName) {
+        switch (state) {
+            case State::Starting: {
+				
+				Cmd c{"bsub", {}, {}, runopt_capture_stdout};
+				if (opts.numberNodes.has_value()) {
+					c.args.push_back("-nnodes");
+					c.args.push_back(std::to_string(opts.numberNodes.get()));
+				}
+				if (opts.numberTasks.has_value()) {
+					c.args.push_back("-n");
+					c.args.push_back(std::to_string(opts.numberTasks.get()));
+				}
+				c.args.push_back(opts.path.get());
+
+                cmd(res, c);
+                state=State::Waiting;
+			}
+                // fall through
+            case State::Waiting:
+                if (!checkWaiting("bsub")) return false; 
+                // fall through
+            case State::Done: {
+				auto start = res.out.find_first_of("<");
+				auto end = res.out.find_first_of(">");
+				if (start != std::string::npos && end != std::string::npos && end > start) {
+					jobName = res.out.substr(start+1, end-start);
+				} else {
+					throw std::runtime_error(std::string("Failed to parse job name from: ")+res.out);
+				}
+				return true;
+			}
+			default: throw std::runtime_error("invalid state");
+        }
+    }
+};
+
+class GetJobs: public SingleCmd {
+public:
+	using SingleCmd::SingleCmd;
+
+    bool operator()(const std::function<getJobs_inserter_f>& insert) {
+        switch (state) {
+            case State::Starting: {
+                cmd(res, {"bjobs", {"-u", "all"}, {}, runopt_capture_stdout});
+                state=State::Waiting;
+			}
+                // fall through
+            case State::Waiting:
+                if (!checkWaiting("bjobs -u all")) return false; 
+                // fall through
+            case State::Done: 
+				Lsf::parseJobs(res.out, insert);
+				return true;
+			default: throw std::runtime_error("invalid state");
+        }
 	}
+};
 
-	std::string out;
-	int ret = _func(out, opts);
-	if (ret == not_finished) {
-		return false;
-	} else if (ret > 0) {
-		throw CommandFailed("Command failed", opts, ret);
-	} else {
-		return true;
-	}
-}
+class GetBatchInfo: public SingleCmd {
+public:
+	using SingleCmd::SingleCmd;
 
-bool Lsf::changeNodeState(const std::string& name, NodeChangeState state, bool, const std::string&, bool) {
-	CmdOptions opts;
-	std::string stateArg;
-	switch (state) {
-		case NodeChangeState::Resume: 
-			opts = {"badmin", {"hopen", name}};
-			break;
-		case NodeChangeState::Drain:
-			opts = {"badmin", {"hclose", name}};
-			break;
-		case NodeChangeState::Undrain:
-			throw std::runtime_error("Undrain not supported for LSF");
-		default:
-			throw std::runtime_error("invalid state");
-	}
+    bool operator()(BatchInfo& info) {
+        switch (state) {
+			case State::Starting: {
+				// start in parallel
+				cmd(res, {"lsid", {}, {}, runopt_capture_stderr});
+				state = State::Waiting;
+			}
+			// fall through
+			case State::Waiting:
+                if (!checkWaiting("lsid")) return false; 
+				// fall through
+			case State::Done:
+				info.name = std::string("lfs");
+				info.version = trim_copy(res.err);
+				return true;
+			default: throw std::runtime_error("invalid state");
+        }
+    }
+};
 
-	std::string out;
-	int ret = _func(out, opts);
-	if (ret == not_finished) {
-		return false;
-	} else if (ret > 0) {
-		throw CommandFailed("Command failed", opts, ret);
-	} else {
-		return true;
-	}
+std::function<bool(const std::function<getNodes_inserter_f>& insert)> Lsf::getNodes(std::vector<std::string> filterNodes) { return GetNodes(_func, filterNodes); }
+std::function<bool(const std::function<getJobs_inserter_f>& insert)> Lsf::getJobs(std::vector<std::string>) { return GetJobs(_func); }
+std::function<bool(const std::function<getQueues_inserter_f>& insert)> Lsf::getQueues() { return GetQueues(_func); }
+std::function<bool()> Lsf::setQueueState(const std::string& name, QueueState state, bool force) { return SetQueueState(_func, name, state, force); }
+std::function<bool()> Lsf::deleteJobByUser(const std::string& user, bool force) { return DeleteJobByUser(_func, user, force); }
+std::function<bool()> Lsf::deleteJobById(const std::string& job, bool force) { return DeleteJobById(_func, job, force); }
+std::function<bool()> Lsf::holdJob(const std::string& job, bool force) { return HoldJob(_func, job, force); }
+std::function<bool()> Lsf::releaseJob(const std::string& job, bool force) { return ReleaseJob(_func, job, force); }
+std::function<bool()> Lsf::changeNodeState(const std::string& name, NodeChangeState state, bool force, const std::string& reason, bool appendReason) { return ChangeNodeState(_func, name, state, force, reason, appendReason); }
+std::function<bool(std::string&)> Lsf::runJob(const JobOptions& opts) { return RunJob(_func, opts); }
+std::function<bool(bool&)> Lsf::detect() { return Detect(_func); }
+std::function<bool(BatchInfo&)> Lsf::getBatchInfo() { return GetBatchInfo(_func); }
 
-}
 
-bool Lsf::releaseJob(const std::string& job, bool) {
-	CmdOptions opts{"bresume", {job}};
-
-	std::string out;
-	int ret = _func(out, opts);
-	if (ret == not_finished) {
-		return false;
-	} else if (ret > 0) {
-		throw CommandFailed("Command failed", opts, ret);
-	} else {
-		return true;
-	}
-}
-bool Lsf::holdJob(const std::string& job, bool) {
-	CmdOptions opts{"bstop", {job}};
-
-	std::string out;
-	int ret = _func(out, opts);
-	if (ret == not_finished) {
-		return false;
-	} else if (ret > 0) {
-		throw CommandFailed("Command failed", opts, ret);
-	} else {
-		return true;
-	}
-}
-bool Lsf::deleteJobByUser(const std::string& user, bool) {
-	CmdOptions opts{"bkill", {"-u", user}};
-
-	std::string out;
-	int ret = _func(out, opts);
-	if (ret == not_finished) {
-		return false;
-	} else if (ret > 0) {
-		throw CommandFailed("Command failed", opts, ret);
-	} else {
-		return true;
-	}
-}
-bool Lsf::deleteJobById(const std::string& job, bool) {
-	CmdOptions opts{"bkill", {job}};
-
-	std::string out;
-	int ret = _func(out, opts);
-	if (ret == not_finished) {
-		return false;
-	} else if (ret > 0) {
-		throw CommandFailed("Command failed", opts, ret);
-	} else {
-		return true;
-	}
-}
 
 }
 }
