@@ -12,7 +12,15 @@ namespace slurm {
  * 
  */
 class Slurm : public BatchInterface {
+public:
+	enum class job_mode {
+		unchecked, //!< auto detect whether sacct is supported or fallback to scontrol
+		sacct, //!< use sacct
+		scontrol, //!< use scontrol
+	};
+private:
 	std::function<cmd_execute_f> _func;
+	cmd_f _f;
 	std::map<CmdOptions, std::string> _cache;
 	/**
 	 * @brief Which command to use for getting job info
@@ -20,11 +28,6 @@ class Slurm : public BatchInterface {
 	 * Determines which command to use in \ref getJobs.
 	 * 
 	 */
-	enum class job_mode {
-		unchecked, //!< auto detect whether sacct is supported or fallback to scontrol
-		sacct, //!< use sacct
-		scontrol, //!< use scontrol
-	};
 	job_mode _mode;
 public:
 	static const std::string DefaultReason;
@@ -86,7 +89,7 @@ public:
 	 */
 	static void parseShowJob(const std::string& output, std::function<bool(std::map<std::string, std::string>)> insert);
 
-	static void parseNodes(const std::string& output, std::function<getNodes_inserter_f> insert);
+	static void parseNodes(const std::string& output, const std::function<getNodes_inserter_f>& insert);
 
 	static void parseJobs(const std::string& output, std::function<getJobs_inserter_f> insert);
 
@@ -159,6 +162,25 @@ public:
 	bool suspendJob(const std::string& job, bool force) override;
 	bool resumeJob(const std::string& job, bool force) override;
 	bool rescheduleRunningJobInQueue(const std::string& job, bool force) override;
+
+	std::function<bool(const std::function<getNodes_inserter_f>& insert)> getNodes2(std::vector<std::string> filterNodes);
+	std::function<bool(const std::function<getJobs_inserter_f>& insert)> getJobs2(std::vector<std::string> filterJobs);
+	std::function<bool(const std::function<getQueues_inserter_f>& insert)> getQueues2();
+	std::function<bool()> rescheduleRunningJobInQueue2(const std::string& job, bool force);
+	std::function<bool()> setQueueState2(const std::string& name, QueueState state, bool force);
+	std::function<bool()> resumeJob2(const std::string& job, bool force);
+	std::function<bool()> suspendJob2(const std::string& job, bool force);
+	std::function<bool()> deleteJobByUser2(const std::string& user, bool force);
+	std::function<bool()> deleteJobById2(const std::string& job, bool force);
+	std::function<bool()> holdJob2(const std::string& job, bool force);
+	std::function<bool()> releaseJob2(const std::string& job, bool force);
+	std::function<bool()> setNodeComment2(const std::string& name, bool force, const std::string& comment, bool appendComment);
+	std::function<bool()> changeNodeState2(const std::string& name, NodeChangeState state, bool force, const std::string& reason, bool appendReason);
+	std::function<bool(std::string&)> runJob2(const JobOptions& opts);
+	std::function<bool(bool&)> detect2();
+	std::function<bool(bool&)> checkSacct2();
+	std::function<bool(BatchInfo&)> getBatchInfo2();
+
 
 	bool getNodes(supported_t) override;
 	bool getQueues(supported_t) override;

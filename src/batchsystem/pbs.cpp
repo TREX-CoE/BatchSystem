@@ -729,6 +729,25 @@ bool Pbs::rescheduleRunningJobInQueue(const std::string& name, bool force) {
 	}
 }
 
+std::function<bool(const std::function<getNodes_inserter_f>& insert)> Pbs::getNodes2(std::vector<std::string> filterNodes) { return GetNodes(_f, filterNodes); }
+std::function<bool(const std::function<getJobs_inserter_f>& insert)> Pbs::getJobs2(std::vector<std::string> filterJobs) { return GetJobs(_f, getJobMode(), "PD,R,RQ,S", filterJobs); }
+std::function<bool(const std::function<getQueues_inserter_f>& insert)> Pbs::getQueues2() { return GetQueues(_f); }
+std::function<bool()> Pbs::rescheduleRunningJobInQueue2(const std::string& job, bool force) { return RescheduleRunningJobInQueue(_f, job, force); }
+std::function<bool()> Pbs::setQueueState2(const std::string& name, QueueState state, bool force) { return SetQueueState(_f, name, state, force); }
+std::function<bool()> Pbs::resumeJob2(const std::string& job, bool force) { return ResumeJob(_f, job, force); }
+std::function<bool()> Pbs::suspendJob2(const std::string& job, bool force) { return SuspendJob(_f, job, force); }
+std::function<bool()> Pbs::deleteJobByUser2(const std::string& user, bool force) { return DeleteJobByUser(_f, user, force); }
+std::function<bool()> Pbs::deleteJobById2(const std::string& job, bool force) { return DeleteJobById(_f, job, force); }
+std::function<bool()> Pbs::holdJob2(const std::string& job, bool force) { return HoldJob(_f, job, force); }
+std::function<bool()> Pbs::releaseJob2(const std::string& job, bool force) { return ReleaseJob(_f, job, force); }
+std::function<bool()> Pbs::setNodeComment2(const std::string& name, bool force, const std::string& comment, bool appendComment) { return SetNodeComment(_f, name, force, comment, appendComment); }
+std::function<bool()> Pbs::changeNodeState2(const std::string& name, NodeChangeState state, bool force, const std::string& reason, bool appendReason) { return ChangeNodeState(_f, name, state, force, reason, appendReason); }
+std::function<bool(std::string&)> Pbs::runJob2(const JobOptions& opts) { return RunJob(_f, opts); }
+std::function<bool(bool&)> Pbs::detect2() { return Detect(_f); }
+std::function<bool(bool&)> Pbs::checkSacct2() { return CheckSacct(_f); }
+std::function<bool(BatchInfo&)> Pbs::getBatchInfo2() { return GetBatchInfo(_f); }
+
+
 }
 }
 }

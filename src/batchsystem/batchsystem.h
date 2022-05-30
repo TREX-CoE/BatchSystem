@@ -51,6 +51,28 @@ namespace batch {
 using cw::policy_optional::string_optional;
 using cw::policy_optional::max_optional;
 
+struct Result {
+    int exit = -1;
+    std::string out;
+    std::string err;
+};
+
+enum runopt {
+	runopt_none = 0,
+    runopt_capture_stdout = (1 << 0),
+    runopt_capture_stderr = (1 << 1),
+};
+
+struct Cmd {
+    std::string cmd;
+    std::vector<std::string> args;
+    std::map<std::string, std::string> envs;
+    runopt opts;
+};
+
+using cmd_f = std::function<void(Result& res, const Cmd& cmd)>;
+
+
 /**
  * \brief Node state enum
  * 
@@ -579,6 +601,26 @@ public:
 	 */
 	virtual bool rescheduleRunningJobInQueue(const std::string& job, bool force);
 	virtual bool rescheduleRunningJobInQueue(supported_t);
+
+
+	virtual std::function<bool(const std::function<getNodes_inserter_f>& insert)> getNodes2(std::vector<std::string> filterNodes);
+	virtual std::function<bool(const std::function<getJobs_inserter_f>& insert)> getJobs2(std::vector<std::string> filterJobs);
+	virtual std::function<bool(const std::function<getQueues_inserter_f>& insert)> getQueues2();
+	virtual std::function<bool()> rescheduleRunningJobInQueue2(const std::string& job, bool force);
+	virtual std::function<bool()> setQueueState2(const std::string& name, QueueState state, bool force);
+	virtual std::function<bool()> resumeJob2(const std::string& job, bool force);
+	virtual std::function<bool()> suspendJob2(const std::string& job, bool force);
+	virtual std::function<bool()> deleteJobByUser2(const std::string& user, bool force);
+	virtual std::function<bool()> deleteJobById2(const std::string& job, bool force);
+	virtual std::function<bool()> holdJob2(const std::string& job, bool force);
+	virtual std::function<bool()> releaseJob2(const std::string& job, bool force);
+	virtual std::function<bool()> setNodeComment2(const std::string& name, bool force, const std::string& comment, bool appendComment);
+	virtual std::function<bool()> changeNodeState2(const std::string& name, NodeChangeState state, bool force, const std::string& reason, bool appendReason);
+	virtual std::function<bool(std::string&)> runJob2(const JobOptions& opts);
+	virtual std::function<bool(bool&)> detect2();
+	virtual std::function<bool(bool&)> checkSacct2();
+	virtual std::function<bool(BatchInfo&)> getBatchInfo2();
+
 };
 
 }
