@@ -1174,9 +1174,9 @@ public:
 };
 
 
-std::function<bool(const std::function<getNodes_inserter_f>& insert)> Slurm::getNodes(std::vector<std::string> filterNodes) { return GetNodes(_func, filterNodes); }
-std::function<bool(const std::function<getJobs_inserter_f>& insert)> Slurm::getJobs(std::vector<std::string> filterJobs) { return GetJobs(_func, getJobMode(), "PD,R,RQ,S", filterJobs); }
-std::function<bool(const std::function<getQueues_inserter_f>& insert)> Slurm::getQueues() { return GetQueues(_func); }
+std::function<getNodes_f> Slurm::getNodes(std::vector<std::string> filterNodes) { return GetNodes(_func, filterNodes); }
+std::function<getJobs_f> Slurm::getJobs(std::vector<std::string> filterJobs) { return GetJobs(_func, getJobMode(), "PD,R,RQ,S", filterJobs); }
+std::function<getQueues_f> Slurm::getQueues() { return GetQueues(_func); }
 std::function<bool()> Slurm::rescheduleRunningJobInQueue(const std::string& job, bool force) { return RescheduleRunningJobInQueue(_func, job, force); }
 std::function<bool()> Slurm::setQueueState(const std::string& name, QueueState state, bool force) { return SetQueueState(_func, name, state, force); }
 std::function<bool()> Slurm::resumeJob(const std::string& job, bool force) { return ResumeJob(_func, job, force); }
@@ -1187,7 +1187,7 @@ std::function<bool()> Slurm::holdJob(const std::string& job, bool force) { retur
 std::function<bool()> Slurm::releaseJob(const std::string& job, bool force) { return ReleaseJob(_func, job, force); }
 std::function<bool()> Slurm::setNodeComment(const std::string& name, bool force, const std::string& comment, bool appendComment) { return SetNodeComment(_func, name, force, comment, appendComment); }
 std::function<bool()> Slurm::changeNodeState(const std::string& name, NodeChangeState state, bool force, const std::string& reason, bool appendReason) { return ChangeNodeState(_func, name, state, force, reason, appendReason); }
-std::function<bool(std::string&)> Slurm::runJob(const JobOptions& opts) { return RunJob(_func, opts); }
+std::function<runJob_f> Slurm::runJob(const JobOptions& opts) { return RunJob(_func, opts); }
 std::function<bool(bool&)> Slurm::detect() { return Detect(_func); }
 std::function<bool(bool&)> Slurm::checkSacct() { return CheckSacct(_func); }
 std::function<bool(BatchInfo&)> Slurm::getBatchInfo() { return GetBatchInfo(_func); }

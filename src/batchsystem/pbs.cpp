@@ -895,9 +895,9 @@ public:
 };
 
 
-std::function<bool(const std::function<getNodes_inserter_f>& insert)> Pbs::getNodes(std::vector<std::string> filterNodes) { return GetNodes(_func, filterNodes); }
-std::function<bool(const std::function<getJobs_inserter_f>& insert)> Pbs::getJobs(std::vector<std::string>) { return GetJobs(_func); }
-std::function<bool(const std::function<getQueues_inserter_f>& insert)> Pbs::getQueues() { return GetQueues(_func); }
+std::function<getNodes_f> Pbs::getNodes(std::vector<std::string> filterNodes) { return GetNodes(_func, filterNodes); }
+std::function<getJobs_f> Pbs::getJobs(std::vector<std::string>) { return GetJobs(_func); }
+std::function<getQueues_f> Pbs::getQueues() { return GetQueues(_func); }
 std::function<bool()> Pbs::rescheduleRunningJobInQueue(const std::string& job, bool force) { return RescheduleRunningJobInQueue(_func, job, force); }
 std::function<bool()> Pbs::setQueueState(const std::string& name, QueueState state, bool force) { return SetQueueState(_func, name, state, force); }
 std::function<bool()> Pbs::resumeJob(const std::string& job, bool force) { return ResumeJob(_func, job, force); }
@@ -908,7 +908,7 @@ std::function<bool()> Pbs::holdJob(const std::string& job, bool force) { return 
 std::function<bool()> Pbs::releaseJob(const std::string& job, bool force) { return ReleaseJob(_func, job, force); }
 std::function<bool()> Pbs::setNodeComment(const std::string& name, bool force, const std::string& comment, bool appendComment) { return SetNodeComment(_func, name, force, comment, appendComment); }
 std::function<bool()> Pbs::changeNodeState(const std::string& name, NodeChangeState state, bool force, const std::string& reason, bool appendReason) { return ChangeNodeState(_func, name, state, force, reason, appendReason); }
-std::function<bool(std::string&)> Pbs::runJob(const JobOptions& opts) { return RunJob(_func, opts); }
+std::function<runJob_f> Pbs::runJob(const JobOptions& opts) { return RunJob(_func, opts); }
 std::function<bool(bool&)> Pbs::detect() { return Detect(_func); }
 std::function<bool(BatchInfo&)> Pbs::getBatchInfo() { return GetBatchInfo(_func); }
 

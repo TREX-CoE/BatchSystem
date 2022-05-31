@@ -38,9 +38,9 @@ public:
 	bool resumeJob(supported_t) override;
 	bool rescheduleRunningJobInQueue(supported_t) override;
 
-	std::function<bool(const std::function<getNodes_inserter_f>& insert)> getNodes(std::vector<std::string> filterNodes) override;
-	std::function<bool(const std::function<getJobs_inserter_f>& insert)> getJobs(std::vector<std::string> filterJobs) override;
-	std::function<bool(const std::function<getQueues_inserter_f>& insert)> getQueues() override;
+	std::function<getNodes_f> getNodes(std::vector<std::string> filterNodes) override;
+	std::function<getJobs_f> getJobs(std::vector<std::string> filterJobs) override;
+	std::function<getQueues_f> getQueues() override;
 	std::function<bool()> rescheduleRunningJobInQueue(const std::string& job, bool force) override;
 	std::function<bool()> setQueueState(const std::string& name, QueueState state, bool force) override;
 	std::function<bool()> resumeJob(const std::string& job, bool force) override;
@@ -51,7 +51,7 @@ public:
 	std::function<bool()> releaseJob(const std::string& job, bool force) override;
 	std::function<bool()> setNodeComment(const std::string& name, bool force, const std::string& comment, bool appendComment) override;
 	std::function<bool()> changeNodeState(const std::string& name, NodeChangeState state, bool force, const std::string& reason, bool appendReason) override;
-	std::function<bool(std::string&)> runJob(const JobOptions& opts) override;
+	std::function<runJob_f> runJob(const JobOptions& opts) override;
 	std::function<bool(bool&)> detect() override;
 	std::function<bool(BatchInfo&)> getBatchInfo() override;
 

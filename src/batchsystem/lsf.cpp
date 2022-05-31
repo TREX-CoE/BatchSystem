@@ -730,16 +730,16 @@ public:
     }
 };
 
-std::function<bool(const std::function<getNodes_inserter_f>& insert)> Lsf::getNodes(std::vector<std::string> filterNodes) { return GetNodes(_func, filterNodes); }
-std::function<bool(const std::function<getJobs_inserter_f>& insert)> Lsf::getJobs(std::vector<std::string>) { return GetJobs(_func); }
-std::function<bool(const std::function<getQueues_inserter_f>& insert)> Lsf::getQueues() { return GetQueues(_func); }
+std::function<getNodes_f> Lsf::getNodes(std::vector<std::string> filterNodes) { return GetNodes(_func, filterNodes); }
+std::function<getJobs_f> Lsf::getJobs(std::vector<std::string>) { return GetJobs(_func); }
+std::function<getQueues_f> Lsf::getQueues() { return GetQueues(_func); }
 std::function<bool()> Lsf::setQueueState(const std::string& name, QueueState state, bool force) { return SetQueueState(_func, name, state, force); }
 std::function<bool()> Lsf::deleteJobByUser(const std::string& user, bool force) { return DeleteJobByUser(_func, user, force); }
 std::function<bool()> Lsf::deleteJobById(const std::string& job, bool force) { return DeleteJobById(_func, job, force); }
 std::function<bool()> Lsf::holdJob(const std::string& job, bool force) { return HoldJob(_func, job, force); }
 std::function<bool()> Lsf::releaseJob(const std::string& job, bool force) { return ReleaseJob(_func, job, force); }
 std::function<bool()> Lsf::changeNodeState(const std::string& name, NodeChangeState state, bool force, const std::string& reason, bool appendReason) { return ChangeNodeState(_func, name, state, force, reason, appendReason); }
-std::function<bool(std::string&)> Lsf::runJob(const JobOptions& opts) { return RunJob(_func, opts); }
+std::function<runJob_f> Lsf::runJob(const JobOptions& opts) { return RunJob(_func, opts); }
 std::function<bool(bool&)> Lsf::detect() { return Detect(_func); }
 std::function<bool(BatchInfo&)> Lsf::getBatchInfo() { return GetBatchInfo(_func); }
 

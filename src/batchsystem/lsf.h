@@ -21,9 +21,9 @@ public:
 	static void parseJobs(const std::string& output, std::function<getJobs_inserter_f> insert);
 	static void parseQueues(const std::string& output, std::function<getQueues_inserter_f> insert);
 
-	std::function<bool(const std::function<getNodes_inserter_f>& insert)> getNodes(std::vector<std::string> filterNodes) override;
-	std::function<bool(const std::function<getJobs_inserter_f>& insert)> getJobs(std::vector<std::string> filterJobs) override;
-	std::function<bool(const std::function<getQueues_inserter_f>& insert)> getQueues() override;
+	std::function<getNodes_f> getNodes(std::vector<std::string> filterNodes) override;
+	std::function<getJobs_f> getJobs(std::vector<std::string> filterJobs) override;
+	std::function<getQueues_f> getQueues() override;
 	std::function<bool()> setQueueState(const std::string& name, QueueState state, bool force) override;
 	std::function<bool()> deleteJobByUser(const std::string& user, bool force) override;
 	std::function<bool()> deleteJobById(const std::string& job, bool force) override;
@@ -31,8 +31,8 @@ public:
 	std::function<bool()> releaseJob(const std::string& job, bool force) override;
 	std::function<bool()> changeNodeState(const std::string& name, NodeChangeState state, bool force, const std::string& reason, bool appendReason) override;
 	std::function<bool(std::string& jobName)> runJob(const JobOptions& opts) override;
-	std::function<bool(bool& detected)> detect() override;
-	std::function<bool(BatchInfo& info)> getBatchInfo() override;
+	std::function<detect_f> detect() override;
+	std::function<getBatchInfo_f> getBatchInfo() override;
 
 
 	bool getNodes(supported_t) override;

@@ -83,7 +83,7 @@ public:
 	static void parseJobsLegacy(const std::string& output, std::function<getJobs_inserter_f> insert);
 	static void parseJobsSacct(const std::string& output, std::function<getJobs_inserter_f> insert);
 
-	std::function<bool(const std::function<getNodes_inserter_f>& insert)> getNodes(std::vector<std::string> filterNodes) override;
+	std::function<getNodes_f> getNodes(std::vector<std::string> filterNodes) override;
 
 	/**
 	 * \brief Get the Jobs object
@@ -92,12 +92,9 @@ public:
 	 * if not set via \ref setJobMode before.
 	 * 
 	 * Uses a filter to only get active jobs.
-	 * 
-	 * \param insert 
-	 * \param filterJobs jobs to filter
 	 */
-	std::function<bool(const std::function<getJobs_inserter_f>& insert)> getJobs(std::vector<std::string> filterJobs) override;
-	std::function<bool(const std::function<getQueues_inserter_f>& insert)> getQueues() override;
+	std::function<getJobs_f> getJobs(std::vector<std::string> filterJobs) override;
+	std::function<getQueues_f> getQueues() override;
 	std::function<bool()> rescheduleRunningJobInQueue(const std::string& job, bool force) override;
 	std::function<bool()> setQueueState(const std::string& name, QueueState state, bool force) override;
 	std::function<bool()> resumeJob(const std::string& job, bool force) override;
@@ -111,15 +108,9 @@ public:
 	 * \brief Change Node state
 	 * 
 	 * \note Slurm needs a reason for changing a node to a down / draining state, so a default is passed if no reason is given by user.
-	 * 
-	 * \param name 
-	 * \param state 
-	 * \param force 
-	 * \param reason 
-	 * \param appendReason 
 	 */
 	std::function<bool()> changeNodeState(const std::string& name, NodeChangeState state, bool force, const std::string& reason, bool appendReason) override;
-	std::function<bool(std::string&)> runJob(const JobOptions& opts) override;
+	std::function<runJob_f> runJob(const JobOptions& opts) override;
 	std::function<bool(bool&)> detect() override;
 	std::function<bool(BatchInfo&)> getBatchInfo() override;
 

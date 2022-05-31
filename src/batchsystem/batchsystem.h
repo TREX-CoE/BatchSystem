@@ -52,20 +52,30 @@ using cw::policy_optional::string_optional;
 using cw::policy_optional::max_optional;
 
 /**
- * \brief Value to signal that command is still running
- * 
- * Sentinel value of command exit code integer (returned by \ref cmd_execute_f) to signal that asynchronous command has not finished yet.
- * 
+ * \brief Special values for exit code
  */
-enum exitcode_marker { not_finished = -1 };
+enum exitcode_marker {
+	not_finished = -1 //!< Sentinel value of command exit code integer (\ref Result) to signal that asynchronous command has not finished yet.
+};
 
+/**
+ * \brief Result object of shell command
+ * 
+ * Store result of a running shell command in \ref cmd_f.
+ */
 struct Result {
-    int exit = not_finished;
-    std::string out;
-    std::string err;
+    int exit = not_finished; //!< exit code of command (\ref not_finished if not done yet)
+    std::string out; //!< captured stdout
+    std::string err; //!< captured stderr
 };
 
 namespace cmdopt {
+	/**
+	 * \brief Command run options
+	 * 
+	 * Bitmask to set options for executing shell commands.
+	 * 
+	 */
 	enum cmdopt {
 		none = 0, //!< dont capture any output
 		capture_stdout = (1 << 0), //!< request capture of stdout
@@ -73,21 +83,23 @@ namespace cmdopt {
 	};
 }
 
+/**
+ * \brief Shell command and arguments
+ * 
+ * Contains args and options to run command in \ref cmd_f.
+ */
 struct Cmd {
-    std::string cmd;
-    std::vector<std::string> args;
-    std::map<std::string, std::string> envs;
-    cmdopt::cmdopt opts;
+    std::string cmd; //!< command to run
+    std::vector<std::string> args; //!< arguments to pass to command
+    std::map<std::string, std::string> envs; //!< envvars to pass to command
+    cmdopt::cmdopt opts; //!< options to adapt way command is run
 };
 
 /**
  * \brief Callback for batchsystem implementations to call shell command.
  * 
- * \note Command can be run asynchronously by returning \ref not_finished to signal it is still running and retry on next command run.
- * 
- * \param[out] out Shell output is passed to this stringstream
- * \param opts Command and arguments to run
- * \return exit code of command (0 for success, else for failure) or \ref not_finished to signal not finished yet
+ * \param[out] res Store outputs and exit codes in result object
+ * \param cmd Command, arguments and options to run command
  */
 using cmd_f = std::function<void(Result& res, const Cmd& cmd)>;
 
@@ -315,9 +327,9 @@ class NotImplemented : public std::logic_error
 {
 public:
 	/**
-	 * @brief Construct a new NotImplemented exception
+	 * \brief Construct a new NotImplemented exception
 	 * 
-	 * @param msg String literal for not implemented function name (e.g. pass `__func__` macro)
+	 * \param msg String literal for not implemented function name (e.g. pass `__func__` macro)
 	 */
     NotImplemented(const char* msg);
 };
@@ -356,17 +368,63 @@ typedef bool getJobs_inserter_f(Job job);
 typedef bool getQueues_inserter_f(Queue queue);
 
 /**
- * @brief Tag to check whether method is supported / implemented.
+ * \brief Tag to check whether method is supported / implemented.
  * 
  * Special empty struct value tag to check whether a method in \ref BatchInterface is supported by implementation / derived class.
  */
 struct supported_t {};
 
 /**
- * @brief Value for sentinel type \ref supported_t
+ * \brief Value for sentinel type \ref supported_t
  * 
  */
 constexpr static supported_t supported{};
+
+/**
+ * \brief Async functor for \ref BatchInterface::runJob
+ * 
+ * \param[out] jobName Job Id of scheduled job 
+ * \return true if done
+ */
+typedef bool runJob_f(std::string& jobName);
+
+/**
+ * \brief Async functor for \ref BatchInterface::getNodes
+ * 
+ * \param insert Callback to get next Node
+ */
+typedef bool getNodes_f(const std::function<getNodes_inserter_f>& insert);
+
+/**
+ * \brief Async functor for \ref BatchInterface::getJobs
+ * 
+ * \param insert Callback to get next Job
+ */
+typedef bool getJobs_f(const std::function<getJobs_inserter_f>& insert);
+
+/**
+ * \brief Async functor for \ref BatchInterface::getQueues
+ * 
+ * \param insert Callback to get next Queue
+ */
+typedef bool getQueues_f(const std::function<getQueues_inserter_f>& insert);
+
+/**
+ * \brief Async functor for \ref BatchInterface::getBatchInfo
+ * 
+ * \param[out] info batchsystem info metadata 
+ * \return true if done
+ */
+typedef bool getBatchInfo_f(BatchInfo& info);
+
+/**
+ * \brief Async functor for \ref BatchInterface::detect
+ * 
+ * \param[out] detected Set whether batch system is detected 
+ * \return true if done
+ */
+typedef bool detect_f(bool& detected);
+
 
 /**
  * \brief Struct of batchsystem interface functions
@@ -383,23 +441,22 @@ constexpr static supported_t supported{};
  * Optional methods of interface (not pure virtual methods) throw \ref NotImplemented if not overriden.
  * 
  * \par Optional methods supported check
- * Each optional method has a separate overload with only one \ref supported tag argument
+ * Each optional method has a separate overload with only one \ref supported_t tag argument
  * to check wether method is supported to check without triggering action. These methods return false if not overriden.
  * 
  * \par Non-blocking support
- * Every async method returns a bool for non-blocking execution. Until a method has not finished it returns false.
- * This way methods can be run blocking like this `while(!batch.method());` or non-blocking e.g. by polling the return value in an event loop.
+ * Every async method returns a functor that stores its internal execution state / progress and returns a bool for non-blocking execution.
+ * Until a method has not finished it returns false.
+ * This way methods can be run blocking like this `autof = batch.method(); while(!f());` or non-blocking e.g. by polling the return value in an event loop.
  */
 class BatchInterface {
 public:
 	virtual ~BatchInterface();
 	
 	/**
-	 * @brief Check to detect batch interface.
-	 * 
-	 * @param[out] detected Set whether batch system is detected 
+	 * \brief Check to detect batch interface.
 	 */
-	virtual std::function<bool(bool& detected)> detect() = 0;
+	virtual std::function<detect_f> detect() = 0;
 
 	/**
 	 * \brief Get Node structs information from batchsystem
@@ -409,9 +466,8 @@ public:
 	 * \note if node in filterNodes is missing no execption is thrown, the batchsystem tries return info for the other nodes queried but some implementations will not get info for any node 
 	 *
 	 * \param filterNodes Query only selected nodes or all if empty
-	 * \param insert Callback to get next Node
 	 */
-	virtual std::function<bool(const std::function<getNodes_inserter_f>& insert)> getNodes(std::vector<std::string> filterNodes);
+	virtual std::function<getNodes_f> getNodes(std::vector<std::string> filterNodes);
 	virtual bool getNodes(supported_t);
 
 	/**
@@ -421,7 +477,7 @@ public:
 	 * 
 	 * \param insert Callback to get next Queue
 	 */
-	virtual std::function<bool(const std::function<getQueues_inserter_f>& insert)> getQueues();
+	virtual std::function<getQueues_f> getQueues();
 	virtual bool getQueues(supported_t);
 
 	/**
@@ -429,20 +485,17 @@ public:
 	 * 
 	 * Query batchsystem for job informations.
 	 * 
-	 * \param insert Callback to get next Job
+	 * \param filterJobs Filter out only certain jobs or all if empty
 	 */
-	virtual std::function<bool(const std::function<getJobs_inserter_f>& insert)> getJobs(std::vector<std::string> filterJobs);
+	virtual std::function<getJobs_f> getJobs(std::vector<std::string> filterJobs);
 	virtual bool getJobs(supported_t);
 
 	/**
 	 * \brief Get batchsystem information
 	 * 
 	 * Get metadata for used batchsystem and version.
-	 * 
-	 * \param[out] info batchsystem info metadata 
-	 * \return true if done
 	 */
-	virtual std::function<bool(BatchInfo& info)> getBatchInfo();
+	virtual std::function<getBatchInfo_f> getBatchInfo();
 	virtual bool getBatchInfo(supported_t);
 
 	/**
@@ -491,10 +544,8 @@ public:
 	 * \brief Schedule job to run on batchsystem
 	 * 
 	 * \param opts Options for job to run
-	 * \param[out] jobName Job Id of scheduled job 
-	 * \return true if done
 	 */
-	virtual std::function<bool(std::string& jobName)> runJob(const JobOptions& opts);
+	virtual std::function<runJob_f> runJob(const JobOptions& opts);
 	virtual bool runJob(supported_t);
 
 	/**
@@ -502,6 +553,7 @@ public:
 	 * 
 	 * \param name Node to set comment for
 	 * \param comment Comment string to set
+	 * \param force Force set comment
 	 * \param appendComment Wether to append comment instead of overwritting
 	 */
 	virtual std::function<bool()> setNodeComment(const std::string& name, bool force, const std::string& comment, bool appendComment);

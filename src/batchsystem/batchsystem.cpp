@@ -24,9 +24,9 @@ bool BatchInterface::resumeJob(supported_t) { return false; }
 bool BatchInterface::rescheduleRunningJobInQueue(supported_t) { return false; }
 
 
-std::function<bool(const std::function<getNodes_inserter_f>& insert)> BatchInterface::getNodes(std::vector<std::string>) { throw NotImplemented(__func__); }
-std::function<bool(const std::function<getJobs_inserter_f>& insert)> BatchInterface::getJobs(std::vector<std::string>) { throw NotImplemented(__func__); }
-std::function<bool(const std::function<getQueues_inserter_f>& insert)> BatchInterface::getQueues() { throw NotImplemented(__func__); }
+std::function<getNodes_f> BatchInterface::getNodes(std::vector<std::string>) { throw NotImplemented(__func__); }
+std::function<getJobs_f> BatchInterface::getJobs(std::vector<std::string>) { throw NotImplemented(__func__); }
+std::function<getQueues_f> BatchInterface::getQueues() { throw NotImplemented(__func__); }
 std::function<bool()> BatchInterface::rescheduleRunningJobInQueue(const std::string&, bool) { throw NotImplemented(__func__); }
 std::function<bool()> BatchInterface::setQueueState(const std::string&, QueueState, bool) { throw NotImplemented(__func__); }
 std::function<bool()> BatchInterface::resumeJob(const std::string&, bool) { throw NotImplemented(__func__); }
@@ -37,9 +37,9 @@ std::function<bool()> BatchInterface::holdJob(const std::string&, bool) { throw 
 std::function<bool()> BatchInterface::releaseJob(const std::string&, bool) { throw NotImplemented(__func__); }
 std::function<bool()> BatchInterface::setNodeComment(const std::string&, bool, const std::string&, bool) { throw NotImplemented(__func__); }
 std::function<bool()> BatchInterface::changeNodeState(const std::string&, NodeChangeState, bool, const std::string&, bool) { throw NotImplemented(__func__); }
-std::function<bool(std::string&)> BatchInterface::runJob(const JobOptions&) { throw NotImplemented(__func__); }
-std::function<bool(bool& detected)> BatchInterface::detect() { throw NotImplemented(__func__); }
-std::function<bool(BatchInfo& info)> BatchInterface::getBatchInfo() { throw NotImplemented(__func__); }
+std::function<runJob_f> BatchInterface::runJob(const JobOptions&) { throw NotImplemented(__func__); }
+std::function<detect_f> BatchInterface::detect() { throw NotImplemented(__func__); }
+std::function<getBatchInfo_f> BatchInterface::getBatchInfo() { throw NotImplemented(__func__); }
 
 
 
