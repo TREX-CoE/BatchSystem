@@ -120,8 +120,8 @@ std::vector<std::string> nodelist_helper(const std::string& nodeList) {
 
 						offsetRange=static_cast<size_t>(std::distance(range.cbegin(), posRange[2].second));
 
-						int nodeIdStart=-1;
-						int nodeIdEnd=-1;
+						int nodeIdStart=not_finished;
+						int nodeIdEnd=not_finished;
 						int tmp;
 						int padding;
 
@@ -666,7 +666,7 @@ public:
 				// add reason if needed and force default if empty as needed by slurm!
 				if (nodeState != NodeChangeState::Resume) args.push_back("Reason="+(reason.empty() ? Slurm::DefaultReason : reason));
 
-                cmd(res, {"scontrol", args, {}, runopt_none});
+                cmd(res, {"scontrol", args, {}, cmdopt::none});
                 state=State::Waiting;
 			}
 			// fall through
@@ -691,7 +691,7 @@ public:
     bool operator()() {
         switch (state) {
             case State::Starting:
-                cmd(res, {"scontrol", {"update", "NodeName="+name, "Comment="+comment}, {}, runopt_none});
+                cmd(res, {"scontrol", {"update", "NodeName="+name, "Comment="+comment}, {}, cmdopt::none});
                 state=State::Waiting;
                 // fall through
             case State::Waiting:
@@ -713,7 +713,7 @@ public:
     bool operator()() {
         switch (state) {
             case State::Starting:
-                cmd(res, {"scontrol", {"release", job}, {}, runopt_none});
+                cmd(res, {"scontrol", {"release", job}, {}, cmdopt::none});
                 state=State::Waiting;
                 // fall through
             case State::Waiting:
@@ -735,7 +735,7 @@ public:
     bool operator()() {
         switch (state) {
             case State::Starting:
-                cmd(res, {"scontrol", {"hold", job}, {}, runopt_none});
+                cmd(res, {"scontrol", {"hold", job}, {}, cmdopt::none});
                 state=State::Waiting;
                 // fall through
             case State::Waiting:
@@ -757,7 +757,7 @@ public:
     bool operator()() {
         switch (state) {
             case State::Starting:
-                cmd(res, {"scancel", {job}, {}, runopt_none});
+                cmd(res, {"scancel", {job}, {}, cmdopt::none});
                 state=State::Waiting;
                 // fall through
             case State::Waiting:
@@ -779,7 +779,7 @@ public:
     bool operator()() {
         switch (state) {
             case State::Starting:
-                cmd(res, {"scancel", {"-u", user}, {}, runopt_none});
+                cmd(res, {"scancel", {"-u", user}, {}, cmdopt::none});
                 state=State::Waiting;
                 // fall through
             case State::Waiting:
@@ -801,7 +801,7 @@ public:
     bool operator()() {
         switch (state) {
             case State::Starting:
-                cmd(res, {"scontrol", {"suspend", job}, {}, runopt_none});
+                cmd(res, {"scontrol", {"suspend", job}, {}, cmdopt::none});
                 state=State::Waiting;
                 // fall through
             case State::Waiting:
@@ -823,7 +823,7 @@ public:
     bool operator()() {
         switch (state) {
             case State::Starting:
-                cmd(res, {"scontrol", {"resume", job}, {}, runopt_none});
+                cmd(res, {"scontrol", {"resume", job}, {}, cmdopt::none});
                 state=State::Waiting;
                 // fall through
             case State::Waiting:
@@ -855,7 +855,7 @@ public:
 					case QueueState::Draining: stateStr="DRAIN"; break;
 					default: throw std::runtime_error("unknown state");
 				}
-				cmd(res, {"scontrol", {"update", "PartitionName=" + name, "State="+stateStr}, {}, runopt_none});
+				cmd(res, {"scontrol", {"update", "PartitionName=" + name, "State="+stateStr}, {}, cmdopt::none});
                 state=State::Waiting;
 			}
 			// fall through
@@ -877,11 +877,11 @@ public:
         switch (state) {
             case State::Starting:
 				// use sacct --helpformat as sacct would list all jobs, sacct --helpformat would not fail if slurmdbd is not working
-                cmd(res, {"sacct", {"--helpformat"}, {}, runopt_none});
+                cmd(res, {"sacct", {"--helpformat"}, {}, cmdopt::none});
                 state=State::Waiting;
                 // fall through
             case State::Waiting:
-				if (res.exit==-1) {
+				if (res.exit==not_finished) {
 					return false;
 				}
 				state = State::Done;
@@ -900,11 +900,11 @@ public:
     bool operator()(bool& detected) {
         switch (state) {
             case State::Starting:
-                cmd(res, {"sinfo", {"--version"}, {}, runopt_none});
+                cmd(res, {"sinfo", {"--version"}, {}, cmdopt::none});
                 state=State::Waiting;
                 // fall through
             case State::Waiting:
-				if (res.exit==-1) {
+				if (res.exit==not_finished) {
 					return false;
 				}
 				state = State::Done;
@@ -926,7 +926,7 @@ public:
     bool operator()() {
         switch (state) {
             case State::Starting:
-                cmd(res, {"scontrol", {hold ? "requeuehold" : "requeue", job}, {}, runopt_none});
+                cmd(res, {"scontrol", {hold ? "requeuehold" : "requeue", job}, {}, cmdopt::none});
                 state=State::Waiting;
                 // fall through
             case State::Waiting:
@@ -954,7 +954,7 @@ public:
 					args.push_back(internal::joinString(filterNodes.begin(), filterNodes.end(), ","));
 				}
 
-                cmd(res, {"scontrol", args, {}, runopt_capture_stdout});
+                cmd(res, {"scontrol", args, {}, cmdopt::capture_stdout});
                 state=State::Waiting;
 			}
                 // fall through
@@ -976,7 +976,7 @@ public:
     bool operator()(const std::function<getQueues_inserter_f>& insert) {
         switch (state) {
             case State::Starting: {
-                cmd(res, {"scontrol", {"show", "partition", "--all"}, {}, runopt_capture_stdout});
+                cmd(res, {"scontrol", {"show", "partition", "--all"}, {}, cmdopt::capture_stdout});
                 state=State::Waiting;
 			}
                 // fall through
@@ -1001,7 +1001,7 @@ public:
         switch (state) {
             case State::Starting: {
 				// --parsable to only print job id
-				Cmd c{"sbatch", {"--parsable"}, {}, runopt_capture_stdout};
+				Cmd c{"sbatch", {"--parsable"}, {}, cmdopt::capture_stdout};
 				if (opts.numberNodes.has_value()) {
 					c.args.push_back("-N");
 					c.args.push_back(opts.numberNodesMax.has_value() ? std::to_string(opts.numberNodes.get()) : (std::to_string(opts.numberNodes.get())+"-"+std::to_string(opts.numberNodesMax.get())));
@@ -1063,19 +1063,19 @@ public:
     bool operator()(const std::function<getJobs_inserter_f>& insert) {
         switch (state) {
 			case State::SacctCheckStart: {
-				cmd(sacctSupported, {"sacct", {"--helpformat"}, {}, runopt_none});
+				cmd(sacctSupported, {"sacct", {"--helpformat"}, {}, cmdopt::none});
 				state = State::SacctCheckWaiting;
 			}
 			// fall through
 			case State::SacctCheckWaiting: {
-                if (sacctSupported.exit==-1) {
+                if (sacctSupported.exit==not_finished) {
                     return false;
                 } else if (sacctSupported.exit==0) {
 					state=State::SacctStart;
-					goto scontrol;
+					goto sacct;
                 } else {
 					state=State::ScontrolStart;
-					goto sacct;
+					goto scontrol;
 				}
 			}
 			case State::SacctStart: {
@@ -1089,12 +1089,12 @@ public:
 					args.push_back("-j");
 					args.push_back(internal::joinString(filterJobs.begin(), filterJobs.end(), ","));
 				}
-				cmd(jobs, {"sacct", args, {}, runopt_capture_stdout});
+				cmd(jobs, {"sacct", args, {}, cmdopt::capture_stdout});
 				state=State::SacctWaiting;
 			}
 			// fall through
 			case State::SacctWaiting: {
-				if (jobs.exit==-1) {
+				if (jobs.exit==not_finished) {
 					return false;
 				} else if (jobs.exit!=0) {
 					throw CommandFailed("sacct -X -P --format ALL");
@@ -1108,12 +1108,12 @@ public:
 			}
 			case State::ScontrolStart: {
 				scontrol:;
-				cmd(jobs, {"scontrol", {"show", "job", "--all"}, {}, runopt_capture_stdout});
+				cmd(jobs, {"scontrol", {"show", "job", "--all"}, {}, cmdopt::capture_stdout});
 				state=State::ScontrolWaiting;
 			}
 			// fall through
 			case State::ScontrolWaiting: {
-				if (jobs.exit==-1) {
+				if (jobs.exit==not_finished) {
 					return false;
 				} else if (jobs.exit!=0) {
 					throw CommandFailed("scontrol show job --all");
@@ -1148,8 +1148,8 @@ public:
         switch (state) {
 			case State::Starting: {
 				// start in parallel
-				cmd(version, {"slurmd", {"--version"}, {}, runopt_capture_stdout});
-				cmd(config, {"scontrol", {"show", "config"}, {}, runopt_capture_stdout});
+				cmd(version, {"slurmd", {"--version"}, {}, cmdopt::capture_stdout});
+				cmd(config, {"scontrol", {"show", "config"}, {}, cmdopt::capture_stdout});
 				state = State::Waiting;
 			}
 			// fall through

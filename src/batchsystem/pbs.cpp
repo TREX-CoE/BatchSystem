@@ -459,12 +459,12 @@ public:
 			case State::QselectStart: {
 				// qdel -u only supported by SGE https://stackoverflow.com/questions/28857807/use-qdel-to-delete-all-my-jobs-at-once-not-one-at-a-time
 				// instead manually query jobs of user first and then delete them
-				cmd(qselect, {"qselect", {"-u", user}, {}, runopt_capture_stdout});
+				cmd(qselect, {"qselect", {"-u", user}, {}, cmdopt::capture_stdout});
 				state = State::QselectWaiting;
 			}
 			// fall through
 			case State::QselectWaiting: {
-                if (qselect.exit==-1) {
+                if (qselect.exit==not_finished) {
                     return false;
                 } else if (qselect.exit==0) {
 					state=State::QdelStart;
@@ -482,12 +482,12 @@ public:
 				});
 				if (force) args.push_back("-p"); // purge forces job to be deleted
 
-				cmd(qselect, {"qdel", args, {}, runopt_none});
+				cmd(qselect, {"qdel", args, {}, cmdopt::none});
 				state = State::QdelWaiting;
 			}
 			// fall through
 			case State::QdelWaiting: {
-				if (qdel.exit==-1) {
+				if (qdel.exit==not_finished) {
 					return false;
 				} else if (qdel.exit!=0) {
 					throw CommandFailed("qdel");
@@ -524,7 +524,7 @@ public:
 					default: throw std::runtime_error("invalid state");
 				}
 
-                cmd(res, {"pbsnodes", {stateArg, name, appendReason ? "-A" : "-N", reason}, {}, runopt_none});
+                cmd(res, {"pbsnodes", {stateArg, name, appendReason ? "-A" : "-N", reason}, {}, cmdopt::none});
                 state=State::Waiting;
 			}
 			// fall through
@@ -549,7 +549,7 @@ public:
     bool operator()() {
         switch (state) {
             case State::Starting:
-                cmd(res, {"pbsnodes", {name, appendComment ? "-A" : "-N", comment}, {}, runopt_none});
+                cmd(res, {"pbsnodes", {name, appendComment ? "-A" : "-N", comment}, {}, cmdopt::none});
                 state=State::Waiting;
                 // fall through
             case State::Waiting:
@@ -571,7 +571,7 @@ public:
     bool operator()() {
         switch (state) {
             case State::Starting:
-                cmd(res, {"qrls", {job}, {}, runopt_none});
+                cmd(res, {"qrls", {job}, {}, cmdopt::none});
                 state=State::Waiting;
                 // fall through
             case State::Waiting:
@@ -593,7 +593,7 @@ public:
     bool operator()() {
         switch (state) {
             case State::Starting:
-                cmd(res, {"qhold", {job}, {}, runopt_none});
+                cmd(res, {"qhold", {job}, {}, cmdopt::none});
                 state=State::Waiting;
                 // fall through
             case State::Waiting:
@@ -619,7 +619,7 @@ public:
 				std::vector<std::string> args;
 				if (force) args.push_back("-p");
 				args.push_back(job);
-                cmd(res, {"qdel", args, {}, runopt_none});
+                cmd(res, {"qdel", args, {}, cmdopt::none});
                 state=State::Waiting;
 			}
                 // fall through
@@ -642,7 +642,7 @@ public:
     bool operator()() {
         switch (state) {
             case State::Starting:
-                cmd(res, {"qsig", {"-s", "suspend", job}, {}, runopt_none});
+                cmd(res, {"qsig", {"-s", "suspend", job}, {}, cmdopt::none});
                 state=State::Waiting;
                 // fall through
             case State::Waiting:
@@ -664,7 +664,7 @@ public:
     bool operator()() {
         switch (state) {
             case State::Starting:
-                cmd(res, {"qsig", {"-s", "resume", job}, {}, runopt_none});
+                cmd(res, {"qsig", {"-s", "resume", job}, {}, cmdopt::none});
                 state=State::Waiting;
                 // fall through
             case State::Waiting:
@@ -698,7 +698,7 @@ public:
 					default: throw std::runtime_error("invalid state"); break;
 				}
 
-				cmd(res, {"qmgr", {"-c", "set queue " + name + " enabled="+(enabled ? "true" : "false") + ",started="+(started ? "true" : "false")}, {}, runopt_none});
+				cmd(res, {"qmgr", {"-c", "set queue " + name + " enabled="+(enabled ? "true" : "false") + ",started="+(started ? "true" : "false")}, {}, cmdopt::none});
                 state=State::Waiting;
 			}
 			// fall through
@@ -719,11 +719,11 @@ public:
     bool operator()(bool& detected) {
         switch (state) {
             case State::Starting:
-                cmd(res, {"pbs-config", {"--version"}, {}, runopt_none});
+                cmd(res, {"pbs-config", {"--version"}, {}, cmdopt::none});
                 state=State::Waiting;
                 // fall through
             case State::Waiting:
-				if (res.exit==-1) {
+				if (res.exit==not_finished) {
 					return false;
 				}
 				state = State::Done;
@@ -748,7 +748,7 @@ public:
 				std::vector<std::string> args;
 				if (hold) args.push_back("-f");
 				args.push_back(job);
-                cmd(res, {"qrerun", args, {}, runopt_none});
+                cmd(res, {"qrerun", args, {}, cmdopt::none});
                 state=State::Waiting;
 			}
 			// fall through
@@ -772,7 +772,7 @@ public:
             case State::Starting: {
 				std::vector<std::string> args{"-x"};
 				for (const auto& n : filterNodes) args.push_back(n);
-                cmd(res, {"pbsnodes", args, {}, runopt_capture_stdout});
+                cmd(res, {"pbsnodes", args, {}, cmdopt::capture_stdout});
                 state=State::Waiting;
 			}
                 // fall through
@@ -793,7 +793,7 @@ public:
     bool operator()(const std::function<getQueues_inserter_f>& insert) {
         switch (state) {
             case State::Starting: {
-                cmd(res, {"qstat", {"-Qf"}, {}, runopt_capture_stdout});
+                cmd(res, {"qstat", {"-Qf"}, {}, cmdopt::capture_stdout});
                 state=State::Waiting;
 			}
                 // fall through
@@ -818,7 +818,7 @@ public:
         switch (state) {
             case State::Starting: {
 				// --parsable to only print job id
-				Cmd c{"qsub", {}, {}, runopt_capture_stdout};
+				Cmd c{"qsub", {}, {}, cmdopt::capture_stdout};
 				if (opts.numberNodes.has_value()) {
 					c.args.push_back("-l");
 					c.args.push_back("nodes="+std::to_string(opts.numberNodes.get()));
@@ -855,7 +855,7 @@ public:
     bool operator()(const std::function<getJobs_inserter_f>& insert) {
         switch (state) {
             case State::Starting: {
-                cmd(res, {"qstat", {"-f", "-x"}, {}, runopt_capture_stdout});
+                cmd(res, {"qstat", {"-f", "-x"}, {}, cmdopt::capture_stdout});
                 state=State::Waiting;
 			}
                 // fall through
@@ -878,7 +878,7 @@ public:
         switch (state) {
 			case State::Starting: {
 				// start in parallel
-				cmd(res, {"pbsnodes", {"--version"}, {}, runopt_capture_stdout});
+				cmd(res, {"pbsnodes", {"--version"}, {}, cmdopt::capture_stdout});
 				state = State::Waiting;
 			}
 			// fall through

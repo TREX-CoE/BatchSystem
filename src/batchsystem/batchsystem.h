@@ -51,23 +51,33 @@ namespace batch {
 using cw::policy_optional::string_optional;
 using cw::policy_optional::max_optional;
 
+/**
+ * \brief Value to signal that command is still running
+ * 
+ * Sentinel value of command exit code integer (returned by \ref cmd_execute_f) to signal that asynchronous command has not finished yet.
+ * 
+ */
+enum exitcode_marker { not_finished = -1 };
+
 struct Result {
-    int exit = -1;
+    int exit = not_finished;
     std::string out;
     std::string err;
 };
 
-enum runopt {
-	runopt_none = 0,
-    runopt_capture_stdout = (1 << 0),
-    runopt_capture_stderr = (1 << 1),
-};
+namespace cmdopt {
+	enum cmdopt {
+		none = 0, //!< dont capture any output
+		capture_stdout = (1 << 0), //!< request capture of stdout
+		capture_stderr = (1 << 1), //!< request capture of stderr
+	};
+}
 
 struct Cmd {
     std::string cmd;
     std::vector<std::string> args;
     std::map<std::string, std::string> envs;
-    runopt opts;
+    cmdopt::cmdopt opts;
 };
 
 /**
@@ -344,15 +354,6 @@ typedef bool getJobs_inserter_f(Job job);
  * \return Wether to stop iterating 
  */
 typedef bool getQueues_inserter_f(Queue queue);
-
-
-/**
- * \brief Value to signal that command is still running
- * 
- * Sentinel value of command exit code integer (returned by \ref cmd_execute_f) to signal that asynchronous command has not finished yet.
- * 
- */
-constexpr static int not_finished = -1;
 
 /**
  * @brief Tag to check whether method is supported / implemented.

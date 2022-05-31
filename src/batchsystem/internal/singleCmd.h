@@ -16,7 +16,7 @@ protected:
     State state = State::Starting;
 
 	bool checkWaiting(const char* msg) {
-		if (res.exit==-1) {
+		if (res.exit==not_finished) {
 			return false;
 		} else if (res.exit!=0) {
 			throw std::runtime_error(msg);

@@ -29,7 +29,6 @@ public:
 	std::function<bool()> deleteJobById(const std::string& job, bool force) override;
 	std::function<bool()> holdJob(const std::string& job, bool force) override;
 	std::function<bool()> releaseJob(const std::string& job, bool force) override;
-	std::function<bool()> setNodeComment(const std::string& name, bool force, const std::string& comment, bool appendComment) override;
 	std::function<bool()> changeNodeState(const std::string& name, NodeChangeState state, bool force, const std::string& reason, bool appendReason) override;
 	std::function<bool(std::string& jobName)> runJob(const JobOptions& opts) override;
 	std::function<bool(bool& detected)> detect() override;

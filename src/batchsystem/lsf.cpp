@@ -413,7 +413,7 @@ public:
     bool operator()() {
         switch (state) {
             case State::Starting:
-                cmd(res, {"bkill", {"-u", user}, {}, runopt_none});
+                cmd(res, {"bkill", {"-u", user}, {}, cmdopt::none});
                 state=State::Waiting;
                 // fall through
             case State::Waiting:
@@ -451,7 +451,7 @@ public:
 					default:
 						throw std::runtime_error("invalid state");
 				}
-                cmd(res, {"badmin", {subcmd, name}, {}, runopt_none});
+                cmd(res, {"badmin", {subcmd, name}, {}, cmdopt::none});
                 state=State::Waiting;
 			}
 			// fall through
@@ -474,7 +474,7 @@ public:
     bool operator()() {
         switch (state) {
             case State::Starting:
-                cmd(res, {"bresume", {job}, {}, runopt_none});
+                cmd(res, {"bresume", {job}, {}, cmdopt::none});
                 state=State::Waiting;
                 // fall through
             case State::Waiting:
@@ -497,7 +497,7 @@ public:
     bool operator()() {
         switch (state) {
             case State::Starting:
-                cmd(res, {"bstop", {job}, {}, runopt_none});
+                cmd(res, {"bstop", {job}, {}, cmdopt::none});
                 state=State::Waiting;
                 // fall through
             case State::Waiting:
@@ -521,7 +521,7 @@ public:
         switch (state) {
             case State::Starting:
 				// purge forces job to be deleted
-                cmd(res, {"bkill", {job}, {}, runopt_none});
+                cmd(res, {"bkill", {job}, {}, cmdopt::none});
                 state=State::Waiting;
                 // fall through
             case State::Waiting:
@@ -557,7 +557,7 @@ public:
 					case QueueState::Draining: throw std::runtime_error("draining not supported");
 					default: throw std::runtime_error("invalid state");
 				}
-				cmd(res, {"badmin", {subcmd, name}, {}, runopt_none});
+				cmd(res, {"badmin", {subcmd, name}, {}, cmdopt::none});
                 state=State::Waiting;
 			}
 			// fall through
@@ -578,11 +578,11 @@ public:
     bool operator()(bool& detected) {
         switch (state) {
             case State::Starting:
-                cmd(res, {"bjobs", {"--version"}, {}, runopt_none});
+                cmd(res, {"bjobs", {"--version"}, {}, cmdopt::none});
                 state=State::Waiting;
                 // fall through
             case State::Waiting:
-				if (res.exit==-1) {
+				if (res.exit==not_finished) {
 					return false;
 				}
 				state = State::Done;
@@ -605,7 +605,7 @@ public:
             case State::Starting: {
 				std::vector<std::string> args{};
 				for (const auto& n : filterNodes) args.push_back(n);
-                cmd(res, {"bhosts", args, {}, runopt_capture_stdout});
+                cmd(res, {"bhosts", args, {}, cmdopt::capture_stdout});
                 state=State::Waiting;
 			}
                 // fall through
@@ -626,7 +626,7 @@ public:
     bool operator()(const std::function<getQueues_inserter_f>& insert) {
         switch (state) {
             case State::Starting: {
-                cmd(res, {"bqueues", {}, {}, runopt_capture_stdout});
+                cmd(res, {"bqueues", {}, {}, cmdopt::capture_stdout});
                 state=State::Waiting;
 			}
                 // fall through
@@ -651,7 +651,7 @@ public:
         switch (state) {
             case State::Starting: {
 				
-				Cmd c{"bsub", {}, {}, runopt_capture_stdout};
+				Cmd c{"bsub", {}, {}, cmdopt::capture_stdout};
 				if (opts.numberNodes.has_value()) {
 					c.args.push_back("-nnodes");
 					c.args.push_back(std::to_string(opts.numberNodes.get()));
@@ -691,7 +691,7 @@ public:
     bool operator()(const std::function<getJobs_inserter_f>& insert) {
         switch (state) {
             case State::Starting: {
-                cmd(res, {"bjobs", {"-u", "all"}, {}, runopt_capture_stdout});
+                cmd(res, {"bjobs", {"-u", "all"}, {}, cmdopt::capture_stdout});
                 state=State::Waiting;
 			}
                 // fall through
@@ -714,7 +714,7 @@ public:
         switch (state) {
 			case State::Starting: {
 				// start in parallel
-				cmd(res, {"lsid", {}, {}, runopt_capture_stderr});
+				cmd(res, {"lsid", {}, {}, cmdopt::capture_stderr});
 				state = State::Waiting;
 			}
 			// fall through
