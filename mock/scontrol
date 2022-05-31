@@ -1,0 +1,1066 @@
+#! /usr/bin/env python3
+
+import time
+import os
+import sys
+
+time.sleep(int(os.getenv("DELAY", "0")))
+
+job = """\
+JobId=3191 JobName=bash
+   UserId=benchmark-0432(88000047) GroupId=benchmark-0432(88000047) MCS_label=N/A
+   Priority=4294900320 Nice=0 Account=(null) QOS=normal
+   JobState=RUNNING Reason=None Dependency=(null)
+   Requeue=1 Restarts=0 BatchFlag=0 Reboot=0 ExitCode=0:0
+   RunTime=17:57:37 TimeLimit=14-00:00:00 TimeMin=N/A
+   SubmitTime=2021-04-21T16:51:39 EligibleTime=2021-04-21T16:51:39
+   AccrueTime=2021-04-21T16:51:39
+   StartTime=2021-04-21T16:51:40 EndTime=2021-05-05T16:51:40 Deadline=N/A
+   SuspendTime=None SecsPreSuspend=0 LastSchedEval=2021-04-21T16:51:40
+   Partition=CPU_8360Y AllocNode:Sid=frontend:336109
+   ReqNodeList=itp02 ExcNodeList=(null)
+   NodeList=itp02
+   BatchHost=itp02
+   NumNodes=1 NumCPUs=48 NumTasks=1 CPUs/Task=N/A ReqB:S:C:T=0:0:*:*
+   TRES=cpu=48,node=1,billing=48
+   Socks/Node=* NtasksPerN:B:S:C=0:0:*:* CoreSpec=*
+   MinCPUsNode=1 MinMemoryNode=0 MinTmpDiskNode=0
+   Features=(null) DelayBoot=00:00:00
+   OverSubscribe=NO Contiguous=0 Licenses=(null) Network=(null)
+   Command=bash
+   WorkDir=/home/benchmark-0432
+   Power=
+   MailUser=(null) MailType=NONE
+
+JobId=3194 JobName=bash
+   UserId=benchmark-0432(88000047) GroupId=benchmark-0432(88000047) MCS_label=N/A
+   Priority=4294900317 Nice=0 Account=(null) QOS=normal
+   JobState=RUNNING Reason=None Dependency=(null)
+   Requeue=1 Restarts=0 BatchFlag=0 Reboot=0 ExitCode=0:0
+   RunTime=12:15:21 TimeLimit=14-00:00:00 TimeMin=N/A
+   SubmitTime=2021-04-21T22:33:56 EligibleTime=2021-04-21T22:33:56
+   AccrueTime=Unknown
+   StartTime=2021-04-21T22:33:56 EndTime=2021-05-05T22:33:56 Deadline=N/A
+   SuspendTime=None SecsPreSuspend=0 LastSchedEval=2021-04-21T22:33:56
+   Partition=CPU_7F52 AllocNode:Sid=frontend:343269
+   ReqNodeList=(null) ExcNodeList=(null)
+   NodeList=gpu01sas
+   BatchHost=gpu01sas
+   NumNodes=1 NumCPUs=64 NumTasks=1 CPUs/Task=N/A ReqB:S:C:T=0:0:*:*
+   TRES=cpu=64,node=1,billing=64
+   Socks/Node=* NtasksPerN:B:S:C=0:0:*:* CoreSpec=*
+   MinCPUsNode=1 MinMemoryNode=0 MinTmpDiskNode=0
+   Features=(null) DelayBoot=00:00:00
+   OverSubscribe=NO Contiguous=0 Licenses=(null) Network=(null)
+   Command=bash
+   WorkDir=/home/benchmark-0432
+   Power=
+   MailUser=(null) MailType=NONE
+
+JobId=3196 JobName=Stress
+   UserId=benchmark-0419(88000013) GroupId=benchmark-0419(88000013) MCS_label=N/A
+   Priority=4294900315 Nice=0 Account=(null) QOS=normal
+   JobState=RUNNING Reason=None Dependency=(null)
+   Requeue=1 Restarts=0 BatchFlag=1 Reboot=0 ExitCode=0:0
+   RunTime=11:35:32 TimeLimit=14-00:00:00 TimeMin=N/A
+   SubmitTime=2021-04-21T23:13:44 EligibleTime=2021-04-21T23:13:44
+   AccrueTime=2021-04-21T23:13:44
+   StartTime=2021-04-21T23:13:45 EndTime=2021-05-05T23:13:45 Deadline=N/A
+   SuspendTime=None SecsPreSuspend=0 LastSchedEval=2021-04-21T23:13:45
+   Partition=CPU_7F52 AllocNode:Sid=frontend:342975
+   ReqNodeList=(null) ExcNodeList=(null)
+   NodeList=sas03
+   BatchHost=sas03
+   NumNodes=1 NumCPUs=64 NumTasks=1 CPUs/Task=N/A ReqB:S:C:T=0:0:*:*
+   TRES=cpu=64,node=1,billing=64
+   Socks/Node=* NtasksPerN:B:S:C=0:0:*:* CoreSpec=*
+   MinCPUsNode=1 MinMemoryNode=0 MinTmpDiskNode=0
+   Features=(null) DelayBoot=00:00:00
+   OverSubscribe=NO Contiguous=0 Licenses=(null) Network=(null)
+   Command=./stress-boinc.slurm
+   WorkDir=/home/benchmark-0419/stress/bo
+   StdErr=/home/benchmark-0419/stress/bo/slurm-3196.out
+   StdIn=/dev/null
+   StdOut=/home/benchmark-0419/stress/bo/slurm-3196.out
+   Power=
+   MailUser=(null) MailType=NONE
+
+JobId=3197 JobName=Stress
+   UserId=benchmark-0419(88000013) GroupId=benchmark-0419(88000013) MCS_label=N/A
+   Priority=4294900314 Nice=0 Account=(null) QOS=normal
+   JobState=RUNNING Reason=None Dependency=(null)
+   Requeue=1 Restarts=0 BatchFlag=1 Reboot=0 ExitCode=0:0
+   RunTime=11:20:41 TimeLimit=14-00:00:00 TimeMin=N/A
+   SubmitTime=2021-04-21T23:28:35 EligibleTime=2021-04-21T23:28:35
+   AccrueTime=2021-04-21T23:28:35
+   StartTime=2021-04-21T23:28:36 EndTime=2021-05-05T23:28:36 Deadline=N/A
+   SuspendTime=None SecsPreSuspend=0 LastSchedEval=2021-04-21T23:28:36
+   Partition=ALL AllocNode:Sid=frontend:342975
+   ReqNodeList=ins03 ExcNodeList=(null)
+   NodeList=ins03
+   BatchHost=ins03
+   NumNodes=1 NumCPUs=112 NumTasks=1 CPUs/Task=1 ReqB:S:C:T=0:0:*:*
+   TRES=cpu=112,node=1,billing=112
+   Socks/Node=* NtasksPerN:B:S:C=0:0:*:* CoreSpec=*
+   MinCPUsNode=1 MinMemoryNode=0 MinTmpDiskNode=0
+   Features=(null) DelayBoot=00:00:00
+   OverSubscribe=NO Contiguous=0 Licenses=(null) Network=(null)
+   Command=./stress-boinc.slurm
+   WorkDir=/home/benchmark-0419/stress/bo
+   StdErr=/home/benchmark-0419/stress/bo/slurm-3197.out
+   StdIn=/dev/null
+   StdOut=/home/benchmark-0419/stress/bo/slurm-3197.out
+   Power=
+   MailUser=(null) MailType=NONE
+
+JobId=3199 JobName=amd_full_15
+   UserId=unitzsche(88000043) GroupId=unitzsche(88000043) MCS_label=N/A
+   Priority=4294900312 Nice=0 Account=(null) QOS=normal
+   JobState=RUNNING Reason=None Dependency=(null)
+   Requeue=1 Restarts=0 BatchFlag=1 Reboot=0 ExitCode=0:0
+   RunTime=02:13:38 TimeLimit=12:00:00 TimeMin=N/A
+   SubmitTime=2021-04-22T08:35:39 EligibleTime=2021-04-22T08:35:39
+   AccrueTime=2021-04-22T08:35:39
+   StartTime=2021-04-22T08:35:39 EndTime=2021-04-22T20:35:39 Deadline=N/A
+   SuspendTime=None SecsPreSuspend=0 LastSchedEval=2021-04-22T08:35:39
+   Partition=CPU_7662 AllocNode:Sid=frontend:345893
+   ReqNodeList=sas04 ExcNodeList=(null)
+   NodeList=sas04
+   BatchHost=sas04
+   NumNodes=1 NumCPUs=256 NumTasks=1 CPUs/Task=1 ReqB:S:C:T=0:0:*:*
+   TRES=cpu=256,node=1,billing=256
+   Socks/Node=* NtasksPerN:B:S:C=0:0:*:* CoreSpec=*
+   MinCPUsNode=1 MinMemoryNode=0 MinTmpDiskNode=0
+   Features=(null) DelayBoot=00:00:00
+   OverSubscribe=NO Contiguous=0 Licenses=(null) Network=(null)
+   Command=/home/unitzsche/amd_7662/full_13/slurm.batch
+   WorkDir=/home/unitzsche/amd_7662/full_13
+   StdErr=/home/unitzsche/amd_7662/full_13/slurm-3199.out
+   StdIn=/dev/null
+   StdOut=/home/unitzsche/amd_7662/full_13/slurm-3199.out
+   Power=
+   MailUser=(null) MailType=NONE
+
+JobId=4 JobName=jobscript.sh
+   UserId=kevth(1000) GroupId=kevth(1000) MCS_label=N/A
+   Priority=4294901757 Nice=0 Account=(null) QOS=normal
+   JobState=PENDING Reason=Nodes_required_for_job_are_DOWN,_DRAINED_or_reserved_for_jobs_in_higher_priority_partitions Dependency=(null)
+   Requeue=1 Restarts=0 BatchFlag=1 Reboot=0 ExitCode=0:0
+   RunTime=00:00:00 TimeLimit=16:40:00 TimeMin=N/A
+   SubmitTime=2022-04-21T14:31:02 EligibleTime=2022-04-21T14:31:02
+   AccrueTime=2022-04-21T14:31:02
+   StartTime=Unknown EndTime=Unknown Deadline=N/A
+   SuspendTime=None SecsPreSuspend=0 LastSchedEval=2022-04-27T11:07:50
+   Partition=debug AllocNode:Sid=ubuntu:5593
+   ReqNodeList=(null) ExcNodeList=(null)
+   NodeList=(null)
+   NumNodes=1-1 NumCPUs=1 NumTasks=1 CPUs/Task=1 ReqB:S:C:T=0:0:*:*
+   TRES=cpu=1,node=1,billing=1
+   Socks/Node=* NtasksPerN:B:S:C=0:0:*:* CoreSpec=*
+   MinCPUsNode=1 MinMemoryNode=0 MinTmpDiskNode=0
+   Features=(null) DelayBoot=00:00:00
+   OverSubscribe=OK Contiguous=0 Licenses=(null) Network=(null)
+   Command=/home/kevth/batch_test/jobscript.sh
+   WorkDir=/home/kevth/batch_test
+   StdErr=/home/kevth/batch_test/slurm-4.out
+   StdIn=/dev/null
+   StdOut=/home/kevth/batch_test/slurm-4.out
+   Power=
+   NtasksPerTRES:0
+
+JobId=5 JobName=jobscript.sh
+   UserId=kevth(1000) GroupId=kevth(1000) MCS_label=N/A
+   Priority=4294901756 Nice=0 Account=(null) QOS=normal
+   JobState=PENDING Reason=ReqNodeNotAvail,_UnavailableNodes:ubuntu Dependency=(null)
+   Requeue=1 Restarts=0 BatchFlag=1 Reboot=0 ExitCode=0:0
+   RunTime=00:00:00 TimeLimit=16:40:00 TimeMin=N/A
+   SubmitTime=2022-04-21T14:31:07 EligibleTime=2022-04-21T14:31:07
+   AccrueTime=2022-04-21T14:31:07
+   StartTime=Unknown EndTime=Unknown Deadline=N/A
+   SuspendTime=None SecsPreSuspend=0 LastSchedEval=2022-04-27T11:07:50
+   Partition=debug AllocNode:Sid=ubuntu:5593
+   ReqNodeList=(null) ExcNodeList=(null)
+   NodeList=(null)
+   NumNodes=1-1 NumCPUs=1 NumTasks=1 CPUs/Task=1 ReqB:S:C:T=0:0:*:*
+   TRES=cpu=1,node=1,billing=1
+   Socks/Node=* NtasksPerN:B:S:C=0:0:*:* CoreSpec=*
+   MinCPUsNode=1 MinMemoryNode=0 MinTmpDiskNode=0
+   Features=(null) DelayBoot=00:00:00
+   OverSubscribe=OK Contiguous=0 Licenses=(null) Network=(null)
+   Command=/home/kevth/batch_test/jobscript.sh --help
+   WorkDir=/home/kevth/batch_test
+   StdErr=/home/kevth/batch_test/slurm-5.out
+   StdIn=/dev/null
+   StdOut=/home/kevth/batch_test/slurm-5.out
+   Power=
+   NtasksPerTRES:0
+
+JobId=6 JobName=jobscript.sh
+   UserId=kevth(1000) GroupId=kevth(1000) MCS_label=N/A
+   Priority=4294901755 Nice=0 Account=(null) QOS=normal
+   JobState=PENDING Reason=ReqNodeNotAvail,_UnavailableNodes:ubuntu Dependency=(null)
+   Requeue=1 Restarts=0 BatchFlag=1 Reboot=0 ExitCode=0:0
+   RunTime=00:00:00 TimeLimit=16:40:00 TimeMin=N/A
+   SubmitTime=2022-04-21T15:06:50 EligibleTime=2022-04-21T15:06:50
+   AccrueTime=2022-04-21T15:06:50
+   StartTime=Unknown EndTime=Unknown Deadline=N/A
+   SuspendTime=None SecsPreSuspend=0 LastSchedEval=2022-04-27T11:07:50
+   Partition=debug AllocNode:Sid=ubuntu:5593
+   ReqNodeList=(null) ExcNodeList=(null)
+   NodeList=(null)
+   NumNodes=1-1 NumCPUs=1 NumTasks=1 CPUs/Task=1 ReqB:S:C:T=0:0:*:*
+   TRES=cpu=1,node=1,billing=1
+   Socks/Node=* NtasksPerN:B:S:C=0:0:*:* CoreSpec=*
+   MinCPUsNode=1 MinMemoryNode=0 MinTmpDiskNode=0
+   Features=(null) DelayBoot=00:00:00
+   OverSubscribe=OK Contiguous=0 Licenses=(null) Network=(null)
+   Command=/home/kevth/batch_test/jobscript.sh
+   WorkDir=/home/kevth/batch_test
+   StdErr=/home/kevth/batch_test/slurm-6.out
+   StdIn=/dev/null
+   StdOut=/home/kevth/batch_test/slurm-6.out
+   Power=
+   NtasksPerTRES:0
+
+JobId=7 JobName=jobscript.sh
+   UserId=kevth(1000) GroupId=kevth(1000) MCS_label=N/A
+   Priority=4294901754 Nice=0 Account=(null) QOS=normal
+   JobState=PENDING Reason=ReqNodeNotAvail,_UnavailableNodes:ubuntu Dependency=(null)
+   Requeue=1 Restarts=0 BatchFlag=1 Reboot=0 ExitCode=0:0
+   RunTime=00:00:00 TimeLimit=16:40:00 TimeMin=N/A
+   SubmitTime=2022-04-21T15:09:08 EligibleTime=2022-04-21T15:09:08
+   AccrueTime=2022-04-21T15:09:08
+   StartTime=Unknown EndTime=Unknown Deadline=N/A
+   SuspendTime=None SecsPreSuspend=0 LastSchedEval=2022-04-27T11:07:50
+   Partition=debug AllocNode:Sid=ubuntu:5593
+   ReqNodeList=(null) ExcNodeList=(null)
+   NodeList=(null)
+   NumNodes=1-1 NumCPUs=1 NumTasks=1 CPUs/Task=1 ReqB:S:C:T=0:0:*:*
+   TRES=cpu=1,node=1,billing=1
+   Socks/Node=* NtasksPerN:B:S:C=0:0:*:* CoreSpec=*
+   MinCPUsNode=1 MinMemoryNode=0 MinTmpDiskNode=0
+   Features=(null) DelayBoot=00:00:00
+   OverSubscribe=OK Contiguous=0 Licenses=(null) Network=(null)
+   Command=/home/kevth/batch_test/jobscript.sh
+   WorkDir=/home/kevth/batch_test
+   StdErr=/home/kevth/batch_test/slurm-7.out
+   StdIn=/dev/null
+   StdOut=/home/kevth/batch_test/slurm-7.out
+   Power=
+   NtasksPerTRES:0
+
+JobId=8 JobName=wrap
+   UserId=kevth(1000) GroupId=kevth(1000) MCS_label=N/A
+   Priority=4294901753 Nice=0 Account=(null) QOS=normal
+   JobState=PENDING Reason=ReqNodeNotAvail,_UnavailableNodes:ubuntu Dependency=(null)
+   Requeue=1 Restarts=0 BatchFlag=1 Reboot=0 ExitCode=0:0
+   RunTime=00:00:00 TimeLimit=16:40:00 TimeMin=N/A
+   SubmitTime=2022-04-21T15:18:23 EligibleTime=2022-04-21T15:18:23
+   AccrueTime=2022-04-21T15:18:23
+   StartTime=Unknown EndTime=Unknown Deadline=N/A
+   SuspendTime=None SecsPreSuspend=0 LastSchedEval=2022-04-27T11:07:50
+   Partition=debug AllocNode:Sid=ubuntu:5593
+   ReqNodeList=(null) ExcNodeList=(null)
+   NodeList=(null)
+   NumNodes=1-1 NumCPUs=1 NumTasks=1 CPUs/Task=1 ReqB:S:C:T=0:0:*:*
+   TRES=cpu=1,node=1,billing=1
+   Socks/Node=* NtasksPerN:B:S:C=0:0:*:* CoreSpec=*
+   MinCPUsNode=1 MinMemoryNode=0 MinTmpDiskNode=0
+   Features=(null) DelayBoot=00:00:00
+   OverSubscribe=OK Contiguous=0 Licenses=(null) Network=(null)
+   Command=(null)
+   WorkDir=/home/kevth/batch_test
+   StdErr=/home/kevth/batch_test/slurm-8.out
+   StdIn=/dev/null
+   StdOut=/home/kevth/batch_test/slurm-8.out
+   Power=
+   NtasksPerTRES:0\
+"""
+
+node = """\
+NodeName=gmz01 Arch=x86_64 CoresPerSocket=8 
+   CPUAlloc=0 CPUTot=128 CPULoad=0.00
+   AvailableFeatures=(null)
+   ActiveFeatures=(null)
+   Gres=(null)
+   NodeAddr=gmz01 NodeHostName=gmz01 Version=20.02.3
+   OS=Linux 4.18.0-193.28.1.el8_2.x86_64 #1 SMP Thu Oct 22 00:20:22 UTC 2020 
+   RealMemory=1 AllocMem=0 FreeMem=253909 Sockets=8 Boards=1
+   State=IDLE ThreadsPerCore=2 TmpDisk=0 Weight=1 Owner=N/A MCS_label=N/A
+   Partitions=ALL,CPU_7452,OS_CENTOS8 
+   BootTime=2021-03-10T09:21:06 SlurmdStartTime=2021-04-21T16:50:40
+   CfgTRES=cpu=128,mem=1M,billing=128
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/s ExtSensorsWatts=0 ExtSensorsTemp=n/s
+   
+
+NodeName=gmz02 Arch=x86_64 CoresPerSocket=8 
+   CPUAlloc=0 CPUTot=128 CPULoad=0.00
+   AvailableFeatures=(null)
+   ActiveFeatures=(null)
+   Gres=(null)
+   NodeAddr=gmz02 NodeHostName=gmz02 Version=20.02.3
+   OS=Linux 4.18.0-193.28.1.el8_2.x86_64 #1 SMP Thu Oct 22 00:20:22 UTC 2020 
+   RealMemory=1 AllocMem=0 FreeMem=253832 Sockets=8 Boards=1
+   State=IDLE ThreadsPerCore=2 TmpDisk=0 Weight=1 Owner=N/A MCS_label=N/A
+   Partitions=ALL,CPU_7452,OS_CENTOS8 
+   BootTime=2021-03-10T08:57:19 SlurmdStartTime=2021-04-21T16:50:41
+   CfgTRES=cpu=128,mem=1M,billing=128
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/s ExtSensorsWatts=0 ExtSensorsTemp=n/s
+   
+
+NodeName=gmz03 CoresPerSocket=8 
+   CPUAlloc=0 CPUTot=32 CPULoad=N/A
+   AvailableFeatures=(null)
+   ActiveFeatures=(null)
+   Gres=(null)
+   NodeAddr=gmz03 NodeHostName=gmz03 
+   RealMemory=1 AllocMem=0 FreeMem=N/A Sockets=4 Boards=1
+   State=DOWN* ThreadsPerCore=1 TmpDisk=0 Weight=1 Owner=N/A MCS_label=N/A
+   Partitions=ALL,CPU_7452,OS_CENTOS8 
+   BootTime=None SlurmdStartTime=None
+   CfgTRES=cpu=32,mem=1M,billing=32
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/s ExtSensorsWatts=0 ExtSensorsTemp=n/s
+   Reason=Not responding [slurm@2021-02-02T12:11:41]
+
+NodeName=gmz06 Arch=x86_64 CoresPerSocket=16 
+   CPUAlloc=0 CPUTot=256 CPULoad=0.03
+   AvailableFeatures=(null)
+   ActiveFeatures=(null)
+   Gres=(null)
+   NodeAddr=gmz06 NodeHostName=gmz06 Version=20.02.3
+   OS=Linux 4.18.0-240.15.1.el8_3.x86_64 #1 SMP Mon Mar 1 17:16:16 UTC 2021 
+   RealMemory=1 AllocMem=0 FreeMem=251995 Sockets=8 Boards=1
+   State=IDLE ThreadsPerCore=2 TmpDisk=0 Weight=1 Owner=N/A MCS_label=N/A
+   Partitions=ALL,CPU_7713,OS_CENTOS8 
+   BootTime=2021-04-06T18:29:27 SlurmdStartTime=2021-04-21T16:50:41
+   CfgTRES=cpu=256,mem=1M,billing=256
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/s ExtSensorsWatts=0 ExtSensorsTemp=n/s
+   
+
+NodeName=gmz07 Arch=x86_64 CoresPerSocket=16 
+   CPUAlloc=0 CPUTot=256 CPULoad=0.04
+   AvailableFeatures=(null)
+   ActiveFeatures=(null)
+   Gres=(null)
+   NodeAddr=gmz07 NodeHostName=gmz07 Version=20.02.3
+   OS=Linux 4.18.0-240.15.1.el8_3.x86_64 #1 SMP Mon Mar 1 17:16:16 UTC 2021 
+   RealMemory=1 AllocMem=0 FreeMem=511580 Sockets=8 Boards=1
+   State=IDLE ThreadsPerCore=2 TmpDisk=0 Weight=1 Owner=N/A MCS_label=N/A
+   Partitions=ALL,CPU_7713,OS_CENTOS8 
+   BootTime=2021-04-21T13:55:23 SlurmdStartTime=2021-04-21T16:50:41
+   CfgTRES=cpu=256,mem=1M,billing=256
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/s ExtSensorsWatts=0 ExtSensorsTemp=n/s
+   
+
+NodeName=gmz08 Arch=x86_64 CoresPerSocket=16 
+   CPUAlloc=0 CPUTot=256 CPULoad=0.00
+   AvailableFeatures=(null)
+   ActiveFeatures=(null)
+   Gres=(null)
+   NodeAddr=gmz08 NodeHostName=gmz08 Version=20.02.3
+   OS=Linux 4.18.0-193.28.1.el8_2.x86_64 #1 SMP Thu Oct 22 00:20:22 UTC 2020 
+   RealMemory=1 AllocMem=0 FreeMem=251849 Sockets=8 Boards=1
+   State=IDLE ThreadsPerCore=2 TmpDisk=0 Weight=1 Owner=N/A MCS_label=N/A
+   Partitions=ALL,CPU_7702,OS_CENTOS8 
+   BootTime=2020-12-03T11:44:15 SlurmdStartTime=2021-04-21T16:50:41
+   CfgTRES=cpu=256,mem=1M,billing=256
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/s ExtSensorsWatts=0 ExtSensorsTemp=n/s
+   
+
+NodeName=gmz09 Arch=x86_64 CoresPerSocket=16 
+   CPUAlloc=0 CPUTot=256 CPULoad=0.00
+   AvailableFeatures=(null)
+   ActiveFeatures=(null)
+   Gres=(null)
+   NodeAddr=gmz09 NodeHostName=gmz09 Version=20.02.3
+   OS=Linux 4.18.0-240.22.1.el8_3.x86_64 #1 SMP Tue Apr 6 18:32:06 PDT 2021 
+   RealMemory=1 AllocMem=0 FreeMem=511017 Sockets=8 Boards=1
+   State=IDLE ThreadsPerCore=2 TmpDisk=0 Weight=1 Owner=N/A MCS_label=N/A
+   Partitions=ALL,CPU_7763,OS_CENTOS8 
+   BootTime=2021-04-21T09:20:55 SlurmdStartTime=2021-04-21T16:50:41
+   CfgTRES=cpu=256,mem=1M,billing=256
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/s ExtSensorsWatts=0 ExtSensorsTemp=n/s
+   
+
+NodeName=gpu01sas Arch=x86_64 CoresPerSocket=4 
+   CPUAlloc=64 CPUTot=64 CPULoad=1.00
+   AvailableFeatures=(null)
+   ActiveFeatures=(null)
+   Gres=(null)
+   NodeAddr=gpu01sas NodeHostName=gpu01sas Version=20.02.3
+   OS=Linux 4.18.0-193.28.1.el8_2.x86_64 #1 SMP Thu Oct 22 00:20:22 UTC 2020 
+   RealMemory=1 AllocMem=0 FreeMem=42662 Sockets=8 Boards=1
+   State=ALLOCATED ThreadsPerCore=2 TmpDisk=0 Weight=1 Owner=N/A MCS_label=N/A
+   Partitions=ALL,CPU_7F52,GPU_A100,OS_CENTOS8 
+   BootTime=2021-03-25T21:52:34 SlurmdStartTime=2021-04-21T16:50:41
+   CfgTRES=cpu=64,mem=1M,billing=64
+   AllocTRES=cpu=64
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/s ExtSensorsWatts=0 ExtSensorsTemp=n/s
+   
+
+NodeName=gpu02aes CoresPerSocket=24 
+   CPUAlloc=0 CPUTot=48 CPULoad=N/A
+   AvailableFeatures=(null)
+   ActiveFeatures=(null)
+   Gres=(null)
+   NodeAddr=gpu02aes NodeHostName=gpu02aes 
+   RealMemory=1 AllocMem=0 FreeMem=N/A Sockets=1 Boards=1
+   State=DOWN* ThreadsPerCore=2 TmpDisk=0 Weight=1 Owner=N/A MCS_label=N/A
+   Partitions=ALL,CPU_7402,GPU_MI50,OS_CENTOS8 
+   BootTime=None SlurmdStartTime=None
+   CfgTRES=cpu=48,mem=1M,billing=48
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/s ExtSensorsWatts=0 ExtSensorsTemp=n/s
+   Reason=Not responding [slurm@2021-04-09T17:15:08]
+
+NodeName=gpu03gmz Arch=x86_64 CoresPerSocket=24 
+   CPUAlloc=0 CPUTot=48 CPULoad=0.00
+   AvailableFeatures=(null)
+   ActiveFeatures=(null)
+   Gres=(null)
+   NodeAddr=gpu03gmz NodeHostName=gpu03gmz Version=20.02.3
+   OS=Linux 4.18.0-193.28.1.el8_2.x86_64 #1 SMP Thu Oct 22 00:20:22 UTC 2020 
+   RealMemory=1 AllocMem=0 FreeMem=126778 Sockets=1 Boards=1
+   State=IDLE ThreadsPerCore=2 TmpDisk=0 Weight=1 Owner=N/A MCS_label=N/A
+   Partitions=ALL,CPU_7402,GPU_MI100,OS_CENTOS8 
+   BootTime=2021-03-26T17:00:03 SlurmdStartTime=2021-04-21T16:50:41
+   CfgTRES=cpu=48,mem=1M,billing=48
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/s ExtSensorsWatts=0 ExtSensorsTemp=n/s
+   
+
+NodeName=gpu04sas CoresPerSocket=20 
+   CPUAlloc=0 CPUTot=80 CPULoad=N/A
+   AvailableFeatures=(null)
+   ActiveFeatures=(null)
+   Gres=(null)
+   NodeAddr=gpu04sas NodeHostName=gpu04sas 
+   RealMemory=1 AllocMem=0 FreeMem=N/A Sockets=2 Boards=1
+   State=DOWN* ThreadsPerCore=2 TmpDisk=0 Weight=1 Owner=N/A MCS_label=N/A
+   Partitions=ALL,GPU_RTX8000 
+   BootTime=None SlurmdStartTime=None
+   CfgTRES=cpu=80,mem=1M,billing=80
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/s ExtSensorsWatts=0 ExtSensorsTemp=n/s
+   Reason=Not responding [slurm@2021-03-26T13:34:41]
+
+NodeName=hnk01 CoresPerSocket=16 
+   CPUAlloc=0 CPUTot=256 CPULoad=N/A
+   AvailableFeatures=(null)
+   ActiveFeatures=(null)
+   Gres=(null)
+   NodeAddr=hnk01 NodeHostName=hnk01 
+   RealMemory=1 AllocMem=0 FreeMem=N/A Sockets=8 Boards=1
+   State=DOWN* ThreadsPerCore=2 TmpDisk=0 Weight=1 Owner=N/A MCS_label=N/A
+   Partitions=ALL,CPU_7662,GPU_A100 
+   BootTime=None SlurmdStartTime=None
+   CfgTRES=cpu=256,mem=1M,billing=256
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/s ExtSensorsWatts=0 ExtSensorsTemp=n/s
+   Reason=Not responding [slurm@2021-03-25T12:53:39]
+
+NodeName=hnk02 CoresPerSocket=16 
+   CPUAlloc=0 CPUTot=256 CPULoad=N/A
+   AvailableFeatures=(null)
+   ActiveFeatures=(null)
+   Gres=(null)
+   NodeAddr=hnk02 NodeHostName=hnk02 
+   RealMemory=1 AllocMem=0 FreeMem=N/A Sockets=8 Boards=1
+   State=DOWN* ThreadsPerCore=2 TmpDisk=0 Weight=1 Owner=N/A MCS_label=N/A
+   Partitions=ALL,CPU_7662,GPU_A100 
+   BootTime=None SlurmdStartTime=None
+   CfgTRES=cpu=256,mem=1M,billing=256
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/s ExtSensorsWatts=0 ExtSensorsTemp=n/s
+   Reason=Not responding [slurm@2021-03-25T12:53:39]
+
+NodeName=icp01 Arch=x86_64 CoresPerSocket=36 
+   CPUAlloc=0 CPUTot=144 CPULoad=0.00
+   AvailableFeatures=(null)
+   ActiveFeatures=(null)
+   Gres=(null)
+   NodeAddr=icp01 NodeHostName=icp01 Version=20.02.3
+   OS=Linux 4.18.0-240.15.1.el8_3.x86_64 #1 SMP Tue Feb 16 14:27:25 PST 2021 
+   RealMemory=1 AllocMem=0 FreeMem=253888 Sockets=2 Boards=1
+   State=IDLE+DRAIN ThreadsPerCore=2 TmpDisk=0 Weight=1 Owner=N/A MCS_label=N/A
+   Partitions=ALL,CPU_8360Y,OS_CENTOS8 
+   BootTime=2021-04-15T18:25:05 SlurmdStartTime=2021-04-21T16:50:41
+   CfgTRES=cpu=144,mem=1M,billing=144
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/s ExtSensorsWatts=0 ExtSensorsTemp=n/s
+   Reason=Low socket*core*thread count, Low CPUs [slurm@2021-04-20T09:53:14]
+
+NodeName=icp02 Arch=x86_64 CoresPerSocket=36 
+   CPUAlloc=0 CPUTot=144 CPULoad=0.00
+   AvailableFeatures=(null)
+   ActiveFeatures=(null)
+   Gres=(null)
+   NodeAddr=icp02 NodeHostName=icp02 Version=20.02.3
+   OS=Linux 4.18.0-240.15.1.el8_3.x86_64 #1 SMP Tue Feb 16 14:27:25 PST 2021 
+   RealMemory=1 AllocMem=0 FreeMem=1027554 Sockets=2 Boards=1
+   State=IDLE ThreadsPerCore=2 TmpDisk=0 Weight=1 Owner=N/A MCS_label=N/A
+   Partitions=ALL,CPU_8360Y,OS_CENTOS8 
+   BootTime=2021-04-15T18:25:36 SlurmdStartTime=2021-04-21T16:50:41
+   CfgTRES=cpu=144,mem=1M,billing=144
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/s ExtSensorsWatts=0 ExtSensorsTemp=n/s
+   
+
+NodeName=icp03 Arch=x86_64 CoresPerSocket=36 
+   CPUAlloc=144 CPUTot=144 CPULoad=2.00
+   AvailableFeatures=(null)
+   ActiveFeatures=(null)
+   Gres=(null)
+   NodeAddr=icp03 NodeHostName=icp03 Version=20.02.3
+   OS=Linux 4.18.0-240.15.1.el8_3.x86_64 #1 SMP Tue Feb 16 14:27:25 PST 2021 
+   RealMemory=1 AllocMem=0 FreeMem=249886 Sockets=2 Boards=1
+   State=ALLOCATED ThreadsPerCore=2 TmpDisk=0 Weight=1 Owner=N/A MCS_label=N/A
+   Partitions=ALL,CPU_8360Y,OS_CENTOS8 
+   BootTime=2021-04-15T18:25:14 SlurmdStartTime=2021-04-21T16:50:41
+   CfgTRES=cpu=144,mem=1M,billing=144
+   AllocTRES=cpu=144
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/s ExtSensorsWatts=0 ExtSensorsTemp=n/s
+   
+
+NodeName=ins03 Arch=x86_64 CoresPerSocket=28 
+   CPUAlloc=112 CPUTot=112 CPULoad=55.80
+   AvailableFeatures=(null)
+   ActiveFeatures=(null)
+   Gres=(null)
+   NodeAddr=ins03 NodeHostName=ins03 Version=20.02.3
+   OS=Linux 4.18.0-240.22.1.el8_3.x86_64 #1 SMP Tue Apr 6 18:32:06 PDT 2021 
+   RealMemory=1 AllocMem=0 FreeMem=503221 Sockets=2 Boards=1
+   State=ALLOCATED ThreadsPerCore=2 TmpDisk=0 Weight=1 Owner=N/A MCS_label=N/A
+   Partitions=ALL,OS_CENTOS8 
+   BootTime=2021-04-21T17:32:22 SlurmdStartTime=2021-04-21T23:28:17
+   CfgTRES=cpu=112,mem=1M,billing=112
+   AllocTRES=cpu=112
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/s ExtSensorsWatts=0 ExtSensorsTemp=n/s
+   
+
+NodeName=itp01 Arch=x86_64 CoresPerSocket=36 
+   CPUAlloc=0 CPUTot=144 CPULoad=0.00
+   AvailableFeatures=(null)
+   ActiveFeatures=(null)
+   Gres=(null)
+   NodeAddr=itp01 NodeHostName=itp01 Version=20.02.3
+   OS=Linux 4.18.0-240.22.1.el8_3.x86_64 #1 SMP Tue Apr 6 18:32:06 PDT 2021 
+   RealMemory=1 AllocMem=0 FreeMem=253930 Sockets=2 Boards=1
+   State=IDLE ThreadsPerCore=2 TmpDisk=0 Weight=1 Owner=N/A MCS_label=N/A
+   Partitions=ALL,CPU_8360Y,OS_CENTOS8 
+   BootTime=2021-04-15T18:25:06 SlurmdStartTime=2021-04-21T16:50:41
+   CfgTRES=cpu=144,mem=1M,billing=144
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/s ExtSensorsWatts=0 ExtSensorsTemp=n/s
+   
+
+NodeName=itp02 Arch=x86_64 CoresPerSocket=24 
+   CPUAlloc=48 CPUTot=48 CPULoad=0.00
+   AvailableFeatures=(null)
+   ActiveFeatures=(null)
+   Gres=(null)
+   NodeAddr=itp02 NodeHostName=itp02 Version=20.02.3
+   OS=Linux 4.18.0-240.22.1.el8_3.x86_64 #1 SMP Tue Apr 6 18:32:06 PDT 2021 
+   RealMemory=1 AllocMem=0 FreeMem=254484 Sockets=2 Boards=1
+   State=ALLOCATED ThreadsPerCore=1 TmpDisk=0 Weight=1 Owner=N/A MCS_label=N/A
+   Partitions=ALL,CPU_8360Y,OS_CENTOS8 
+   BootTime=2021-04-16T08:01:18 SlurmdStartTime=2021-04-21T16:50:41
+   CfgTRES=cpu=48,mem=1M,billing=48
+   AllocTRES=cpu=48
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/s ExtSensorsWatts=0 ExtSensorsTemp=n/s
+   
+
+NodeName=itp03 Arch=x86_64 CoresPerSocket=36 
+   CPUAlloc=0 CPUTot=144 CPULoad=0.00
+   AvailableFeatures=(null)
+   ActiveFeatures=(null)
+   Gres=(null)
+   NodeAddr=itp03 NodeHostName=itp03 Version=20.02.3
+   OS=Linux 4.18.0-240.15.1.el8_3.x86_64 #1 SMP Tue Feb 16 14:27:25 PST 2021 
+   RealMemory=1 AllocMem=0 FreeMem=253943 Sockets=2 Boards=1
+   State=IDLE ThreadsPerCore=2 TmpDisk=0 Weight=1 Owner=N/A MCS_label=N/A
+   Partitions=ALL,CPU_8360Y,OS_CENTOS8 
+   BootTime=2021-04-15T18:25:05 SlurmdStartTime=2021-04-21T16:50:41
+   CfgTRES=cpu=144,mem=1M,billing=144
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/s ExtSensorsWatts=0 ExtSensorsTemp=n/s
+   
+
+NodeName=itp04 Arch=x86_64 CoresPerSocket=36 
+   CPUAlloc=0 CPUTot=144 CPULoad=0.00
+   AvailableFeatures=(null)
+   ActiveFeatures=(null)
+   Gres=(null)
+   NodeAddr=itp04 NodeHostName=itp04 Version=20.02.3
+   OS=Linux 4.18.0-240.15.1.el8_3.x86_64 #1 SMP Tue Feb 16 14:27:25 PST 2021 
+   RealMemory=1 AllocMem=0 FreeMem=254066 Sockets=2 Boards=1
+   State=IDLE ThreadsPerCore=2 TmpDisk=0 Weight=1 Owner=N/A MCS_label=N/A
+   Partitions=ALL,CPU_8360Y,OS_CENTOS8 
+   BootTime=2021-04-15T18:25:04 SlurmdStartTime=2021-04-21T16:50:41
+   CfgTRES=cpu=144,mem=1M,billing=144
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/s ExtSensorsWatts=0 ExtSensorsTemp=n/s
+   
+
+NodeName=itp09 Arch=x86_64 CoresPerSocket=36 
+   CPUAlloc=0 CPUTot=144 CPULoad=0.00
+   AvailableFeatures=(null)
+   ActiveFeatures=(null)
+   Gres=(null)
+   NodeAddr=itp09 NodeHostName=itp09 Version=20.02.3
+   OS=Linux 4.18.0-240.15.1.el8_3.x86_64 #1 SMP Tue Feb 16 14:27:25 PST 2021 
+   RealMemory=1 AllocMem=0 FreeMem=254114 Sockets=2 Boards=1
+   State=IDLE ThreadsPerCore=2 TmpDisk=0 Weight=1 Owner=N/A MCS_label=N/A
+   Partitions=ALL,CPU_8360Y,OS_CENTOS8 
+   BootTime=2021-04-15T18:25:27 SlurmdStartTime=2021-04-21T16:50:41
+   CfgTRES=cpu=144,mem=1M,billing=144
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/s ExtSensorsWatts=0 ExtSensorsTemp=n/s
+   
+
+NodeName=iwk01 Arch=x86_64 CoresPerSocket=24 
+   CPUAlloc=0 CPUTot=192 CPULoad=0.00
+   AvailableFeatures=(null)
+   ActiveFeatures=(null)
+   Gres=(null)
+   NodeAddr=iwk01 NodeHostName=iwk01 Version=20.02.3
+   OS=Linux 4.18.0-193.28.1.el8_2.x86_64 #1 SMP Thu Oct 22 00:20:22 UTC 2020 
+   RealMemory=1 AllocMem=0 FreeMem=378717 Sockets=4 Boards=1
+   State=IDLE ThreadsPerCore=2 TmpDisk=0 Weight=1 Owner=N/A MCS_label=N/A
+   Partitions=ALL,CPU_9242,OS_CENTOS8 
+   BootTime=2021-03-19T14:40:51 SlurmdStartTime=2021-04-21T16:50:41
+   CfgTRES=cpu=192,mem=1M,billing=192
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/s ExtSensorsWatts=0 ExtSensorsTemp=n/s
+   
+
+NodeName=iwk02 Arch=x86_64 CoresPerSocket=24 
+   CPUAlloc=0 CPUTot=192 CPULoad=0.00
+   AvailableFeatures=(null)
+   ActiveFeatures=(null)
+   Gres=(null)
+   NodeAddr=iwk02 NodeHostName=iwk02 Version=20.02.3
+   OS=Linux 4.18.0-193.28.1.el8_2.x86_64 #1 SMP Thu Oct 22 00:20:22 UTC 2020 
+   RealMemory=1 AllocMem=0 FreeMem=378734 Sockets=4 Boards=1
+   State=IDLE ThreadsPerCore=2 TmpDisk=0 Weight=1 Owner=N/A MCS_label=N/A
+   Partitions=ALL,CPU_9242,OS_CENTOS8 
+   BootTime=2021-03-19T14:48:31 SlurmdStartTime=2021-04-21T16:50:41
+   CfgTRES=cpu=192,mem=1M,billing=192
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/s ExtSensorsWatts=0 ExtSensorsTemp=n/s
+   
+
+NodeName=jena01 CoresPerSocket=20 
+   CPUAlloc=0 CPUTot=80 CPULoad=N/A
+   AvailableFeatures=(null)
+   ActiveFeatures=(null)
+   Gres=(null)
+   NodeAddr=jena01 NodeHostName=jena01 
+   RealMemory=1 AllocMem=0 FreeMem=N/A Sockets=2 Boards=1
+   State=DOWN* ThreadsPerCore=2 TmpDisk=0 Weight=1 Owner=N/A MCS_label=N/A
+   Partitions=ALL,GPU_RTX5000 
+   BootTime=None SlurmdStartTime=None
+   CfgTRES=cpu=80,mem=1M,billing=80
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/s ExtSensorsWatts=0 ExtSensorsTemp=n/s
+   Reason=Not responding [slurm@2021-03-24T12:56:58]
+
+NodeName=mi100-2 CoresPerSocket=4 
+   CPUAlloc=0 CPUTot=64 CPULoad=N/A
+   AvailableFeatures=(null)
+   ActiveFeatures=(null)
+   Gres=(null)
+   NodeAddr=mi100-2 NodeHostName=mi100-2 
+   RealMemory=1 AllocMem=0 FreeMem=N/A Sockets=8 Boards=1
+   State=DOWN*+DRAIN ThreadsPerCore=2 TmpDisk=0 Weight=1 Owner=N/A MCS_label=N/A
+   Partitions=ALL,CPU_7302,GPU_MI100 
+   BootTime=None SlurmdStartTime=None
+   CfgTRES=cpu=64,mem=1M,billing=64
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/s ExtSensorsWatts=0 ExtSensorsTemp=n/s
+   Reason=off [nimi@2021-04-13T16:54:34]
+
+NodeName=sas01 Arch=x86_64 CoresPerSocket=16 
+   CPUAlloc=0 CPUTot=256 CPULoad=0.00
+   AvailableFeatures=(null)
+   ActiveFeatures=(null)
+   Gres=(null)
+   NodeAddr=sas01 NodeHostName=sas01 Version=20.02.3
+   OS=Linux 4.18.0-240.22.1.el8_3.x86_64 #1 SMP Thu Apr 8 19:01:30 UTC 2021 
+   RealMemory=1 AllocMem=0 FreeMem=510363 Sockets=8 Boards=1
+   State=IDLE ThreadsPerCore=2 TmpDisk=0 Weight=1 Owner=N/A MCS_label=N/A
+   Partitions=ALL,CPU_7713,OS_CENTOS8 
+   BootTime=2021-04-21T13:57:52 SlurmdStartTime=2021-04-21T16:50:41
+   CfgTRES=cpu=256,mem=1M,billing=256
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/s ExtSensorsWatts=0 ExtSensorsTemp=n/s
+   
+
+NodeName=sas02 Arch=x86_64 CoresPerSocket=16 
+   CPUAlloc=0 CPUTot=256 CPULoad=0.00
+   AvailableFeatures=(null)
+   ActiveFeatures=(null)
+   Gres=(null)
+   NodeAddr=sas02 NodeHostName=sas02 Version=20.02.3
+   OS=Linux 4.18.0-240.15.1.el8_3.x86_64 #1 SMP Tue Feb 16 14:27:25 PST 2021 
+   RealMemory=1 AllocMem=0 FreeMem=251222 Sockets=8 Boards=1
+   State=IDLE ThreadsPerCore=2 TmpDisk=0 Weight=1 Owner=N/A MCS_label=N/A
+   Partitions=ALL,CPU_7713,OS_CENTOS8 
+   BootTime=2021-04-06T18:28:37 SlurmdStartTime=2021-04-21T16:50:41
+   CfgTRES=cpu=256,mem=1M,billing=256
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/s ExtSensorsWatts=0 ExtSensorsTemp=n/s
+   
+
+NodeName=sas03 Arch=x86_64 CoresPerSocket=16 
+   CPUAlloc=64 CPUTot=64 CPULoad=31.38
+   AvailableFeatures=(null)
+   ActiveFeatures=(null)
+   Gres=(null)
+   NodeAddr=sas03 NodeHostName=sas03 Version=20.02.3
+   OS=Linux 4.18.0-240.22.1.el8_3.x86_64 #1 SMP Tue Apr 6 18:32:06 PDT 2021 
+   RealMemory=1 AllocMem=0 FreeMem=1024653 Sockets=2 Boards=1
+   State=ALLOCATED ThreadsPerCore=2 TmpDisk=0 Weight=1 Owner=N/A MCS_label=N/A
+   Partitions=ALL,CPU_7F52,OS_CENTOS8 
+   BootTime=2021-04-21T16:38:14 SlurmdStartTime=2021-04-21T16:50:41
+   CfgTRES=cpu=64,mem=1M,billing=64
+   AllocTRES=cpu=64
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/s ExtSensorsWatts=0 ExtSensorsTemp=n/s
+   
+
+NodeName=sas04 Arch=x86_64 CoresPerSocket=64 
+   CPUAlloc=256 CPUTot=256 CPULoad=73.31
+   AvailableFeatures=(null)
+   ActiveFeatures=(null)
+   Gres=(null)
+   NodeAddr=sas04 NodeHostName=sas04 Version=20.02.3
+   OS=Linux 4.18.0-240.22.1.el8_3.x86_64 #1 SMP Tue Apr 6 18:32:06 PDT 2021 
+   RealMemory=1 AllocMem=0 FreeMem=383964 Sockets=2 Boards=1
+   State=ALLOCATED ThreadsPerCore=2 TmpDisk=0 Weight=1 Owner=N/A MCS_label=N/A
+   Partitions=ALL,CPU_7662,OS_CENTOS8 
+   BootTime=2021-04-21T17:33:42 SlurmdStartTime=2021-04-21T23:08:04
+   CfgTRES=cpu=256,mem=1M,billing=256
+   AllocTRES=cpu=256
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/s ExtSensorsWatts=0 ExtSensorsTemp=n/s
+   
+
+NodeName=ubuntu Arch=x86_64 CoresPerSocket=1 
+   CPUAlloc=0 CPUTot=1 CPULoad=0.29
+   AvailableFeatures=(null)
+   ActiveFeatures=(null)
+   Gres=(null)
+   NodeAddr=ubuntu NodeHostName=ubuntu Version=20.11.4
+   OS=Linux 5.13.0-39-generic #44-Ubuntu SMP Thu Mar 24 15:35:05 UTC 2022 
+   RealMemory=500 AllocMem=0 FreeMem=1684 Sockets=1 Boards=1
+   State=IDLE+DRAIN ThreadsPerCore=1 TmpDisk=0 Weight=1 Owner=N/A MCS_label=N/A
+   Partitions=debug 
+   BootTime=2022-04-20T12:39:06 SlurmdStartTime=2022-04-20T12:54:04
+   CfgTRES=cpu=1,mem=500M,billing=1
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/s ExtSensorsWatts=0 ExtSensorsTemp=n/s
+   Reason=Clustware [kevth@2022-04-11T15:29:43]
+   Comment=a\
+"""
+
+partition = """\
+PartitionName=ALL
+   AllowGroups=ALL AllowAccounts=ALL AllowQos=ALL
+   AllocNodes=ALL Default=NO QoS=N/A
+   DefaultTime=NONE DisableRootJobs=NO ExclusiveUser=NO GraceTime=0 Hidden=NO
+   MaxNodes=UNLIMITED MaxTime=14-00:00:00 MinNodes=0 LLN=NO MaxCPUsPerNode=UNLIMITED
+   Nodes=iwk[01-02],itp[01-04],gmz[01-03,06-08],gpu01sas,gpu02aes,gpu03gmz,itp09,icp[02-03],mi100-2,hnk[01-02],gpu04sas,sas[01-02],jena01,icp01,gmz09,sas[03-04],ins03
+   PriorityJobFactor=1 PriorityTier=1 RootOnly=NO ReqResv=NO OverSubscribe=NO
+   OverTimeLimit=NONE PreemptMode=OFF
+   State=UP TotalCPUs=4592 TotalNodes=30 SelectTypeParameters=NONE
+   JobDefaults=(null)
+   DefMemPerNode=UNLIMITED MaxMemPerNode=UNLIMITED
+
+PartitionName=CPU_7302
+   AllowGroups=ALL AllowAccounts=ALL AllowQos=ALL
+   AllocNodes=ALL Default=NO QoS=N/A
+   DefaultTime=NONE DisableRootJobs=NO ExclusiveUser=NO GraceTime=0 Hidden=NO
+   MaxNodes=UNLIMITED MaxTime=14-00:00:00 MinNodes=0 LLN=NO MaxCPUsPerNode=UNLIMITED
+   Nodes=mi100-2
+   PriorityJobFactor=1 PriorityTier=1 RootOnly=NO ReqResv=NO OverSubscribe=NO
+   OverTimeLimit=NONE PreemptMode=OFF
+   State=UP TotalCPUs=64 TotalNodes=1 SelectTypeParameters=NONE
+   JobDefaults=(null)
+   DefMemPerNode=UNLIMITED MaxMemPerNode=UNLIMITED
+
+PartitionName=CPU_7402
+   AllowGroups=ALL AllowAccounts=ALL AllowQos=ALL
+   AllocNodes=ALL Default=NO QoS=N/A
+   DefaultTime=NONE DisableRootJobs=NO ExclusiveUser=NO GraceTime=0 Hidden=NO
+   MaxNodes=UNLIMITED MaxTime=14-00:00:00 MinNodes=0 LLN=NO MaxCPUsPerNode=UNLIMITED
+   Nodes=gpu02aes,gpu03gmz
+   PriorityJobFactor=1 PriorityTier=1 RootOnly=NO ReqResv=NO OverSubscribe=NO
+   OverTimeLimit=NONE PreemptMode=OFF
+   State=UP TotalCPUs=96 TotalNodes=2 SelectTypeParameters=NONE
+   JobDefaults=(null)
+   DefMemPerNode=UNLIMITED MaxMemPerNode=UNLIMITED
+
+PartitionName=CPU_7452
+   AllowGroups=ALL AllowAccounts=ALL AllowQos=ALL
+   AllocNodes=ALL Default=NO QoS=N/A
+   DefaultTime=NONE DisableRootJobs=NO ExclusiveUser=NO GraceTime=0 Hidden=NO
+   MaxNodes=UNLIMITED MaxTime=14-00:00:00 MinNodes=0 LLN=NO MaxCPUsPerNode=UNLIMITED
+   Nodes=gmz[01-03]
+   PriorityJobFactor=1 PriorityTier=1 RootOnly=NO ReqResv=NO OverSubscribe=NO
+   OverTimeLimit=NONE PreemptMode=OFF
+   State=UP TotalCPUs=288 TotalNodes=3 SelectTypeParameters=NONE
+   JobDefaults=(null)
+   DefMemPerNode=UNLIMITED MaxMemPerNode=UNLIMITED
+
+PartitionName=CPU_7662
+   AllowGroups=ALL AllowAccounts=ALL AllowQos=ALL
+   AllocNodes=ALL Default=NO QoS=N/A
+   DefaultTime=NONE DisableRootJobs=NO ExclusiveUser=NO GraceTime=0 Hidden=NO
+   MaxNodes=UNLIMITED MaxTime=14-00:00:00 MinNodes=0 LLN=NO MaxCPUsPerNode=UNLIMITED
+   Nodes=hnk[01-02],sas04
+   PriorityJobFactor=1 PriorityTier=1 RootOnly=NO ReqResv=NO OverSubscribe=NO
+   OverTimeLimit=NONE PreemptMode=OFF
+   State=UP TotalCPUs=768 TotalNodes=3 SelectTypeParameters=NONE
+   JobDefaults=(null)
+   DefMemPerNode=UNLIMITED MaxMemPerNode=UNLIMITED
+
+PartitionName=CPU_7702
+   AllowGroups=ALL AllowAccounts=ALL AllowQos=ALL
+   AllocNodes=ALL Default=NO QoS=N/A
+   DefaultTime=NONE DisableRootJobs=NO ExclusiveUser=NO GraceTime=0 Hidden=NO
+   MaxNodes=UNLIMITED MaxTime=14-00:00:00 MinNodes=0 LLN=NO MaxCPUsPerNode=UNLIMITED
+   Nodes=gmz08
+   PriorityJobFactor=1 PriorityTier=1 RootOnly=NO ReqResv=NO OverSubscribe=NO
+   OverTimeLimit=NONE PreemptMode=OFF
+   State=UP TotalCPUs=256 TotalNodes=1 SelectTypeParameters=NONE
+   JobDefaults=(null)
+   DefMemPerNode=UNLIMITED MaxMemPerNode=UNLIMITED
+
+PartitionName=CPU_7713
+   AllowGroups=ALL AllowAccounts=ALL AllowQos=ALL
+   AllocNodes=ALL Default=NO QoS=N/A
+   DefaultTime=NONE DisableRootJobs=NO ExclusiveUser=NO GraceTime=0 Hidden=NO
+   MaxNodes=UNLIMITED MaxTime=14-00:00:00 MinNodes=0 LLN=NO MaxCPUsPerNode=UNLIMITED
+   Nodes=gmz[06-07],sas[01-02]
+   PriorityJobFactor=1 PriorityTier=1 RootOnly=NO ReqResv=NO OverSubscribe=NO
+   OverTimeLimit=NONE PreemptMode=OFF
+   State=UP TotalCPUs=1024 TotalNodes=4 SelectTypeParameters=NONE
+   JobDefaults=(null)
+   DefMemPerNode=UNLIMITED MaxMemPerNode=UNLIMITED
+
+PartitionName=CPU_7763
+   AllowGroups=ALL AllowAccounts=ALL AllowQos=ALL
+   AllocNodes=ALL Default=NO QoS=N/A
+   DefaultTime=NONE DisableRootJobs=NO ExclusiveUser=NO GraceTime=0 Hidden=NO
+   MaxNodes=UNLIMITED MaxTime=14-00:00:00 MinNodes=0 LLN=NO MaxCPUsPerNode=UNLIMITED
+   Nodes=gmz09
+   PriorityJobFactor=1 PriorityTier=1 RootOnly=NO ReqResv=NO OverSubscribe=NO
+   OverTimeLimit=NONE PreemptMode=OFF
+   State=UP TotalCPUs=256 TotalNodes=1 SelectTypeParameters=NONE
+   JobDefaults=(null)
+   DefMemPerNode=UNLIMITED MaxMemPerNode=UNLIMITED
+
+PartitionName=CPU_7F52
+   AllowGroups=ALL AllowAccounts=ALL AllowQos=ALL
+   AllocNodes=ALL Default=NO QoS=N/A
+   DefaultTime=NONE DisableRootJobs=NO ExclusiveUser=NO GraceTime=0 Hidden=NO
+   MaxNodes=UNLIMITED MaxTime=14-00:00:00 MinNodes=0 LLN=NO MaxCPUsPerNode=UNLIMITED
+   Nodes=gpu01sas,sas03
+   PriorityJobFactor=1 PriorityTier=1 RootOnly=NO ReqResv=NO OverSubscribe=NO
+   OverTimeLimit=NONE PreemptMode=OFF
+   State=UP TotalCPUs=128 TotalNodes=2 SelectTypeParameters=NONE
+   JobDefaults=(null)
+   DefMemPerNode=UNLIMITED MaxMemPerNode=UNLIMITED
+
+PartitionName=CPU_8360Y
+   AllowGroups=ALL AllowAccounts=ALL AllowQos=ALL
+   AllocNodes=ALL Default=NO QoS=N/A
+   DefaultTime=NONE DisableRootJobs=NO ExclusiveUser=NO GraceTime=0 Hidden=NO
+   MaxNodes=UNLIMITED MaxTime=14-00:00:00 MinNodes=0 LLN=NO MaxCPUsPerNode=UNLIMITED
+   Nodes=itp[01-04,09],icp[02-03,01]
+   PriorityJobFactor=1 PriorityTier=1 RootOnly=NO ReqResv=NO OverSubscribe=NO
+   OverTimeLimit=NONE PreemptMode=OFF
+   State=UP TotalCPUs=1056 TotalNodes=8 SelectTypeParameters=NONE
+   JobDefaults=(null)
+   DefMemPerNode=UNLIMITED MaxMemPerNode=UNLIMITED
+
+PartitionName=CPU_9242
+   AllowGroups=ALL AllowAccounts=ALL AllowQos=ALL
+   AllocNodes=ALL Default=NO QoS=N/A
+   DefaultTime=NONE DisableRootJobs=NO ExclusiveUser=NO GraceTime=0 Hidden=NO
+   MaxNodes=UNLIMITED MaxTime=14-00:00:00 MinNodes=0 LLN=NO MaxCPUsPerNode=UNLIMITED
+   Nodes=iwk[01-02]
+   PriorityJobFactor=1 PriorityTier=1 RootOnly=NO ReqResv=NO OverSubscribe=NO
+   OverTimeLimit=NONE PreemptMode=OFF
+   State=UP TotalCPUs=384 TotalNodes=2 SelectTypeParameters=NONE
+   JobDefaults=(null)
+   DefMemPerNode=UNLIMITED MaxMemPerNode=UNLIMITED
+
+PartitionName=GPU_A100
+   AllowGroups=ALL AllowAccounts=ALL AllowQos=ALL
+   AllocNodes=ALL Default=NO QoS=N/A
+   DefaultTime=NONE DisableRootJobs=NO ExclusiveUser=NO GraceTime=0 Hidden=NO
+   MaxNodes=UNLIMITED MaxTime=14-00:00:00 MinNodes=0 LLN=NO MaxCPUsPerNode=UNLIMITED
+   Nodes=gpu01sas,hnk[01-02]
+   PriorityJobFactor=1 PriorityTier=1 RootOnly=NO ReqResv=NO OverSubscribe=NO
+   OverTimeLimit=NONE PreemptMode=OFF
+   State=UP TotalCPUs=576 TotalNodes=3 SelectTypeParameters=NONE
+   JobDefaults=(null)
+   DefMemPerNode=UNLIMITED MaxMemPerNode=UNLIMITED
+
+PartitionName=GPU_MI100
+   AllowGroups=ALL AllowAccounts=ALL AllowQos=ALL
+   AllocNodes=ALL Default=NO QoS=N/A
+   DefaultTime=NONE DisableRootJobs=NO ExclusiveUser=NO GraceTime=0 Hidden=NO
+   MaxNodes=UNLIMITED MaxTime=14-00:00:00 MinNodes=0 LLN=NO MaxCPUsPerNode=UNLIMITED
+   Nodes=gpu03gmz,mi100-2
+   PriorityJobFactor=1 PriorityTier=1 RootOnly=NO ReqResv=NO OverSubscribe=NO
+   OverTimeLimit=NONE PreemptMode=OFF
+   State=UP TotalCPUs=112 TotalNodes=2 SelectTypeParameters=NONE
+   JobDefaults=(null)
+   DefMemPerNode=UNLIMITED MaxMemPerNode=UNLIMITED
+
+PartitionName=GPU_MI50
+   AllowGroups=ALL AllowAccounts=ALL AllowQos=ALL
+   AllocNodes=ALL Default=NO QoS=N/A
+   DefaultTime=NONE DisableRootJobs=NO ExclusiveUser=NO GraceTime=0 Hidden=NO
+   MaxNodes=UNLIMITED MaxTime=14-00:00:00 MinNodes=0 LLN=NO MaxCPUsPerNode=UNLIMITED
+   Nodes=gpu02aes
+   PriorityJobFactor=1 PriorityTier=1 RootOnly=NO ReqResv=NO OverSubscribe=NO
+   OverTimeLimit=NONE PreemptMode=OFF
+   State=UP TotalCPUs=48 TotalNodes=1 SelectTypeParameters=NONE
+   JobDefaults=(null)
+   DefMemPerNode=UNLIMITED MaxMemPerNode=UNLIMITED
+
+PartitionName=GPU_RTX5000
+   AllowGroups=ALL AllowAccounts=ALL AllowQos=ALL
+   AllocNodes=ALL Default=NO QoS=N/A
+   DefaultTime=NONE DisableRootJobs=NO ExclusiveUser=NO GraceTime=0 Hidden=NO
+   MaxNodes=UNLIMITED MaxTime=14-00:00:00 MinNodes=0 LLN=NO MaxCPUsPerNode=UNLIMITED
+   Nodes=jena01
+   PriorityJobFactor=1 PriorityTier=1 RootOnly=NO ReqResv=NO OverSubscribe=NO
+   OverTimeLimit=NONE PreemptMode=OFF
+   State=UP TotalCPUs=80 TotalNodes=1 SelectTypeParameters=NONE
+   JobDefaults=(null)
+   DefMemPerNode=UNLIMITED MaxMemPerNode=UNLIMITED
+
+PartitionName=GPU_RTX8000
+   AllowGroups=ALL AllowAccounts=ALL AllowQos=ALL
+   AllocNodes=ALL Default=NO QoS=N/A
+   DefaultTime=NONE DisableRootJobs=NO ExclusiveUser=NO GraceTime=0 Hidden=NO
+   MaxNodes=UNLIMITED MaxTime=14-00:00:00 MinNodes=0 LLN=NO MaxCPUsPerNode=UNLIMITED
+   Nodes=gpu04sas
+   PriorityJobFactor=1 PriorityTier=1 RootOnly=NO ReqResv=NO OverSubscribe=NO
+   OverTimeLimit=NONE PreemptMode=OFF
+   State=UP TotalCPUs=80 TotalNodes=1 SelectTypeParameters=NONE
+   JobDefaults=(null)
+   DefMemPerNode=UNLIMITED MaxMemPerNode=UNLIMITED
+
+PartitionName=OS_CENTOS8
+   AllowGroups=ALL AllowAccounts=ALL AllowQos=ALL
+   AllocNodes=ALL Default=NO QoS=N/A
+   DefaultTime=NONE DisableRootJobs=NO ExclusiveUser=NO GraceTime=0 Hidden=NO
+   MaxNodes=UNLIMITED MaxTime=14-00:00:00 MinNodes=0 LLN=NO MaxCPUsPerNode=UNLIMITED
+   Nodes=iwk[01-02],itp[01-04],gmz[01-03,06-08],gpu01sas,gpu02aes,gpu03gmz,itp09,icp[02-03],sas[01-02],icp01,gmz09,sas[03-04],ins03
+   PriorityJobFactor=1 PriorityTier=1 RootOnly=NO ReqResv=NO OverSubscribe=NO
+   OverTimeLimit=NONE PreemptMode=OFF
+   State=UP TotalCPUs=3856 TotalNodes=25 SelectTypeParameters=NONE
+   JobDefaults=(null)
+   DefMemPerNode=UNLIMITED MaxMemPerNode=UNLIMITED
+
+PartitionName=debug
+   AllowGroups=ALL AllowAccounts=ALL AllowQos=ALL
+   AllocNodes=ALL Default=YES QoS=N/A
+   DefaultTime=NONE DisableRootJobs=NO ExclusiveUser=NO GraceTime=0 Hidden=NO
+   MaxNodes=UNLIMITED MaxTime=UNLIMITED MinNodes=0 LLN=NO MaxCPUsPerNode=UNLIMITED
+   Nodes=ubuntu
+   PriorityJobFactor=1 PriorityTier=1 RootOnly=NO ReqResv=NO OverSubscribe=NO
+   OverTimeLimit=NONE PreemptMode=OFF
+   State=UP TotalCPUs=1 TotalNodes=1 SelectTypeParameters=NONE
+   JobDefaults=(null)
+   DefMemPerNode=UNLIMITED MaxMemPerNode=UNLIMITED\
+"""
+
+if len(sys.argv) < 3: sys.exit(1)
+
+if sys.argv[1] == "show":
+    if sys.argv[2] == "job":
+        print(job)
+        sys.exit(0)
+    elif sys.argv[2] == "partition":
+        print(partition)
+        sys.exit(0)
+    elif sys.argv[2] == "node":
+        print(node)
+        sys.exit(0)
+
+
+sys.exit(1)

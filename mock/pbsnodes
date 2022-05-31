@@ -1,6 +1,28 @@
 #! /usr/bin/env python3
 
 import time
+import os
+import sys
 
-time.sleep(3)
-print("""<Data><Node><name>ubuntu</name><state>down</state><power_state>Running</power_state><np>1</np><ntype>cluster</ntype><note>testnote</note><mom_service_port>15002</mom_service_port><mom_manager_port>15003</mom_manager_port></Node></Data>""")
+time.sleep(int(os.getenv("DELAY", "0")))
+
+x = """<Data><Node><name>ubuntu</name><state>down</state><power_state>Running</power_state><np>1</np><ntype>cluster</ntype><note>testnote</note><mom_service_port>15002</mom_service_port><mom_manager_port>15003</mom_manager_port></Node></Data>"""
+a = """\
+ubuntu
+     state = down
+     power_state = Running
+     np = 1
+     ntype = cluster
+     mom_service_port = 15002
+     mom_manager_port = 15003
+"""
+
+if "-x" in sys.argv:
+    print(x)
+    sys.exit(0)
+elif "-a" in sys.argv:
+    print(a)
+    sys.exit(0)
+
+
+sys.exit(1)
