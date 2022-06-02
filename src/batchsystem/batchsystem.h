@@ -80,6 +80,7 @@ namespace cmdopt {
 		none = 0, //!< dont capture any output
 		capture_stdout = (1 << 0), //!< request capture of stdout
 		capture_stderr = (1 << 1), //!< request capture of stderr
+		capture_stdout_stderr = (capture_stdout | capture_stdout), //!< request capture of stdout and stderr
 	};
 }
 
