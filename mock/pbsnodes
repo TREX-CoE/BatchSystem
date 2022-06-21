@@ -16,6 +16,10 @@ ubuntu
      mom_service_port = 15002
      mom_manager_port = 15003
 """
+v = """\
+Version: master
+Commit: 34ff845417cc0348dfe0a61a491e5e0f4adf6ef4
+"""
 
 if "-x" in sys.argv:
     print(x)
@@ -23,6 +27,13 @@ if "-x" in sys.argv:
 elif "-a" in sys.argv:
     print(a)
     sys.exit(0)
-
-
+elif "--version" in sys.argv:
+    print(v)
+    sys.exit(0)
+elif len(sys.argv) == 4 and (("-A" in sys.argv) or ("-N" in sys.argv)):
+    # comment
+    sys.exit(0)
+elif len(sys.argv) == 5 and (("-r" in sys.argv) or ("-o" in sys.argv) or ("-c" in sys.argv)) and (("-A" in sys.argv) or ("-N" in sys.argv)):
+    # change node state
+    sys.exit(0)
 sys.exit(1)

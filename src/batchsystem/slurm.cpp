@@ -1148,14 +1148,14 @@ public:
         switch (state) {
 			case State::Starting: {
 				// start in parallel
-				cmd(version, {"slurmd", {"--version"}, {}, cmdopt::capture_stdout});
+				cmd(version, {"sinfo", {"--version"}, {}, cmdopt::capture_stdout});
 				cmd(config, {"scontrol", {"show", "config"}, {}, cmdopt::capture_stdout});
 				state = State::Waiting;
 			}
 			// fall through
 			case State::Waiting: {
 				if (version.exit>0 || config.exit>0) {
-					throw CommandFailed("slurmd --version | scontrol show config");
+					throw CommandFailed("sinfo --version | scontrol show config");
 				} else if (version.exit==0 && config.exit==0) {
 					state = State::Done;
 				} else {

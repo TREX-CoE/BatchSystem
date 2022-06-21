@@ -1,0 +1,15 @@
+#! /usr/bin/env python3
+
+import time
+import os
+import sys
+
+time.sleep(int(os.getenv("DELAY", "0")))
+
+if len(sys.argv) >= 4:
+    if "-s" in sys.argv and "suspend" in sys.argv:
+        sys.exit(0)
+    elif "-s" in sys.argv and "resume" in sys.argv:
+        sys.exit(0)
+
+sys.exit(1)
