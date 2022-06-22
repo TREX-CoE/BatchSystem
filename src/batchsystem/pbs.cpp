@@ -313,11 +313,39 @@ void Pbs::parseJobs(const std::string& output, std::function<getJobs_inserter_f>
 	}
 }
 
+
+
 void Pbs::parseQueues(const std::string& output, std::function<getQueues_inserter_f> insert) {
 	std::stringstream commandResult(output);
 
 	std::string tmp, queueType;
 	Queue queue {};
+	bool enabled = false;
+	bool started = false;
+
+	auto insertQueue = [&](){
+		if (queueType=="Execution") {
+			queue.rawState = std::string("enabled=")+(enabled ? "True":"False")+",started="+(started ? "True":"False");
+			if(enabled && started)
+			{
+				queue.state=QueueState::Open;
+			}
+			else if(enabled && !started)
+			{
+				queue.state=QueueState::Inactive;
+			}
+			else if(!enabled && started)
+			{
+				queue.state=QueueState::Draining;
+			}
+			else if(!enabled && !started)
+			{
+				queue.state=QueueState::Closed;
+			}
+			if (!insert(queue)) return;
+		}
+	};
+
 	while(commandResult.good())
 	{
 		getline(commandResult,tmp);
@@ -325,33 +353,13 @@ void Pbs::parseQueues(const std::string& output, std::function<getQueues_inserte
 
 		size_t pos=tmp.find('=');
 
-		bool enabled = false;
-		bool started = false;
-
 		if(tmp.substr(0,6)=="Queue:")
 		{
-			if (queueType=="Execution") {
-				queue.rawState = std::string("enabled=")+(enabled ? "True":"False")+",started="+(started ? "True":"False");
-				if(enabled && started)
-				{
-					queue.state = QueueState::Open;
-				}
-				else if(enabled && !started)
-				{
-					queue.state = QueueState::Inactive;
-				}
-				else if(!enabled && started)
-				{
-					queue.state = QueueState::Draining;
-				}
-				else if(!enabled && !started)
-				{
-					queue.state = QueueState::Closed;
-				}
-
-				if (!insert(queue)) return;
-				queue = Queue{}; // reset
-			}
+			// insert last queue as new starts
+			insertQueue();
+			queue = Queue{}; // reset
+			enabled = false;
+			started = false;
 			queue.name=trim_copy(tmp.substr(6));
 			queueType="";
 		}
@@ -433,6 +441,7 @@ void Pbs::parseQueues(const std::string& output, std::function<getQueues_inserte
 			}
 		}
 	}
+	insertQueue();
 }
 
 

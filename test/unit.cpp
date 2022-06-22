@@ -81,3 +81,15 @@ TEST_CASE("Pbs nodes", "[pbs][nodes]") {
 
     }
 }
+
+TEST_CASE("Pbs queues", "[pbs][queues]") {
+    std::vector<Queue> queues;
+    auto insert = [&](Queue n){queues.push_back(n); return true;};
+
+    SECTION("successfull") {
+        pbs::Pbs::parseQueues(readFile("qstatQf"), insert);
+        REQUIRE(queues.size() == 1);
+        REQUIRE(json::serialize(queues[0]) == R"EOF({"name":"batch","priority":4294967295,"state":"open","rawState":"enabled=True,started=True","jobs":{"total":0},"modifyTime":1649429720,"nodes":[]})EOF");
+
+    }
+}
