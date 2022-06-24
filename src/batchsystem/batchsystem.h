@@ -118,7 +118,7 @@ enum class NodeState {
 	Disabled, //!< Node is disabled from scheduling jobs on
 	Various, //!< Node/Nodes/Nodegroup have different states
 	Powersave, //!< Node is in powersave mode
-	Reserved, //!< Node is reservered
+	Reserved, //!< Node is reserved
 	Maintainence, //!< Node is disabled for maintainence
 	Failed, //!< Node is a failed / error state
 };
@@ -265,7 +265,7 @@ struct JobOptions {
  */
 struct Job {
 	string_optional id; //!< Job Id used by batchsystem 
-	string_optional idCompact; //!< shortened Job Id
+	string_optional idCompact; //!< Shortened Job Id
 	string_optional name; //!< Name of job
 	string_optional owner; //!< Owner of job
 	string_optional user; //!< Username of user that triggered job
@@ -301,7 +301,7 @@ struct Job {
 	max_optional<uint32_t> cpusRequested; //!< Number of cpus requested
  	max_optional<uint32_t> cpus; //!< Number of cpus allocated for job
 	max_optional<uint32_t> niceRequested; //!< Nice level requested by job
-	string_optional otherRequested; //!< Other /custom required string field
+	string_optional otherRequested; //!< Other / custom required string field
 	std::map<std::string, std::string> variableList; //!< Environment variables used for job execution
 	string_optional submitArgs; //!< Arguments passed while submitting job
 	std::map<std::string, std::string> requestedGeneral; //!< General key-value pairs for requested custom resources
