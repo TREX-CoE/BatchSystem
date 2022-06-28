@@ -69,7 +69,11 @@ void Pbs::parseNodes(const std::string& output, std::function<getNodes_inserter_
 		// just ignore missing node (-> user checks insert function calls to see if node found, more uniform way other batchsystems use this)
 		return;
 	}
-	parser.parse_memory(s);
+	try {
+		parser.parse_memory(s);
+	} catch (const xmlpp::parse_error& e) {
+		throw std::runtime_error(std::string("Error while parsing pbs nodes: ") + e.what());
+	}
 	const auto root = parser.get_document()->get_root_node();
 	const auto nodes = root->find("/Data/Node");
 
@@ -141,7 +145,12 @@ void Pbs::parseNodes(const std::string& output, std::function<getNodes_inserter_
 // see man pbs_job_attributes 
 void Pbs::parseJobs(const std::string& output, std::function<getJobs_inserter_f> insert) {
 	xmlpp::DomParser parser;
-	parser.parse_memory(output);
+
+	try {
+		parser.parse_memory(output);
+	} catch (const xmlpp::parse_error& e) {
+		throw std::runtime_error(std::string("Error while parsing pbs jobs: ") + e.what());
+	}
 	const auto root = parser.get_document()->get_root_node();
 	const auto nodes = root->find("/Data/Job");
 
