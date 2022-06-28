@@ -245,7 +245,6 @@ void Slurm::parseNodes(const std::string& output, const std::function<getNodes_i
 				if(name=="NodeName")
 				{
 					if (node.name.has_value()) {
-						std::cout << "insert " << node.name.get() << std::endl;
 						if (!insert(std::move(node))) return;
 						node = Node{}; // reset to default
 					}
