@@ -1,5 +1,6 @@
 set( batchsystem_SRC
         batchsystem/batchsystem.cpp
+        batchsystem/error.cpp
         batchsystem/lsf.cpp
         batchsystem/pbs.cpp
         batchsystem/slurm.cpp
@@ -14,6 +15,7 @@ set( batchsystem_HDR
         batchsystem/internal/joinString.h
         batchsystem/internal/timeToEpoch.h
         batchsystem/batchsystem.h
+        batchsystem/error.h
         batchsystem/lsf.h
         batchsystem/pbs.h
         batchsystem/slurm.h

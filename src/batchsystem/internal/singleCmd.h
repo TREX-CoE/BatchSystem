@@ -15,11 +15,11 @@ protected:
     };
     State state = State::Starting;
 
-	bool checkWaiting(const char* msg) {
+	bool checkWaiting(error_type e) {
 		if (res.exit==not_finished) {
 			return false;
 		} else if (res.exit!=0) {
-			throw std::runtime_error(msg);
+			throw std::system_error(e);
 		}
 		state=State::Done;
 		return true;

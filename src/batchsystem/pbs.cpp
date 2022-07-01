@@ -1,9 +1,10 @@
 #include "batchsystem/pbs.h"
+#include "batchsystem/error.h"
 
 #include <iostream>
 #include <sstream>
 #include <vector>
-
+#include <cassert>
 #include <libxml++/libxml++.h>
 
 #include "batchsystem/internal/trim.h"
@@ -72,7 +73,7 @@ void Pbs::parseNodes(const std::string& output, std::function<getNodes_inserter_
 	try {
 		parser.parse_memory(s);
 	} catch (const xmlpp::parse_error& e) {
-		throw std::runtime_error(std::string("Error while parsing pbs nodes: ") + e.what());
+		throw std::system_error(error_type::pbsnodes_x_xml_parse_error, e.what());
 	}
 	const auto root = parser.get_document()->get_root_node();
 	const auto nodes = root->find("/Data/Node");
@@ -149,7 +150,7 @@ void Pbs::parseJobs(const std::string& output, std::function<getJobs_inserter_f>
 	try {
 		parser.parse_memory(output);
 	} catch (const xmlpp::parse_error& e) {
-		throw std::runtime_error(std::string("Error while parsing pbs jobs: ") + e.what());
+		throw std::system_error(error_type::qstat_f_x_xml_parse_error, e.what());
 	}
 	const auto root = parser.get_document()->get_root_node();
 	const auto nodes = root->find("/Data/Job");
@@ -487,7 +488,7 @@ public:
                 } else if (qselect.exit==0) {
 					state=State::QdelStart;
                 } else {
-					throw CommandFailed("qselect -u");
+					throw std::system_error(error_type::qselect_u_failed);
 				}
 			}
 			// fall through
@@ -508,7 +509,7 @@ public:
 				if (qdel.exit==not_finished) {
 					return false;
 				} else if (qdel.exit!=0) {
-					throw CommandFailed("qdel");
+					throw std::system_error(error_type::qdel_failed);
 				}
 				state=State::Done;
 			}
@@ -516,7 +517,7 @@ public:
 			case State::Done: {
 				return true;
 			}
-			default: throw std::runtime_error("invalid state");
+			default: assert(false && "invalid state");
         }
     }
 };
@@ -539,7 +540,8 @@ public:
 					case NodeChangeState::Resume: stateArg="-r"; break;
 					case NodeChangeState::Drain: stateArg="-o"; break;
 					case NodeChangeState::Undrain: stateArg="-c"; break;
-					default: throw std::runtime_error("invalid state");
+					default: throw std::system_error(error_type::node_change_state_out_of_enum);
+
 				}
 
                 cmd(res, {"pbsnodes", {stateArg, name, appendReason ? "-A" : "-N", reason}, {}, cmdopt::none});
@@ -547,11 +549,11 @@ public:
 			}
 			// fall through
             case State::Waiting:
-                if (!checkWaiting("pbsnodes")) return false; 
+                if (!checkWaiting(error_type::pbsnodes_change_node_state_failed)) return false; 
                 // fall through
             case State::Done:
 				return true;
-			default: throw std::runtime_error("invalid state");
+			default: assert(false && "invalid state");
         }
     }
 };
@@ -571,11 +573,11 @@ public:
                 state=State::Waiting;
                 // fall through
             case State::Waiting:
-                if (!checkWaiting("pbsnodes")) return false; 
+                if (!checkWaiting(error_type::pbsnodes_set_comment_failed)) return false; 
                 // fall through
             case State::Done:
 				return true;
-			default: throw std::runtime_error("invalid state");
+			default: assert(false && "invalid state");
         }
     }
 };
@@ -593,11 +595,11 @@ public:
                 state=State::Waiting;
                 // fall through
             case State::Waiting:
-                if (!checkWaiting("qrls")) return false; 
+                if (!checkWaiting(error_type::qrls_failed)) return false; 
                 // fall through
             case State::Done:
 				return true;
-			default: throw std::runtime_error("invalid state");
+			default: assert(false && "invalid state");
         }
     }
 };
@@ -615,11 +617,11 @@ public:
                 state=State::Waiting;
                 // fall through
             case State::Waiting:
-                if (!checkWaiting("qhold")) return false; 
+                if (!checkWaiting(error_type::qhold_failed)) return false; 
                 // fall through
             case State::Done:
 				return true;
-			default: throw std::runtime_error("invalid state");
+			default: assert(false && "invalid state");
         }
     }
 };
@@ -642,11 +644,11 @@ public:
 			}
                 // fall through
             case State::Waiting:
-                if (!checkWaiting("qdel")) return false; 
+                if (!checkWaiting(error_type::qdel_failed)) return false; 
                 // fall through
             case State::Done:
 				return true;
-			default: throw std::runtime_error("invalid state");
+			default: assert(false && "invalid state");
         }
     }
 };
@@ -664,11 +666,11 @@ public:
                 state=State::Waiting;
                 // fall through
             case State::Waiting:
-                if (!checkWaiting("qsig -s suspend")) return false; 
+                if (!checkWaiting(error_type::qsig_s_suspend_failed)) return false; 
                 // fall through
             case State::Done:
 				return true;
-			default: throw std::runtime_error("invalid state");
+			default: assert(false && "invalid state");
         }
     }
 };
@@ -686,11 +688,11 @@ public:
                 state=State::Waiting;
                 // fall through
             case State::Waiting:
-                if (!checkWaiting("scontrol resume")) return false; 
+                if (!checkWaiting(error_type::qsig_s_resume_failed)) return false; 
                 // fall through
             case State::Done:
 				return true;
-			default: throw std::runtime_error("invalid state");
+			default: assert(false && "invalid state");
         }
     }
 };
@@ -708,12 +710,12 @@ public:
 				bool enabled = false;
 				bool started = false;
 				switch (queueState) {
-					case QueueState::Unknown: throw std::runtime_error("unknown state");
+					case QueueState::Unknown: throw std::system_error(error_type::queue_state_unknown_not_supported);
 					case QueueState::Open: enabled=true; started=true; break;
 					case QueueState::Closed: enabled=false; started=false; break;
 					case QueueState::Inactive: enabled=true; started=false; break;
 					case QueueState::Draining: enabled=false; started=true; break;
-					default: throw std::runtime_error("invalid state"); break;
+					default: throw std::system_error(error_type::queue_state_out_of_enum);
 				}
 
 				cmd(res, {"qmgr", {"-c", "set queue " + name + " enabled="+(enabled ? "true" : "false") + ",started="+(started ? "true" : "false")}, {}, cmdopt::none});
@@ -721,12 +723,12 @@ public:
 			}
 			// fall through
             case State::Waiting:
-                if (!checkWaiting("qmgr -c")) return false; 
+                if (!checkWaiting(error_type::qmgr_c_set_queue_failed)) return false; 
                 // fall through
             case State::Done: {
 				return true;
 			}
-			default: throw std::runtime_error("invalid state");
+			default: assert(false && "invalid state");
         }
 	}
 };
@@ -749,7 +751,7 @@ public:
             case State::Done:
 				detected = res.exit==0;
 				return true;
-			default: throw std::runtime_error("invalid state");
+			default: assert(false && "invalid state");
         }
     }
 };
@@ -771,11 +773,11 @@ public:
 			}
 			// fall through
             case State::Waiting:
-                if (!checkWaiting("qrerun")) return false; 
+                if (!checkWaiting(error_type::qrerun_failed)) return false; 
                 // fall through
             case State::Done:
 				return true;
-			default: throw std::runtime_error("invalid state");
+			default: assert(false && "invalid state");
         }
     }
 };
@@ -795,12 +797,12 @@ public:
 			}
                 // fall through
             case State::Waiting:
-                if (!checkWaiting("pbsnodes -x")) return false; 
+                if (!checkWaiting(error_type::pbsnodes_x_failed)) return false; 
                 // fall through
             case State::Done: 
 				Pbs::parseNodes(res.out, insert);
 				return true;
-			default: throw std::runtime_error("invalid state");
+			default: assert(false && "invalid state");
         }
     }
 };
@@ -816,12 +818,12 @@ public:
 			}
                 // fall through
             case State::Waiting:
-                if (!checkWaiting("qstat -Qf")) return false; 
+                if (!checkWaiting(error_type::qstat_Qf_failed)) return false; 
                 // fall through
             case State::Done: 
 				Pbs::parseQueues(res.out, insert);
 				return true;
-			default: throw std::runtime_error("invalid state");
+			default: assert(false && "invalid state");
         }
     }
 };
@@ -856,12 +858,12 @@ public:
 			}
                 // fall through
             case State::Waiting:
-                if (!checkWaiting("qsub")) return false; 
+                if (!checkWaiting(error_type::qsub_failed)) return false; 
                 // fall through
             case State::Done: 
 				jobName = trim_copy(res.out);
 				return true;
-			default: throw std::runtime_error("invalid state");
+			default: assert(false && "invalid state");
         }
     }
 };
@@ -878,12 +880,12 @@ public:
 			}
                 // fall through
             case State::Waiting:
-                if (!checkWaiting("qstat -f -x")) return false; 
+                if (!checkWaiting(error_type::qstat_f_x_failed)) return false; 
                 // fall through
             case State::Done: 
 				Pbs::parseJobs(res.out, insert);
 				return true;
-			default: throw std::runtime_error("invalid state");
+			default: assert(false && "invalid state");
         }
 	}
 };
@@ -901,13 +903,13 @@ public:
 			}
 			// fall through
 			case State::Waiting:
-                if (!checkWaiting("scontrol update")) return false; 
+                if (!checkWaiting(error_type::pbsnodes_version_failed)) return false; 
 				// fall through
 			case State::Done:
 				info.name = std::string("pbs");
 				info.version = trim_copy(res.out);
 				return true;
-			default: throw std::runtime_error("invalid state");
+			default: assert(false && "invalid state");
         }
     }
 };

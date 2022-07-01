@@ -309,16 +309,6 @@ struct Job {
 };
 
 /**
- * \brief Exception for failed command execution
- * 
- * Exception supposed to be thrown from within BatchSystem implementation if a shell command failed.
- */
-class CommandFailed : public std::runtime_error {
-public:
-	using std::runtime_error::runtime_error;
-};
-
-/**
  * \brief Exception to signal not implemented virtual method.
  * 
  * Used in \ref BatchInterface for optional methods.
@@ -435,8 +425,6 @@ typedef bool detect_f(bool& detected);
  * 
  * \par Implementation exceptions
  * Methods can throw exceptions to signal errors.
- * Provided implementations do and custom implementations should throw a \ref CommandFailed exception,
- * if they call a shell command that fails.
  * 
  * \par Optional methods exceptions
  * Optional methods of interface (not pure virtual methods) throw \ref NotImplemented if not overriden.

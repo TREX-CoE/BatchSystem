@@ -1,8 +1,10 @@
 #include "batchsystem/lsf.h"
+#include "batchsystem/error.h"
 
 #include <iostream>
 #include <sstream>
 #include <vector>
+#include <cassert>
 #include <functional>
 
 #include "batchsystem/internal/trim.h"
@@ -417,11 +419,11 @@ public:
                 state=State::Waiting;
                 // fall through
             case State::Waiting:
-                if (!checkWaiting("bkill -u")) return false; 
+                if (!checkWaiting(error_type::bkill_u_failed)) return false; 
                 // fall through
             case State::Done:
 				return true;
-			default: throw std::runtime_error("invalid state");
+			default: assert(false && "invalid state");
         }
     }
 };
@@ -447,20 +449,20 @@ public:
 						subcmd = "hclose";
 						break;
 					case NodeChangeState::Undrain:
-						throw std::runtime_error("Undrain not supported for LSF");
+						throw std::system_error(error_type::node_change_state_undrain_unsupported_by_lsf);
 					default:
-						throw std::runtime_error("invalid state");
+						throw std::system_error(error_type::node_change_state_out_of_enum);
 				}
                 cmd(res, {"badmin", {subcmd, name}, {}, cmdopt::none});
                 state=State::Waiting;
 			}
 			// fall through
             case State::Waiting:
-                if (!checkWaiting("badmin")) return false; 
+                if (!checkWaiting(error_type::badmin_failed)) return false; 
                 // fall through
             case State::Done:
 				return true;
-			default: throw std::runtime_error("invalid state");
+			default: assert(false && "invalid state");
         }
     }
 };
@@ -478,11 +480,11 @@ public:
                 state=State::Waiting;
                 // fall through
             case State::Waiting:
-                if (!checkWaiting("bresume")) return false; 
+                if (!checkWaiting(error_type::bresume_failed)) return false; 
                 // fall through
             case State::Done:
 				return true;
-			default: throw std::runtime_error("invalid state");
+			default: assert(false && "invalid state");
         }
     }
 };
@@ -501,11 +503,11 @@ public:
                 state=State::Waiting;
                 // fall through
             case State::Waiting:
-                if (!checkWaiting("bstop")) return false; 
+                if (!checkWaiting(error_type::bstop_failed)) return false; 
                 // fall through
             case State::Done:
 				return true;
-			default: throw std::runtime_error("invalid state");
+			default: assert(false && "invalid state");
         }
     }
 };
@@ -525,11 +527,11 @@ public:
                 state=State::Waiting;
                 // fall through
             case State::Waiting:
-                if (!checkWaiting("qdel")) return false; 
+                if (!checkWaiting(error_type::qdel_failed)) return false; 
                 // fall through
             case State::Done:
 				return true;
-			default: throw std::runtime_error("invalid state");
+			default: assert(false && "invalid state");
         }
     }
 };
@@ -546,28 +548,28 @@ public:
             case State::Starting: {
 				std::string subcmd;
 				switch (queueState) {
-					case QueueState::Unknown: throw std::runtime_error("unknown state");
+					case QueueState::Unknown: throw std::system_error(error_type::queue_state_unknown_not_supported);
 					case QueueState::Open:
 						subcmd = "qopen";
 						break;
 					case QueueState::Closed:
 						subcmd = "qclose";
 						break;
-					case QueueState::Inactive: throw std::runtime_error("inactive not supported");
-					case QueueState::Draining: throw std::runtime_error("draining not supported");
-					default: throw std::runtime_error("invalid state");
+					case QueueState::Inactive: throw std::system_error(error_type::queue_state_inactive_unsupported_by_lsf);
+					case QueueState::Draining: throw std::system_error(error_type::queue_state_draining_unsupported_by_lsf);
+					default: throw std::system_error(error_type::queue_state_out_of_enum);
 				}
 				cmd(res, {"badmin", {subcmd, name}, {}, cmdopt::none});
                 state=State::Waiting;
 			}
 			// fall through
             case State::Waiting:
-                if (!checkWaiting("badmin")) return false; 
+                if (!checkWaiting(error_type::badmin_failed)) return false; 
                 // fall through
             case State::Done: {
 				return true;
 			}
-			default: throw std::runtime_error("invalid state");
+			default: assert(false && "invalid state");
         }
 	}
 };
@@ -590,7 +592,7 @@ public:
             case State::Done:
 				detected = res.exit==0;
 				return true;
-			default: throw std::runtime_error("invalid state");
+			default: assert(false && "invalid state");
         }
     }
 };
@@ -610,12 +612,12 @@ public:
 			}
                 // fall through
             case State::Waiting:
-                if (!checkWaiting("bhosts")) return false; 
+                if (!checkWaiting(error_type::bhosts_failed)) return false; 
                 // fall through
             case State::Done: 
 				Lsf::parseNodes(res.out, insert);
 				return true;
-			default: throw std::runtime_error("invalid state");
+			default: assert(false && "invalid state");
         }
     }
 };
@@ -631,12 +633,12 @@ public:
 			}
                 // fall through
             case State::Waiting:
-                if (!checkWaiting("bqueues")) return false; 
+                if (!checkWaiting(error_type::bqueues_failed)) return false; 
                 // fall through
             case State::Done: 
 				Lsf::parseQueues(res.out, insert);
 				return true;
-			default: throw std::runtime_error("invalid state");
+			default: assert(false && "invalid state");
         }
     }
 };
@@ -667,7 +669,7 @@ public:
 			}
                 // fall through
             case State::Waiting:
-                if (!checkWaiting("bsub")) return false; 
+                if (!checkWaiting(error_type::bsub_failed)) return false; 
                 // fall through
             case State::Done: {
 				auto start = res.out.find_first_of("<");
@@ -679,7 +681,7 @@ public:
 				}
 				return true;
 			}
-			default: throw std::runtime_error("invalid state");
+			default: assert(false && "invalid state");
         }
     }
 };
@@ -696,12 +698,12 @@ public:
 			}
                 // fall through
             case State::Waiting:
-                if (!checkWaiting("bjobs -u all")) return false; 
+                if (!checkWaiting(error_type::bjob_u_all_failed)) return false; 
                 // fall through
             case State::Done: 
 				Lsf::parseJobs(res.out, insert);
 				return true;
-			default: throw std::runtime_error("invalid state");
+			default: assert(false && "invalid state");
         }
 	}
 };
@@ -719,13 +721,13 @@ public:
 			}
 			// fall through
 			case State::Waiting:
-                if (!checkWaiting("lsid")) return false; 
+                if (!checkWaiting(error_type::lsid_failed)) return false; 
 				// fall through
 			case State::Done:
 				info.name = std::string("lfs");
 				info.version = trim_copy(res.err);
 				return true;
-			default: throw std::runtime_error("invalid state");
+			default: assert(false && "invalid state");
         }
     }
 };
