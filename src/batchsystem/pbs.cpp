@@ -14,10 +14,71 @@
 #include "batchsystem/internal/byteParse.h"
 #include "batchsystem/internal/singleCmd.h"
 
-using namespace cw::batch;
 using namespace cw::batch::internal;
 
 namespace {
+
+using namespace cw::batch::pbs;
+
+const char* to_cstr(error type) {
+  switch (type) {
+      case error::pbsnodes_x_xml_parse_error: return "error while parsing pbsnodes -x xml output";
+      case error::qselect_u_failed: return "qselect -u failed";
+      case error::qdel_failed: return "qdel failed";
+      case error::qstat_f_x_xml_parse_error: return "error while parsing qstat -f -x xml output";
+      case error::pbsnodes_change_node_state_failed: return "pbsnodes node state change failed";
+      case error::pbsnodes_set_comment_failed: return "pbsnodes set comment failed";
+      case error::qrls_failed: return "qrls failed";
+      case error::qhold_failed: return "qhold failed";
+      case error::qsig_s_suspend_failed: return "qsig -s suspend failed";
+      case error::qsig_s_resume_failed: return "qsig -s resume failed";
+      case error::qmgr_c_set_queue_failed: return "qmgr -c set queue failed";
+      case error::qrerun_failed: return "qrerun failed";
+      case error::pbsnodes_x_failed: return "pbsnodes -x failed";
+      case error::qstat_Qf_failed: return "qstat -Qf failed";
+      case error::qsub_failed: return "qsub failed";
+      case error::qstat_f_x_failed: return "qstat -f -x failed";
+      case error::pbsnodes_version_failed: return "pbsnodes --version failed";
+      default: return "(unrecognized error)";
+  }
+}
+
+struct ErrCategory : std::error_category
+{
+
+  const char* name() const noexcept {
+    return "cw::batch::pbs";
+  }
+ 
+  std::string message(int ev) const {
+    return to_cstr(static_cast<error>(ev));
+  }
+
+  std::error_condition default_error_condition(int err_value) const noexcept {
+      switch (static_cast<error>(err_value)) {
+        case error::pbsnodes_x_xml_parse_error: return cw::batch::batch_condition::command_failed;
+        case error::qselect_u_failed: return cw::batch::batch_condition::command_failed;
+        case error::qdel_failed: return cw::batch::batch_condition::command_failed;
+        case error::qstat_f_x_xml_parse_error: return cw::batch::batch_condition::command_failed;
+        case error::pbsnodes_change_node_state_failed: return cw::batch::batch_condition::command_failed;
+        case error::pbsnodes_set_comment_failed: return cw::batch::batch_condition::command_failed;
+        case error::qrls_failed: return cw::batch::batch_condition::command_failed;
+        case error::qhold_failed: return cw::batch::batch_condition::command_failed;
+        case error::qsig_s_suspend_failed: return cw::batch::batch_condition::command_failed;
+        case error::qsig_s_resume_failed: return cw::batch::batch_condition::command_failed;
+        case error::qmgr_c_set_queue_failed: return cw::batch::batch_condition::command_failed;
+        case error::qrerun_failed: return cw::batch::batch_condition::command_failed;
+        case error::pbsnodes_x_failed: return cw::batch::batch_condition::command_failed;
+        case error::qstat_Qf_failed: return cw::batch::batch_condition::command_failed;
+        case error::qsub_failed: return cw::batch::batch_condition::command_failed;
+        case error::qstat_f_x_failed: return cw::batch::batch_condition::command_failed;
+        case error::pbsnodes_version_failed: return cw::batch::batch_condition::command_failed;
+        default: assert(false && "unknown error");
+      }
+  }
+};
+
+const ErrCategory error_cat {};
 
 void toLowerCase(std::string& str) {
 	std::transform(str.begin(), str.end(), str.begin(), [](unsigned char c){ return std::tolower(c); });
@@ -41,6 +102,14 @@ bool str_contains(const std::string& s, const std::string& part) {
 namespace cw {
 namespace batch {
 namespace pbs {
+
+const std::error_category& error_category() noexcept {
+    return error_cat;
+}
+
+std::error_code make_error_code(error e) {
+  return {static_cast<int>(e), error_cat};
+}
 
 Pbs::Pbs(cmd_f func): _func(func) {}
 
@@ -73,7 +142,7 @@ void Pbs::parseNodes(const std::string& output, std::function<getNodes_inserter_
 	try {
 		parser.parse_memory(s);
 	} catch (const xmlpp::parse_error& e) {
-		throw std::system_error(batch_error::pbsnodes_x_xml_parse_error, e.what());
+		throw std::system_error(error::pbsnodes_x_xml_parse_error, e.what());
 	}
 	const auto root = parser.get_document()->get_root_node();
 	const auto nodes = root->find("/Data/Node");
@@ -150,7 +219,7 @@ void Pbs::parseJobs(const std::string& output, std::function<getJobs_inserter_f>
 	try {
 		parser.parse_memory(output);
 	} catch (const xmlpp::parse_error& e) {
-		throw std::system_error(batch_error::qstat_f_x_xml_parse_error, e.what());
+		throw std::system_error(error::qstat_f_x_xml_parse_error, e.what());
 	}
 	const auto root = parser.get_document()->get_root_node();
 	const auto nodes = root->find("/Data/Job");
@@ -488,7 +557,7 @@ public:
                 } else if (qselect.exit==0) {
 					state=State::QdelStart;
                 } else {
-					throw std::system_error(batch_error::qselect_u_failed);
+					throw std::system_error(error::qselect_u_failed);
 				}
 			}
 			// fall through
@@ -509,7 +578,7 @@ public:
 				if (qdel.exit==not_finished) {
 					return false;
 				} else if (qdel.exit!=0) {
-					throw std::system_error(batch_error::qdel_failed);
+					throw std::system_error(error::qdel_failed);
 				}
 				state=State::Done;
 			}
@@ -540,7 +609,7 @@ public:
 					case NodeChangeState::Resume: stateArg="-r"; break;
 					case NodeChangeState::Drain: stateArg="-o"; break;
 					case NodeChangeState::Undrain: stateArg="-c"; break;
-					default: throw std::system_error(batch_error::node_change_state_out_of_enum);
+					default: throw std::system_error(cw::batch::error::node_change_state_out_of_enum);
 
 				}
 
@@ -549,7 +618,7 @@ public:
 			}
 			// fall through
             case State::Waiting:
-                if (!checkWaiting(batch_error::pbsnodes_change_node_state_failed)) return false; 
+                if (!checkWaiting(error::pbsnodes_change_node_state_failed)) return false; 
                 // fall through
             case State::Done:
 				return true;
@@ -573,7 +642,7 @@ public:
                 state=State::Waiting;
                 // fall through
             case State::Waiting:
-                if (!checkWaiting(batch_error::pbsnodes_set_comment_failed)) return false; 
+                if (!checkWaiting(error::pbsnodes_set_comment_failed)) return false; 
                 // fall through
             case State::Done:
 				return true;
@@ -595,7 +664,7 @@ public:
                 state=State::Waiting;
                 // fall through
             case State::Waiting:
-                if (!checkWaiting(batch_error::qrls_failed)) return false; 
+                if (!checkWaiting(error::qrls_failed)) return false; 
                 // fall through
             case State::Done:
 				return true;
@@ -617,7 +686,7 @@ public:
                 state=State::Waiting;
                 // fall through
             case State::Waiting:
-                if (!checkWaiting(batch_error::qhold_failed)) return false; 
+                if (!checkWaiting(error::qhold_failed)) return false; 
                 // fall through
             case State::Done:
 				return true;
@@ -644,7 +713,7 @@ public:
 			}
                 // fall through
             case State::Waiting:
-                if (!checkWaiting(batch_error::qdel_failed)) return false; 
+                if (!checkWaiting(error::qdel_failed)) return false; 
                 // fall through
             case State::Done:
 				return true;
@@ -666,7 +735,7 @@ public:
                 state=State::Waiting;
                 // fall through
             case State::Waiting:
-                if (!checkWaiting(batch_error::qsig_s_suspend_failed)) return false; 
+                if (!checkWaiting(error::qsig_s_suspend_failed)) return false; 
                 // fall through
             case State::Done:
 				return true;
@@ -688,7 +757,7 @@ public:
                 state=State::Waiting;
                 // fall through
             case State::Waiting:
-                if (!checkWaiting(batch_error::qsig_s_resume_failed)) return false; 
+                if (!checkWaiting(error::qsig_s_resume_failed)) return false; 
                 // fall through
             case State::Done:
 				return true;
@@ -710,12 +779,12 @@ public:
 				bool enabled = false;
 				bool started = false;
 				switch (queueState) {
-					case QueueState::Unknown: throw std::system_error(batch_error::queue_state_unknown_not_supported);
+					case QueueState::Unknown: throw std::system_error(cw::batch::error::queue_state_unknown_not_supported);
 					case QueueState::Open: enabled=true; started=true; break;
 					case QueueState::Closed: enabled=false; started=false; break;
 					case QueueState::Inactive: enabled=true; started=false; break;
 					case QueueState::Draining: enabled=false; started=true; break;
-					default: throw std::system_error(batch_error::queue_state_out_of_enum);
+					default: throw std::system_error(cw::batch::error::queue_state_out_of_enum);
 				}
 
 				cmd(res, {"qmgr", {"-c", "set queue " + name + " enabled="+(enabled ? "true" : "false") + ",started="+(started ? "true" : "false")}, {}, cmdopt::none});
@@ -723,7 +792,7 @@ public:
 			}
 			// fall through
             case State::Waiting:
-                if (!checkWaiting(batch_error::qmgr_c_set_queue_failed)) return false; 
+                if (!checkWaiting(error::qmgr_c_set_queue_failed)) return false; 
                 // fall through
             case State::Done: {
 				return true;
@@ -773,7 +842,7 @@ public:
 			}
 			// fall through
             case State::Waiting:
-                if (!checkWaiting(batch_error::qrerun_failed)) return false; 
+                if (!checkWaiting(error::qrerun_failed)) return false; 
                 // fall through
             case State::Done:
 				return true;
@@ -797,7 +866,7 @@ public:
 			}
                 // fall through
             case State::Waiting:
-                if (!checkWaiting(batch_error::pbsnodes_x_failed)) return false; 
+                if (!checkWaiting(error::pbsnodes_x_failed)) return false; 
                 // fall through
             case State::Done: 
 				Pbs::parseNodes(res.out, insert);
@@ -818,7 +887,7 @@ public:
 			}
                 // fall through
             case State::Waiting:
-                if (!checkWaiting(batch_error::qstat_Qf_failed)) return false; 
+                if (!checkWaiting(error::qstat_Qf_failed)) return false; 
                 // fall through
             case State::Done: 
 				Pbs::parseQueues(res.out, insert);
@@ -858,7 +927,7 @@ public:
 			}
                 // fall through
             case State::Waiting:
-                if (!checkWaiting(batch_error::qsub_failed)) return false; 
+                if (!checkWaiting(error::qsub_failed)) return false; 
                 // fall through
             case State::Done: 
 				jobName = trim_copy(res.out);
@@ -880,7 +949,7 @@ public:
 			}
                 // fall through
             case State::Waiting:
-                if (!checkWaiting(batch_error::qstat_f_x_failed)) return false; 
+                if (!checkWaiting(error::qstat_f_x_failed)) return false; 
                 // fall through
             case State::Done: 
 				Pbs::parseJobs(res.out, insert);
@@ -903,7 +972,7 @@ public:
 			}
 			// fall through
 			case State::Waiting:
-                if (!checkWaiting(batch_error::pbsnodes_version_failed)) return false; 
+                if (!checkWaiting(error::pbsnodes_version_failed)) return false; 
 				// fall through
 			case State::Done:
 				info.name = std::string("pbs");
@@ -931,7 +1000,6 @@ std::function<bool()> Pbs::changeNodeState(const std::string& name, NodeChangeSt
 std::function<runJob_f> Pbs::runJob(const JobOptions& opts) { return RunJob(_func, opts); }
 std::function<bool(bool&)> Pbs::detect() { return Detect(_func); }
 std::function<bool(BatchInfo&)> Pbs::getBatchInfo() { return GetBatchInfo(_func); }
-
 
 }
 }

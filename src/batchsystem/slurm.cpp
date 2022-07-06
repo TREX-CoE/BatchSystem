@@ -15,43 +15,108 @@
 #include "batchsystem/internal/joinString.h"
 #include "batchsystem/internal/singleCmd.h"
 
-using namespace cw::batch;
 using namespace cw::batch::internal;
 
 namespace {
 
-JobState parseJobState(const std::string& str) {
+using namespace cw::batch::slurm;
+
+const char* to_cstr(error type) {
+  switch (type) {
+      case error::sacct_X_P_format_ALL_failed: return "sacct -X -P --format ALL failed";
+      case error::scontrol_show_job_all_failed: return "scontrol show job --all failed";
+      case error::scontrol_version_failed: return "scontrol --version failed";
+      case error::scontrol_show_config_failed: return "scontrol show config failed";
+      case error::scontrol_update_NodeName_State_failed: return "scontrol update NodeName State failed";
+      case error::scontrol_update_NodeName_Comment_failed: return "scontrol update NodeName Comment failed";
+      case error::scontrol_release_failed: return "scontrol release failed";
+      case error::scontrol_hold_failed: return "scontrol hold failed";
+      case error::scancel_failed: return "scancel failed";
+      case error::scancel_u_failed: return "scancel -u failed";
+      case error::scontrol_suspend_failed: return "scontrol suspend failed";
+      case error::scontrol_resume_failed: return "scontrol resume failed";
+      case error::scontrol_update_PartitionName_State_failed: return "scontrol update PartitionName State failed";
+      case error::scontrol_requeuehold_failed: return "scontrol requeuehold failed";
+      case error::scontrol_requeue_failed: return "scontrol requeue failed";
+      case error::scontrol_show_node_failed: return "scontrol show node failed";
+      case error::scontrol_show_partition_all_failed: return "scontrol show partition --all failed";
+      case error::sbatch_failed: return "sbatch failed";
+      case error::slurm_job_mode_out_of_enum: return "slurm job mode invalid enum value";
+      default: return "(unrecognized error)";
+  }
+}
+
+struct ErrCategory : std::error_category
+{
+
+  const char* name() const noexcept {
+    return "cw::batch::slurm";
+  }
+ 
+  std::string message(int ev) const {
+    return to_cstr(static_cast<error>(ev));
+  }
+
+  std::error_condition default_error_condition(int err_value) const noexcept {
+      switch (static_cast<error>(err_value)) {
+        case error::sacct_X_P_format_ALL_failed: return cw::batch::batch_condition::command_failed;
+        case error::scontrol_show_job_all_failed: return cw::batch::batch_condition::command_failed;
+        case error::scontrol_version_failed: return cw::batch::batch_condition::command_failed;
+        case error::scontrol_show_config_failed: return cw::batch::batch_condition::command_failed;
+        case error::scontrol_update_NodeName_State_failed: return cw::batch::batch_condition::command_failed;
+        case error::scontrol_update_NodeName_Comment_failed: return cw::batch::batch_condition::command_failed;
+        case error::scontrol_release_failed: return cw::batch::batch_condition::command_failed;
+        case error::scontrol_hold_failed: return cw::batch::batch_condition::command_failed;
+        case error::scancel_failed: return cw::batch::batch_condition::command_failed;
+        case error::scancel_u_failed: return cw::batch::batch_condition::command_failed;
+        case error::scontrol_suspend_failed: return cw::batch::batch_condition::command_failed;
+        case error::scontrol_resume_failed: return cw::batch::batch_condition::command_failed;
+        case error::scontrol_update_PartitionName_State_failed: return cw::batch::batch_condition::command_failed;
+        case error::scontrol_requeuehold_failed: return cw::batch::batch_condition::command_failed;
+        case error::scontrol_requeue_failed: return cw::batch::batch_condition::command_failed;
+        case error::scontrol_show_node_failed: return cw::batch::batch_condition::command_failed;
+        case error::scontrol_show_partition_all_failed: return cw::batch::batch_condition::command_failed;
+        case error::sbatch_failed: return cw::batch::batch_condition::command_failed;
+        case error::slurm_job_mode_out_of_enum: return cw::batch::batch_condition::invalid_argument;
+        default: assert(false && "unknown error");
+      }
+  }
+};
+
+const ErrCategory error_cat {};
+
+cw::batch::JobState parseJobState(const std::string& str) {
 	if(str=="PENDING")
 	{
-		return JobState::Queued;
+		return cw::batch::JobState::Queued;
 	}
 	else if(str=="RUNNING")
 	{
-		return JobState::Running;
+		return cw::batch::JobState::Running;
 	}
 	else if(str=="SUSPENDED")
 	{
-		return JobState::Suspend;
+		return cw::batch::JobState::Suspend;
 	}
 	else if(str=="COMPLETING")
 	{
-		return JobState::Terminating;
+		return cw::batch::JobState::Terminating;
 	}
 	else if(str=="COMPLETED")
 	{
-		return JobState::Finished;
+		return cw::batch::JobState::Finished;
 	}
 	else if(str.rfind("CANCELLED", 0) == 0) // to handle "CANCELLED by 1000" (1000 is UID) syntax
 	{
-		return JobState::Cancelled;
+		return cw::batch::JobState::Cancelled;
 	}
 	else if(str=="FAILED")
 	{
-		return JobState::Failed;
+		return cw::batch::JobState::Failed;
 	}
 	else
 	{
-		return JobState::Unknown;
+		return cw::batch::JobState::Unknown;
 	}
 }
 
@@ -122,8 +187,8 @@ std::vector<std::string> nodelist_helper(const std::string& nodeList) {
 
 						offsetRange=static_cast<size_t>(std::distance(range.cbegin(), posRange[2].second));
 
-						int nodeIdStart=not_finished;
-						int nodeIdEnd=not_finished;
+						int nodeIdStart=-1;
+						int nodeIdEnd=-1;
 						int tmp;
 						int padding;
 
@@ -184,6 +249,14 @@ std::vector<std::string> nodelist_helper(const std::string& nodeList) {
 namespace cw {
 namespace batch {
 namespace slurm {
+
+const std::error_category& error_category() noexcept {
+    return error_cat;
+}
+
+std::error_code make_error_code(error e) {
+  return {static_cast<int>(e), error_cat};
+}
 
 const std::string Slurm::DefaultReason = "batchsystem_api";
 
@@ -661,7 +734,7 @@ public:
 					case NodeChangeState::Resume: stateString="RESUME"; break;
 					case NodeChangeState::Drain: stateString="DRAIN"; break;
 					case NodeChangeState::Undrain: stateString="UNDRAIN"; break;
-					default: throw std::system_error(batch_error::node_change_state_out_of_enum);
+					default: throw std::system_error(cw::batch::error::node_change_state_out_of_enum);
 				} 
 				std::vector<std::string> args{"update", "NodeName=" + name, "State="+stateString};
 				// add reason if needed and force default if empty as needed by slurm!
@@ -672,7 +745,7 @@ public:
 			}
 			// fall through
             case State::Waiting:
-                if (!checkWaiting(batch_error::scontrol_update_NodeName_State_failed)) return false; 
+                if (!checkWaiting(error::scontrol_update_NodeName_State_failed)) return false; 
                 // fall through
             case State::Done:
 				return true;
@@ -696,7 +769,7 @@ public:
                 state=State::Waiting;
                 // fall through
             case State::Waiting:
-                if (!checkWaiting(batch_error::scontrol_update_NodeName_Comment_failed)) return false; 
+                if (!checkWaiting(error::scontrol_update_NodeName_Comment_failed)) return false; 
                 // fall through
             case State::Done:
 				return true;
@@ -718,7 +791,7 @@ public:
                 state=State::Waiting;
                 // fall through
             case State::Waiting:
-                if (!checkWaiting(batch_error::scontrol_release_failed)) return false; 
+                if (!checkWaiting(error::scontrol_release_failed)) return false; 
                 // fall through
             case State::Done:
 				return true;
@@ -740,7 +813,7 @@ public:
                 state=State::Waiting;
                 // fall through
             case State::Waiting:
-                if (!checkWaiting(batch_error::scontrol_hold_failed)) return false; 
+                if (!checkWaiting(error::scontrol_hold_failed)) return false; 
                 // fall through
             case State::Done:
 				return true;
@@ -762,7 +835,7 @@ public:
                 state=State::Waiting;
                 // fall through
             case State::Waiting:
-                if (!checkWaiting(batch_error::scancel_failed)) return false; 
+                if (!checkWaiting(error::scancel_failed)) return false; 
                 // fall through
             case State::Done:
 				return true;
@@ -784,7 +857,7 @@ public:
                 state=State::Waiting;
                 // fall through
             case State::Waiting:
-                if (!checkWaiting(batch_error::scancel_u_failed)) return false; 
+                if (!checkWaiting(error::scancel_u_failed)) return false; 
                 // fall through
             case State::Done:
 				return true;
@@ -806,7 +879,7 @@ public:
                 state=State::Waiting;
                 // fall through
             case State::Waiting:
-                if (!checkWaiting(batch_error::scontrol_suspend_failed)) return false; 
+                if (!checkWaiting(error::scontrol_suspend_failed)) return false; 
                 // fall through
             case State::Done:
 				return true;
@@ -828,7 +901,7 @@ public:
                 state=State::Waiting;
                 // fall through
             case State::Waiting:
-                if (!checkWaiting(batch_error::scontrol_resume_failed)) return false; 
+                if (!checkWaiting(error::scontrol_resume_failed)) return false; 
                 // fall through
             case State::Done:
 				return true;
@@ -849,19 +922,19 @@ public:
             case State::Starting: {
 				std::string stateStr;
 				switch (queueState) {
-					case QueueState::Unknown: throw std::system_error(batch_error::queue_state_unknown_not_supported);
+					case QueueState::Unknown: throw std::system_error(cw::batch::error::queue_state_unknown_not_supported);
 					case QueueState::Open: stateStr="UP"; break;
 					case QueueState::Closed: stateStr="DOWN"; break;
 					case QueueState::Inactive: stateStr="INACTIVE"; break;
 					case QueueState::Draining: stateStr="DRAIN"; break;
-					default: throw std::system_error(batch_error::queue_state_out_of_enum);
+					default: throw std::system_error(cw::batch::error::queue_state_out_of_enum);
 				}
 				cmd(res, {"scontrol", {"update", "PartitionName=" + name, "State="+stateStr}, {}, cmdopt::none});
                 state=State::Waiting;
 			}
 			// fall through
             case State::Waiting:
-                if (!checkWaiting(batch_error::scontrol_update_PartitionName_State_failed)) return false; 
+                if (!checkWaiting(error::scontrol_update_PartitionName_State_failed)) return false; 
                 // fall through
             case State::Done: {
 				return true;
@@ -931,7 +1004,7 @@ public:
                 state=State::Waiting;
                 // fall through
             case State::Waiting:
-                if (!checkWaiting(hold ? batch_error::scontrol_requeuehold_failed : batch_error::scontrol_requeue_failed)) return false; 
+                if (!checkWaiting(hold ? error::scontrol_requeuehold_failed : error::scontrol_requeue_failed)) return false; 
                 // fall through
             case State::Done:
 				return true;
@@ -960,7 +1033,7 @@ public:
 			}
                 // fall through
             case State::Waiting:
-                if (!checkWaiting(batch_error::scontrol_show_node_failed)) return false; 
+                if (!checkWaiting(error::scontrol_show_node_failed)) return false; 
                 // fall through
             case State::Done: 
 				Slurm::parseNodes(res.out, insert);
@@ -982,7 +1055,7 @@ public:
 			}
                 // fall through
             case State::Waiting:
-                if (!checkWaiting(batch_error::scontrol_show_partition_all_failed)) return false; 
+                if (!checkWaiting(error::scontrol_show_partition_all_failed)) return false; 
                 // fall through
             case State::Done: 
 				Slurm::parseQueues(res.out, insert);
@@ -1022,7 +1095,7 @@ public:
 			}
                 // fall through
             case State::Waiting:
-                if (!checkWaiting(batch_error::sbatch_failed)) return false; 
+                if (!checkWaiting(error::sbatch_failed)) return false; 
                 // fall through
             case State::Done: 
 				jobName = trim_copy(res.out);
@@ -1057,7 +1130,7 @@ public:
 			case Slurm::job_mode::unchecked: state = State::SacctCheckStart; break;
 			case Slurm::job_mode::scontrol: state = State::ScontrolStart; break;
 			case Slurm::job_mode::sacct: state = State::SacctStart; break;
-			default: throw std::system_error(batch_error::slurm_job_mode_out_of_enum);
+			default: throw std::system_error(error::slurm_job_mode_out_of_enum);
 		}
 	}
 
@@ -1098,7 +1171,7 @@ public:
 				if (jobs.exit==not_finished) {
 					return false;
 				} else if (jobs.exit!=0) {
-					throw std::system_error(batch_error::sacct_X_P_format_ALL_failed);
+					throw std::system_error(error::sacct_X_P_format_ALL_failed);
 				}
 				state=State::SacctDone;
 			}
@@ -1117,7 +1190,7 @@ public:
 				if (jobs.exit==not_finished) {
 					return false;
 				} else if (jobs.exit!=0) {
-					throw std::system_error(batch_error::scontrol_show_job_all_failed);
+					throw std::system_error(error::scontrol_show_job_all_failed);
 				}
 				state=State::ScontrolDone;
 			}
@@ -1158,9 +1231,9 @@ public:
 				if (version.exit==0 && config.exit==0) {
 					state = State::Done;
 				} else if (version.exit>0) {
-					throw std::system_error(batch_error::scontrol_version_failed);
+					throw std::system_error(error::scontrol_version_failed);
 				} else if (config.exit>0) {
-					throw std::system_error(batch_error::scontrol_show_config_failed);
+					throw std::system_error(error::scontrol_show_config_failed);
 				} else {
 					return false;
 				}

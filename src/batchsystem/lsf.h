@@ -3,9 +3,31 @@
 
 #include "batchsystem/batchsystem.h"
 
+#include <system_error>
+
 namespace cw {
 namespace batch {
 namespace lsf {
+
+enum class error {
+    bkill_failed = 1,
+    bkill_u_failed,
+    node_change_state_undrain_unsupported_by_lsf,
+    bresume_failed,
+    bstop_failed,
+    queue_state_inactive_unsupported_by_lsf,
+    queue_state_draining_unsupported_by_lsf,
+    badmin_failed,
+    bhosts_failed,
+    bqueues_failed,
+    bsub_failed,
+    bjob_u_all_failed,
+    lsid_failed,
+};
+
+const std::error_category& error_category() noexcept;
+
+std::error_code make_error_code(error e);
 
 /**
  * \brief Concrete implementation of batchsystem for LSF
@@ -50,6 +72,12 @@ public:
 
 }
 }
+}
+
+namespace std
+{
+  template <>
+  struct is_error_code_enum<cw::batch::lsf::error> : true_type {};
 }
 
 #endif /* __CW_BATCHSYSTEM_LSF_H__ */

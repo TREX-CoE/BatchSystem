@@ -3,9 +3,35 @@
 
 #include "batchsystem/batchsystem.h"
 
+#include <system_error>
+
 namespace cw {
 namespace batch {
 namespace pbs {
+
+enum class error {
+    pbsnodes_x_xml_parse_error = 1,
+    qselect_u_failed,
+    qdel_failed,
+    qstat_f_x_xml_parse_error,
+    pbsnodes_change_node_state_failed,
+    pbsnodes_set_comment_failed,
+    qrls_failed,
+    qhold_failed,
+    qsig_s_suspend_failed,
+    qsig_s_resume_failed,
+    qmgr_c_set_queue_failed,
+    qrerun_failed,
+    pbsnodes_x_failed,
+    qstat_Qf_failed,
+    qsub_failed,
+    qstat_f_x_failed,
+    pbsnodes_version_failed,
+};
+
+const std::error_category& error_category() noexcept;
+
+std::error_code make_error_code(error e);
 
 /**
  * \brief Concrete implementation of batchsystem for PBS
@@ -60,6 +86,13 @@ public:
 
 }
 }
+}
+
+
+namespace std
+{
+  template <>
+  struct is_error_code_enum<cw::batch::pbs::error> : true_type {};
 }
 
 #endif /* __CW_BATCHSYSTEM_PBS_H__ */

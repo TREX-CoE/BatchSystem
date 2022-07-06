@@ -3,9 +3,38 @@
 
 #include "batchsystem/batchsystem.h"
 
+#include <system_error>
+
 namespace cw {
 namespace batch {
 namespace slurm {
+
+enum class error {
+    sacct_X_P_format_ALL_failed = 1,
+    scontrol_show_job_all_failed,
+    scontrol_version_failed,
+    scontrol_show_config_failed,
+    scontrol_update_NodeName_State_failed,
+    scontrol_update_NodeName_Comment_failed,
+    scontrol_release_failed,
+    scontrol_hold_failed,
+    scancel_failed,
+    scancel_u_failed,
+    scontrol_suspend_failed,
+    scontrol_resume_failed,
+    scontrol_update_PartitionName_State_failed,
+    scontrol_requeuehold_failed,
+    scontrol_requeue_failed,
+    scontrol_show_node_failed,
+    scontrol_show_partition_all_failed,
+    sbatch_failed,
+    slurm_job_mode_out_of_enum,
+};
+
+
+const std::error_category& error_category() noexcept;
+
+std::error_code make_error_code(error e);
 
 /**
  * \brief Concrete implementation of batchsystem for Slurm
@@ -143,6 +172,12 @@ public:
 
 }
 }
+}
+
+namespace std
+{
+  template <>
+  struct is_error_code_enum<cw::batch::slurm::error> : true_type {};
 }
 
 #endif /* __CW_BATCHSYSTEM_SLURM_H__ */

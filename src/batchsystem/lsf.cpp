@@ -12,12 +12,78 @@
 #include "batchsystem/internal/splitString.h"
 #include "batchsystem/internal/singleCmd.h"
 
-using namespace cw::batch;
-using namespace cw::batch::internal;
+namespace {
+
+using namespace cw::batch::lsf;
+
+const char* to_cstr(error type) {
+  switch (type) {
+      case error::bkill_failed: return "bkill failed";
+      case error::bkill_u_failed: return "bkill -u failed";
+      case error::node_change_state_undrain_unsupported_by_lsf: return "node state change to undrain unsupported by lsf";
+      case error::bresume_failed: return "bresume failed";
+      case error::bstop_failed: return "bstop failed";
+      case error::queue_state_inactive_unsupported_by_lsf: return "queue state change to inactive unsupported by lsf";
+      case error::queue_state_draining_unsupported_by_lsf: return "queue state change to draining unsupported by lsf";
+      case error::badmin_failed: return "badmin failed";
+      case error::bhosts_failed: return "bhosts failed";
+      case error::bqueues_failed: return "bqueues failed";
+      case error::bsub_failed: return "bsub failed";
+      case error::bjob_u_all_failed: return "bjob -u all failed";
+      case error::lsid_failed: return "lsid failed";
+      default: return "(unrecognized error)";
+  }
+}
+
+struct ErrCategory : std::error_category
+{
+
+  const char* name() const noexcept {
+    return "cw::batch::lsf";
+  }
+ 
+  std::string message(int ev) const {
+    return to_cstr(static_cast<error>(ev));
+  }
+
+  std::error_condition default_error_condition(int err_value) const noexcept {
+      switch (static_cast<error>(err_value)) {
+        case error::bkill_failed: return cw::batch::batch_condition::command_failed;
+        case error::bkill_u_failed: return cw::batch::batch_condition::command_failed;
+        case error::node_change_state_undrain_unsupported_by_lsf: return cw::batch::batch_condition::command_failed;
+        case error::bresume_failed: return cw::batch::batch_condition::command_failed;
+        case error::bstop_failed: return cw::batch::batch_condition::command_failed;
+        case error::queue_state_inactive_unsupported_by_lsf: return cw::batch::batch_condition::command_failed;
+        case error::queue_state_draining_unsupported_by_lsf: return cw::batch::batch_condition::command_failed;
+        case error::badmin_failed: return cw::batch::batch_condition::command_failed;
+        case error::bhosts_failed: return cw::batch::batch_condition::command_failed;
+        case error::bqueues_failed: return cw::batch::batch_condition::command_failed;
+        case error::bsub_failed: return cw::batch::batch_condition::command_failed;
+        case error::bjob_u_all_failed: return cw::batch::batch_condition::command_failed;
+        case error::lsid_failed: return cw::batch::batch_condition::command_failed;
+        default: assert(false && "unknown error");
+      }
+  }
+};
+
+const ErrCategory error_cat {};
+
+}
 
 namespace cw {
 namespace batch {
 namespace lsf {
+
+using namespace cw::batch;
+using namespace cw::batch::internal;
+
+const std::error_category& error_category() noexcept {
+    return error_cat;
+}
+
+std::error_code make_error_code(error e) {
+  return {static_cast<int>(e), error_cat};
+}
 
 Lsf::Lsf(cmd_f func): _func(func) {}
 
@@ -419,7 +485,7 @@ public:
                 state=State::Waiting;
                 // fall through
             case State::Waiting:
-                if (!checkWaiting(batch_error::bkill_u_failed)) return false; 
+                if (!checkWaiting(error::bkill_u_failed)) return false; 
                 // fall through
             case State::Done:
 				return true;
@@ -449,16 +515,16 @@ public:
 						subcmd = "hclose";
 						break;
 					case NodeChangeState::Undrain:
-						throw std::system_error(batch_error::node_change_state_undrain_unsupported_by_lsf);
+						throw std::system_error(error::node_change_state_undrain_unsupported_by_lsf);
 					default:
-						throw std::system_error(batch_error::node_change_state_out_of_enum);
+						throw std::system_error(cw::batch::error::node_change_state_out_of_enum);
 				}
                 cmd(res, {"badmin", {subcmd, name}, {}, cmdopt::none});
                 state=State::Waiting;
 			}
 			// fall through
             case State::Waiting:
-                if (!checkWaiting(batch_error::badmin_failed)) return false; 
+                if (!checkWaiting(error::badmin_failed)) return false; 
                 // fall through
             case State::Done:
 				return true;
@@ -480,7 +546,7 @@ public:
                 state=State::Waiting;
                 // fall through
             case State::Waiting:
-                if (!checkWaiting(batch_error::bresume_failed)) return false; 
+                if (!checkWaiting(error::bresume_failed)) return false; 
                 // fall through
             case State::Done:
 				return true;
@@ -503,7 +569,7 @@ public:
                 state=State::Waiting;
                 // fall through
             case State::Waiting:
-                if (!checkWaiting(batch_error::bstop_failed)) return false; 
+                if (!checkWaiting(error::bstop_failed)) return false; 
                 // fall through
             case State::Done:
 				return true;
@@ -527,7 +593,7 @@ public:
                 state=State::Waiting;
                 // fall through
             case State::Waiting:
-                if (!checkWaiting(batch_error::qdel_failed)) return false; 
+                if (!checkWaiting(error::bkill_failed)) return false; 
                 // fall through
             case State::Done:
 				return true;
@@ -548,23 +614,23 @@ public:
             case State::Starting: {
 				std::string subcmd;
 				switch (queueState) {
-					case QueueState::Unknown: throw std::system_error(batch_error::queue_state_unknown_not_supported);
+					case QueueState::Unknown: throw std::system_error(cw::batch::error::queue_state_unknown_not_supported);
 					case QueueState::Open:
 						subcmd = "qopen";
 						break;
 					case QueueState::Closed:
 						subcmd = "qclose";
 						break;
-					case QueueState::Inactive: throw std::system_error(batch_error::queue_state_inactive_unsupported_by_lsf);
-					case QueueState::Draining: throw std::system_error(batch_error::queue_state_draining_unsupported_by_lsf);
-					default: throw std::system_error(batch_error::queue_state_out_of_enum);
+					case QueueState::Inactive: throw std::system_error(error::queue_state_inactive_unsupported_by_lsf);
+					case QueueState::Draining: throw std::system_error(error::queue_state_draining_unsupported_by_lsf);
+					default: throw std::system_error(cw::batch::error::queue_state_out_of_enum);
 				}
 				cmd(res, {"badmin", {subcmd, name}, {}, cmdopt::none});
                 state=State::Waiting;
 			}
 			// fall through
             case State::Waiting:
-                if (!checkWaiting(batch_error::badmin_failed)) return false; 
+                if (!checkWaiting(error::badmin_failed)) return false; 
                 // fall through
             case State::Done: {
 				return true;
@@ -612,7 +678,7 @@ public:
 			}
                 // fall through
             case State::Waiting:
-                if (!checkWaiting(batch_error::bhosts_failed)) return false; 
+                if (!checkWaiting(error::bhosts_failed)) return false; 
                 // fall through
             case State::Done: 
 				Lsf::parseNodes(res.out, insert);
@@ -633,7 +699,7 @@ public:
 			}
                 // fall through
             case State::Waiting:
-                if (!checkWaiting(batch_error::bqueues_failed)) return false; 
+                if (!checkWaiting(error::bqueues_failed)) return false; 
                 // fall through
             case State::Done: 
 				Lsf::parseQueues(res.out, insert);
@@ -669,7 +735,7 @@ public:
 			}
                 // fall through
             case State::Waiting:
-                if (!checkWaiting(batch_error::bsub_failed)) return false; 
+                if (!checkWaiting(error::bsub_failed)) return false; 
                 // fall through
             case State::Done: {
 				auto start = res.out.find_first_of("<");
@@ -698,7 +764,7 @@ public:
 			}
                 // fall through
             case State::Waiting:
-                if (!checkWaiting(batch_error::bjob_u_all_failed)) return false; 
+                if (!checkWaiting(error::bjob_u_all_failed)) return false; 
                 // fall through
             case State::Done: 
 				Lsf::parseJobs(res.out, insert);
@@ -721,7 +787,7 @@ public:
 			}
 			// fall through
 			case State::Waiting:
-                if (!checkWaiting(batch_error::lsid_failed)) return false; 
+                if (!checkWaiting(error::lsid_failed)) return false; 
 				// fall through
 			case State::Done:
 				info.name = std::string("lfs");
@@ -744,8 +810,6 @@ std::function<bool()> Lsf::changeNodeState(const std::string& name, NodeChangeSt
 std::function<runJob_f> Lsf::runJob(const JobOptions& opts) { return RunJob(_func, opts); }
 std::function<bool(bool&)> Lsf::detect() { return Detect(_func); }
 std::function<bool(BatchInfo&)> Lsf::getBatchInfo() { return GetBatchInfo(_func); }
-
-
 
 }
 }
