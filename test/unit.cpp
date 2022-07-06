@@ -10,6 +10,7 @@
 #include "batchsystem/json.h"
 #include "batchsystem/slurm.h"
 #include "batchsystem/pbs.h"
+#include "batchsystem/error.h"
 
 
 using namespace cw::batch;
@@ -30,6 +31,12 @@ std::string readFile(const std::string& path) {
 }
 
 }
+
+TEST_CASE("Error code", "[error]") {
+    REQUIRE(static_cast<std::error_code>(batch_error::qsig_s_resume_failed) == batch_condition::command_failed);
+    REQUIRE(static_cast<std::error_code>(batch_error::qsig_s_resume_failed) != batch_condition::invalid_argument);
+}
+
 
 TEST_CASE("Slurm jobs", "[slurm][jobs]") {
     std::vector<Job> jobs;

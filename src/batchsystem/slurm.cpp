@@ -661,7 +661,7 @@ public:
 					case NodeChangeState::Resume: stateString="RESUME"; break;
 					case NodeChangeState::Drain: stateString="DRAIN"; break;
 					case NodeChangeState::Undrain: stateString="UNDRAIN"; break;
-					default: throw std::system_error(error_type::node_change_state_out_of_enum);
+					default: throw std::system_error(batch_error::node_change_state_out_of_enum);
 				} 
 				std::vector<std::string> args{"update", "NodeName=" + name, "State="+stateString};
 				// add reason if needed and force default if empty as needed by slurm!
@@ -672,7 +672,7 @@ public:
 			}
 			// fall through
             case State::Waiting:
-                if (!checkWaiting(error_type::scontrol_update_NodeName_State_failed)) return false; 
+                if (!checkWaiting(batch_error::scontrol_update_NodeName_State_failed)) return false; 
                 // fall through
             case State::Done:
 				return true;
@@ -696,7 +696,7 @@ public:
                 state=State::Waiting;
                 // fall through
             case State::Waiting:
-                if (!checkWaiting(error_type::scontrol_update_NodeName_Comment_failed)) return false; 
+                if (!checkWaiting(batch_error::scontrol_update_NodeName_Comment_failed)) return false; 
                 // fall through
             case State::Done:
 				return true;
@@ -718,7 +718,7 @@ public:
                 state=State::Waiting;
                 // fall through
             case State::Waiting:
-                if (!checkWaiting(error_type::scontrol_release_failed)) return false; 
+                if (!checkWaiting(batch_error::scontrol_release_failed)) return false; 
                 // fall through
             case State::Done:
 				return true;
@@ -740,7 +740,7 @@ public:
                 state=State::Waiting;
                 // fall through
             case State::Waiting:
-                if (!checkWaiting(error_type::scontrol_hold_failed)) return false; 
+                if (!checkWaiting(batch_error::scontrol_hold_failed)) return false; 
                 // fall through
             case State::Done:
 				return true;
@@ -762,7 +762,7 @@ public:
                 state=State::Waiting;
                 // fall through
             case State::Waiting:
-                if (!checkWaiting(error_type::scancel_failed)) return false; 
+                if (!checkWaiting(batch_error::scancel_failed)) return false; 
                 // fall through
             case State::Done:
 				return true;
@@ -784,7 +784,7 @@ public:
                 state=State::Waiting;
                 // fall through
             case State::Waiting:
-                if (!checkWaiting(error_type::scancel_u_failed)) return false; 
+                if (!checkWaiting(batch_error::scancel_u_failed)) return false; 
                 // fall through
             case State::Done:
 				return true;
@@ -806,7 +806,7 @@ public:
                 state=State::Waiting;
                 // fall through
             case State::Waiting:
-                if (!checkWaiting(error_type::scontrol_suspend_failed)) return false; 
+                if (!checkWaiting(batch_error::scontrol_suspend_failed)) return false; 
                 // fall through
             case State::Done:
 				return true;
@@ -828,7 +828,7 @@ public:
                 state=State::Waiting;
                 // fall through
             case State::Waiting:
-                if (!checkWaiting(error_type::scontrol_resume_failed)) return false; 
+                if (!checkWaiting(batch_error::scontrol_resume_failed)) return false; 
                 // fall through
             case State::Done:
 				return true;
@@ -849,19 +849,19 @@ public:
             case State::Starting: {
 				std::string stateStr;
 				switch (queueState) {
-					case QueueState::Unknown: throw std::system_error(error_type::queue_state_unknown_not_supported);
+					case QueueState::Unknown: throw std::system_error(batch_error::queue_state_unknown_not_supported);
 					case QueueState::Open: stateStr="UP"; break;
 					case QueueState::Closed: stateStr="DOWN"; break;
 					case QueueState::Inactive: stateStr="INACTIVE"; break;
 					case QueueState::Draining: stateStr="DRAIN"; break;
-					default: throw std::system_error(error_type::queue_state_out_of_enum);
+					default: throw std::system_error(batch_error::queue_state_out_of_enum);
 				}
 				cmd(res, {"scontrol", {"update", "PartitionName=" + name, "State="+stateStr}, {}, cmdopt::none});
                 state=State::Waiting;
 			}
 			// fall through
             case State::Waiting:
-                if (!checkWaiting(error_type::scontrol_update_PartitionName_State_failed)) return false; 
+                if (!checkWaiting(batch_error::scontrol_update_PartitionName_State_failed)) return false; 
                 // fall through
             case State::Done: {
 				return true;
@@ -931,7 +931,7 @@ public:
                 state=State::Waiting;
                 // fall through
             case State::Waiting:
-                if (!checkWaiting(hold ? error_type::scontrol_requeuehold_failed : error_type::scontrol_requeue_failed)) return false; 
+                if (!checkWaiting(hold ? batch_error::scontrol_requeuehold_failed : batch_error::scontrol_requeue_failed)) return false; 
                 // fall through
             case State::Done:
 				return true;
@@ -960,7 +960,7 @@ public:
 			}
                 // fall through
             case State::Waiting:
-                if (!checkWaiting(error_type::scontrol_show_node_failed)) return false; 
+                if (!checkWaiting(batch_error::scontrol_show_node_failed)) return false; 
                 // fall through
             case State::Done: 
 				Slurm::parseNodes(res.out, insert);
@@ -982,7 +982,7 @@ public:
 			}
                 // fall through
             case State::Waiting:
-                if (!checkWaiting(error_type::scontrol_show_partition_all_failed)) return false; 
+                if (!checkWaiting(batch_error::scontrol_show_partition_all_failed)) return false; 
                 // fall through
             case State::Done: 
 				Slurm::parseQueues(res.out, insert);
@@ -1022,7 +1022,7 @@ public:
 			}
                 // fall through
             case State::Waiting:
-                if (!checkWaiting(error_type::sbatch_failed)) return false; 
+                if (!checkWaiting(batch_error::sbatch_failed)) return false; 
                 // fall through
             case State::Done: 
 				jobName = trim_copy(res.out);
@@ -1057,7 +1057,7 @@ public:
 			case Slurm::job_mode::unchecked: state = State::SacctCheckStart; break;
 			case Slurm::job_mode::scontrol: state = State::ScontrolStart; break;
 			case Slurm::job_mode::sacct: state = State::SacctStart; break;
-			default: throw std::system_error(error_type::slurm_job_mode_out_of_enum);
+			default: throw std::system_error(batch_error::slurm_job_mode_out_of_enum);
 		}
 	}
 
@@ -1098,7 +1098,7 @@ public:
 				if (jobs.exit==not_finished) {
 					return false;
 				} else if (jobs.exit!=0) {
-					throw std::system_error(error_type::sacct_X_P_format_ALL_failed);
+					throw std::system_error(batch_error::sacct_X_P_format_ALL_failed);
 				}
 				state=State::SacctDone;
 			}
@@ -1117,7 +1117,7 @@ public:
 				if (jobs.exit==not_finished) {
 					return false;
 				} else if (jobs.exit!=0) {
-					throw std::system_error(error_type::scontrol_show_job_all_failed);
+					throw std::system_error(batch_error::scontrol_show_job_all_failed);
 				}
 				state=State::ScontrolDone;
 			}
@@ -1158,9 +1158,9 @@ public:
 				if (version.exit==0 && config.exit==0) {
 					state = State::Done;
 				} else if (version.exit>0) {
-					throw std::system_error(error_type::scontrol_version_failed);
+					throw std::system_error(batch_error::scontrol_version_failed);
 				} else if (config.exit>0) {
-					throw std::system_error(error_type::scontrol_show_config_failed);
+					throw std::system_error(batch_error::scontrol_show_config_failed);
 				} else {
 					return false;
 				}

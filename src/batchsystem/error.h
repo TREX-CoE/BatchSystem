@@ -9,7 +9,7 @@
 namespace cw {
 namespace batch {
 
-enum class error_type {
+enum class batch_error {
     pbsnodes_x_xml_parse_error = 1,
     qselect_u_failed,
     qdel_failed,
@@ -64,9 +64,17 @@ enum class error_type {
     system_out_of_enum,
 };
 
+
+enum class batch_condition {
+    command_failed = 1,
+    invalid_argument,
+};
+
 const std::error_category& batchsystem_category() noexcept;
 
-std::error_code make_error_code(error_type e);
+std::error_code make_error_code(batch_error e);
+
+std::error_condition make_error_condition(batch_condition e);
 
 }
 }
@@ -74,7 +82,10 @@ std::error_code make_error_code(error_type e);
 namespace std
 {
   template <>
-  struct is_error_code_enum<cw::batch::error_type> : true_type {};
+  struct is_error_code_enum<cw::batch::batch_error> : true_type {};
+
+  template <>
+  struct is_error_condition_enum<cw::batch::batch_condition> : true_type {};
 }
 
 #endif /* BOOST_PROXY_ERROR */

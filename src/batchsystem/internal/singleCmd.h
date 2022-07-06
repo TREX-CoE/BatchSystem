@@ -15,7 +15,7 @@ protected:
     };
     State state = State::Starting;
 
-	bool checkWaiting(error_type e) {
+	bool checkWaiting(batch_error e) {
 		if (res.exit==not_finished) {
 			return false;
 		} else if (res.exit!=0) {
