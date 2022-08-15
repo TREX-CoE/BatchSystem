@@ -49,6 +49,7 @@ public:
 	};
 private:
 	cmd_f _func;
+	cmd_f2 _cmd;
 	/**
 	 * @brief Which command to use for getting job info
 	 * 
@@ -66,6 +67,7 @@ public:
 	 */
 	Slurm(cmd_f func);
 
+	void set_cmd2(cmd_f2 func) { _cmd = func; }
 
 	static void parseQueues(const std::string& output, std::function<getQueues_inserter_f> insert);
 	
@@ -152,6 +154,9 @@ public:
 	 */
 	std::function<bool(bool&)> checkSacct();
 
+
+
+	void getBatchInfo(std::function<void(BatchInfo, std::error_code ec)> cb);
 
 	bool getNodes(supported_t) override;
 	bool getQueues(supported_t) override;

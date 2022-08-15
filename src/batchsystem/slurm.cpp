@@ -1204,52 +1204,6 @@ public:
     }
 };
 
-class GetBatchInfo {
-private:
-    cmd_f& cmd;
-    Result version;
-    Result config;
-    enum class State {
-        Starting,
-        Waiting,
-		Done,
-    };
-    State state = State::Starting;
-public:
-    GetBatchInfo(cmd_f& cmd_): cmd(cmd_) {}
-
-    bool operator()(BatchInfo& info) {
-        switch (state) {
-			case State::Starting: {
-				// start in parallel
-				cmd(version, {"sinfo", {"--version"}, {}, cmdopt::capture_stdout});
-				cmd(config, {"scontrol", {"show", "config"}, {}, cmdopt::capture_stdout});
-				state = State::Waiting;
-			}
-			// fall through
-			case State::Waiting: {
-				if (version.exit==0 && config.exit==0) {
-					state = State::Done;
-				} else if (version.exit>0) {
-					throw std::system_error(error::scontrol_version_failed);
-				} else if (config.exit>0) {
-					throw std::system_error(error::scontrol_show_config_failed);
-				} else {
-					return false;
-				}
-			}
-			// fall through
-			case State::Done:
-				info.name = std::string("slurm");
-				info.version = trim_copy(version.out);
-				info.info["config"] = trim_copy(config.out);
-				return true;
-			default: assert(false && "invalid state");
-        }
-    }
-};
-
-
 std::function<getNodes_f> Slurm::getNodes(std::vector<std::string> filterNodes) { return GetNodes(_func, filterNodes); }
 std::function<getJobs_f> Slurm::getJobs(std::vector<std::string> filterJobs) { return GetJobs(_func, getJobMode(), "PD,R,RQ,S", filterJobs); }
 std::function<getQueues_f> Slurm::getQueues() { return GetQueues(_func); }
@@ -1266,7 +1220,41 @@ std::function<bool()> Slurm::changeNodeState(const std::string& name, NodeChange
 std::function<runJob_f> Slurm::runJob(const JobOptions& opts) { return RunJob(_func, opts); }
 std::function<bool(bool&)> Slurm::detect() { return Detect(_func); }
 std::function<bool(bool&)> Slurm::checkSacct() { return CheckSacct(_func); }
-std::function<bool(BatchInfo&)> Slurm::getBatchInfo() { return GetBatchInfo(_func); }
+
+
+std::function<bool(BatchInfo&)> Slurm::getBatchInfo() { return nullptr; }
+
+
+struct BatchInfoState {
+	Result version;
+    Result config;
+};
+void Slurm::getBatchInfo(std::function<void(BatchInfo, std::error_code ec)> cb) {
+	auto state = std::shared_ptr<BatchInfoState>(new BatchInfoState());
+	auto cb1 = [state, cb](){
+		BatchInfo info;
+		if (state->version.exit==0 && state->config.exit==0) {
+			info.name = std::string("slurm");
+			info.version = trim_copy(state->version.out);
+			info.info["config"] = trim_copy(state->config.out);
+			cb(info, {});
+		} else if (state->version.exit>0) {
+			cb(info, error::scontrol_version_failed);
+			return;
+		} else if (state->config.exit>0) {
+			cb(info, error::scontrol_show_config_failed);
+			return;
+		}
+	};
+	_cmd({"sinfo", {"--version"}, {}, cmdopt::capture_stdout}, [state, cb1](auto res){
+		state->version = res;
+		cb1();
+	});
+	_cmd({"scontrol", {"show", "config"}, {}, cmdopt::capture_stdout}, [state, cb1](auto res){
+		state->config = res;
+		cb1();
+	});
+}
 
 }
 }

@@ -20,6 +20,7 @@
 #include <limits>
 #include <cstdint>
 #include <functional>
+#include <system_error>
 
 #include "policyOptional.h"
 
@@ -65,6 +66,7 @@ enum exitcode_marker {
  */
 struct Result {
     int exit = not_finished; //!< exit code of command (\ref not_finished if not done yet)
+	std::error_code ec; //!< error code
     std::string out; //!< captured stdout
     std::string err; //!< captured stderr
 };
@@ -103,6 +105,9 @@ struct Cmd {
  * \param cmd Command, arguments and options to run command
  */
 using cmd_f = std::function<void(Result& res, const Cmd& cmd)>;
+
+
+using cmd_f2 = std::function<void(Cmd cmd, std::function<void(Result)> res)>;
 
 
 /**
@@ -486,6 +491,7 @@ public:
 	 */
 	virtual std::function<getBatchInfo_f> getBatchInfo();
 	virtual bool getBatchInfo(supported_t);
+	// TODO virtual void getBatchInfo(std::function<void(BatchInfo, std::error_code ec)> cb);
 
 	/**
 	 * \brief Delete job by Id
@@ -604,6 +610,7 @@ public:
 	 */
 	virtual std::function<bool()> rescheduleRunningJobInQueue(const std::string& job, bool force);
 	virtual bool rescheduleRunningJobInQueue(supported_t);
+
 };
 
 }
