@@ -23,6 +23,7 @@ enum class error {
     bsub_failed,
     bjob_u_all_failed,
     lsid_failed,
+	bsub_cannot_parse_job_name,
 };
 
 const std::error_category& error_category() noexcept;
@@ -35,26 +36,27 @@ std::error_code make_error_code(error e);
  */
 class Lsf : public BatchInterface {
 private:
-	cmd_f _func;
+	cmd_f _cmd;
 public:
 	Lsf(cmd_f func);
 
-	static void parseNodes(const std::string& output, std::function<getNodes_inserter_f> insert);
-	static void parseJobs(const std::string& output, std::function<getJobs_inserter_f> insert);
-	static void parseQueues(const std::string& output, std::function<getQueues_inserter_f> insert);
+	static void parseNodes(const std::string& output, std::vector<Node>& nodes);
+	static void parseJobs(const std::string& output, std::vector<Job>& jobs);
+	static void parseQueues(const std::string& output, std::vector<Queue>& queues);
 
-	std::function<getNodes_f> getNodes(std::vector<std::string> filterNodes) override;
-	std::function<getJobs_f> getJobs(std::vector<std::string> filterJobs) override;
-	std::function<getQueues_f> getQueues() override;
-	std::function<bool()> setQueueState(const std::string& name, QueueState state, bool force) override;
-	std::function<bool()> deleteJobByUser(const std::string& user, bool force) override;
-	std::function<bool()> deleteJobById(const std::string& job, bool force) override;
-	std::function<bool()> holdJob(const std::string& job, bool force) override;
-	std::function<bool()> releaseJob(const std::string& job, bool force) override;
-	std::function<bool()> changeNodeState(const std::string& name, NodeChangeState state, bool force, const std::string& reason, bool appendReason) override;
-	std::function<bool(std::string& jobName)> runJob(const JobOptions& opts) override;
-	std::function<detect_f> detect() override;
-	std::function<getBatchInfo_f> getBatchInfo() override;
+	void getNodes(std::vector<std::string> filterNodes, std::function<void(std::vector<Node> nodes, std::error_code ec)> cb) override;
+	void getJobs(std::vector<std::string> filterJobs, std::function<void(std::vector<Job> jobs, std::error_code ec)> cb) override;
+	void getQueues(std::function<void(std::vector<Queue> queues, std::error_code ec)> cb) override;
+	void setQueueState(std::string name, QueueState state, bool force, std::function<void(std::error_code ec)> cb) override;
+	void deleteJobByUser(std::string user, bool force, std::function<void(std::error_code ec)> cb) override;
+	void deleteJobById(std::string job, bool force, std::function<void(std::error_code ec)> cb) override;
+	void holdJob(std::string job, bool force, std::function<void(std::error_code ec)> cb) override;
+	void releaseJob(std::string job, bool force, std::function<void(std::error_code ec)> cb) override;
+	void changeNodeState(std::string name, NodeChangeState state, bool force, std::string reason, bool appendReason, std::function<void(std::error_code ec)> cb) override;
+	void runJob(JobOptions opts, std::function<void(std::string jobName, std::error_code ec)> cb) override;
+	void detect(std::function<void(bool has_batch, std::error_code ec)> cb) override;
+	void getBatchInfo(std::function<void(BatchInfo info, std::error_code ec)> cb) override;
+
 
 
 	bool getNodes(supported_t) override;

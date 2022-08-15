@@ -24,24 +24,22 @@ bool BatchInterface::resumeJob(supported_t) { return false; }
 bool BatchInterface::rescheduleRunningJobInQueue(supported_t) { return false; }
 
 
-std::function<getNodes_f> BatchInterface::getNodes(std::vector<std::string>) { throw NotImplemented(__func__); }
-std::function<getJobs_f> BatchInterface::getJobs(std::vector<std::string>) { throw NotImplemented(__func__); }
-std::function<getQueues_f> BatchInterface::getQueues() { throw NotImplemented(__func__); }
-std::function<bool()> BatchInterface::rescheduleRunningJobInQueue(const std::string&, bool) { throw NotImplemented(__func__); }
-std::function<bool()> BatchInterface::setQueueState(const std::string&, QueueState, bool) { throw NotImplemented(__func__); }
-std::function<bool()> BatchInterface::resumeJob(const std::string&, bool) { throw NotImplemented(__func__); }
-std::function<bool()> BatchInterface::suspendJob(const std::string&, bool) { throw NotImplemented(__func__); }
-std::function<bool()> BatchInterface::deleteJobByUser(const std::string&, bool) { throw NotImplemented(__func__); }
-std::function<bool()> BatchInterface::deleteJobById(const std::string&, bool) { throw NotImplemented(__func__); }
-std::function<bool()> BatchInterface::holdJob(const std::string&, bool) { throw NotImplemented(__func__); }
-std::function<bool()> BatchInterface::releaseJob(const std::string&, bool) { throw NotImplemented(__func__); }
-std::function<bool()> BatchInterface::setNodeComment(const std::string&, bool, const std::string&, bool) { throw NotImplemented(__func__); }
-std::function<bool()> BatchInterface::changeNodeState(const std::string&, NodeChangeState, bool, const std::string&, bool) { throw NotImplemented(__func__); }
-std::function<runJob_f> BatchInterface::runJob(const JobOptions&) { throw NotImplemented(__func__); }
-std::function<detect_f> BatchInterface::detect() { throw NotImplemented(__func__); }
-std::function<getBatchInfo_f> BatchInterface::getBatchInfo() { throw NotImplemented(__func__); }
-
-
+void BatchInterface::getNodes(std::vector<std::string>, std::function<void(std::vector<Node> nodes, std::error_code ec)>)  { throw NotImplemented(__func__); }
+void BatchInterface::getJobs(std::vector<std::string>, std::function<void(std::vector<Job> jobs, std::error_code ec)>)  { throw NotImplemented(__func__); }
+void BatchInterface::getQueues(std::function<void(std::vector<Queue> queues, std::error_code ec)>)  { throw NotImplemented(__func__); }
+void BatchInterface::rescheduleRunningJobInQueue(std::string, bool, std::function<void(std::error_code ec)>)  { throw NotImplemented(__func__); }
+void BatchInterface::setQueueState(std::string, QueueState, bool, std::function<void(std::error_code ec)>)  { throw NotImplemented(__func__); }
+void BatchInterface::resumeJob(std::string, bool, std::function<void(std::error_code ec)>)  { throw NotImplemented(__func__); }
+void BatchInterface::suspendJob(std::string, bool, std::function<void(std::error_code ec)>)  { throw NotImplemented(__func__); }
+void BatchInterface::deleteJobByUser(std::string, bool, std::function<void(std::error_code ec)>)  { throw NotImplemented(__func__); }
+void BatchInterface::deleteJobById(std::string, bool, std::function<void(std::error_code ec)>)  { throw NotImplemented(__func__); }
+void BatchInterface::holdJob(std::string, bool, std::function<void(std::error_code ec)>)  { throw NotImplemented(__func__); }
+void BatchInterface::releaseJob(std::string, bool, std::function<void(std::error_code ec)>)  { throw NotImplemented(__func__); }
+void BatchInterface::setNodeComment(std::string, bool, std::string, bool, std::function<void(std::error_code ec)>)  { throw NotImplemented(__func__); }
+void BatchInterface::changeNodeState(std::string, NodeChangeState, bool, std::string, bool, std::function<void(std::error_code ec)>)  { throw NotImplemented(__func__); }
+void BatchInterface::runJob(JobOptions, std::function<void(std::string jobName, std::error_code ec)>)  { throw NotImplemented(__func__); }
+void BatchInterface::detect(std::function<void(bool has_batch, std::error_code ec)>)  { throw NotImplemented(__func__); }
+void BatchInterface::getBatchInfo(std::function<void(BatchInfo info, std::error_code ec)>)  { throw NotImplemented(__func__); }
 
 const char* to_cstr(const JobState& state) {
 	switch (state) {

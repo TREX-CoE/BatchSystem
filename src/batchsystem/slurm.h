@@ -49,7 +49,6 @@ public:
 	};
 private:
 	cmd_f _func;
-	cmd_f2 _cmd;
 	/**
 	 * @brief Which command to use for getting job info
 	 * 
@@ -67,9 +66,7 @@ public:
 	 */
 	Slurm(cmd_f func);
 
-	void set_cmd2(cmd_f2 func) { _cmd = func; }
-
-	static void parseQueues(const std::string& output, std::function<getQueues_inserter_f> insert);
+	static void parseQueues(const std::string& output, std::vector<Queue>& queues);
 	
 	/**
 	 * \brief Set to use sacct or scontrol
@@ -109,12 +106,12 @@ public:
 	 */
 	static void parseShowJob(const std::string& output, std::function<bool(std::map<std::string, std::string>)> insert);
 
-	static void parseNodes(const std::string& output, const std::function<getNodes_inserter_f>& insert);
+	static void parseNodes(const std::string& output, std::vector<Node>& nodes);
 
-	static void parseJobsLegacy(const std::string& output, std::function<getJobs_inserter_f> insert);
-	static void parseJobsSacct(const std::string& output, std::function<getJobs_inserter_f> insert);
+	static void parseJobsLegacy(const std::string& output, std::vector<Job>& jobs);
+	static void parseJobsSacct(const std::string& output, std::vector<Job>& jobs);
 
-	std::function<getNodes_f> getNodes(std::vector<std::string> filterNodes) override;
+	void getNodes(std::vector<std::string> filterNodes, std::function<void(std::vector<Node> nodes, std::error_code ec)> cb) override;
 
 	/**
 	 * \brief Get the Jobs object
@@ -124,26 +121,30 @@ public:
 	 * 
 	 * Uses a filter to only get active jobs.
 	 */
-	std::function<getJobs_f> getJobs(std::vector<std::string> filterJobs) override;
-	std::function<getQueues_f> getQueues() override;
-	std::function<bool()> rescheduleRunningJobInQueue(const std::string& job, bool force) override;
-	std::function<bool()> setQueueState(const std::string& name, QueueState state, bool force) override;
-	std::function<bool()> resumeJob(const std::string& job, bool force) override;
-	std::function<bool()> suspendJob(const std::string& job, bool force) override;
-	std::function<bool()> deleteJobByUser(const std::string& user, bool force) override;
-	std::function<bool()> deleteJobById(const std::string& job, bool force) override;
-	std::function<bool()> holdJob(const std::string& job, bool force) override;
-	std::function<bool()> releaseJob(const std::string& job, bool force) override;
-	std::function<bool()> setNodeComment(const std::string& name, bool force, const std::string& comment, bool appendComment) override;
+	void getJobs(std::vector<std::string> filterJobs, std::function<void(std::vector<Job> jobs, std::error_code ec)> cb) override;
+	
+	
+	void getQueues(std::function<void(std::vector<Queue> queues, std::error_code ec)> cb) override;
+	void rescheduleRunningJobInQueue(std::string job, bool force, std::function<void(std::error_code ec)> cb) override;
+	void setQueueState(std::string name, QueueState state, bool force, std::function<void(std::error_code ec)> cb) override;
+	void resumeJob(std::string job, bool force, std::function<void(std::error_code ec)> cb) override;
+	void suspendJob(std::string job, bool force, std::function<void(std::error_code ec)> cb) override;
+	void deleteJobByUser(std::string user, bool force, std::function<void(std::error_code ec)> cb) override;
+	void deleteJobById(std::string job, bool force, std::function<void(std::error_code ec)> cb) override;
+	void holdJob(std::string job, bool force, std::function<void(std::error_code ec)> cb) override;
+	void releaseJob(std::string job, bool force, std::function<void(std::error_code ec)> cb) override;
+	void setNodeComment(std::string name, bool force, std::string comment, bool appendComment, std::function<void(std::error_code ec)> cb) override;
 	/**
 	 * \brief Change Node state
 	 * 
 	 * \note Slurm needs a reason for changing a node to a down / draining state, so a default is passed if no reason is given by user.
 	 */
-	std::function<bool()> changeNodeState(const std::string& name, NodeChangeState state, bool force, const std::string& reason, bool appendReason) override;
-	std::function<runJob_f> runJob(const JobOptions& opts) override;
-	std::function<bool(bool&)> detect() override;
-	std::function<bool(BatchInfo&)> getBatchInfo() override;
+	void changeNodeState(std::string name, NodeChangeState state, bool force, std::string reason, bool appendReason, std::function<void(std::error_code ec)> cb) override;
+	void runJob(JobOptions opts, std::function<void(std::string jobName, std::error_code ec)> cb) override;
+	void detect(std::function<void(bool has_batch, std::error_code ec)> cb) override;
+	void getBatchInfo(std::function<void(BatchInfo info, std::error_code ec)> cb) override;
+
+	
 
 	/**
 	 * \brief Check if sacct executable is present and can be queried
@@ -152,7 +153,7 @@ public:
 	 * 
 	 * \param[out] sacctSupported Wether command succeeded with 0 exit code
 	 */
-	std::function<bool(bool&)> checkSacct();
+	void checkSacct(std::function<void(bool has_sacct, std::error_code ec)> cb);
 
 
 

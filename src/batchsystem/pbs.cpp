@@ -12,7 +12,6 @@
 #include "batchsystem/internal/splitString.h"
 #include "batchsystem/internal/timeToEpoch.h"
 #include "batchsystem/internal/byteParse.h"
-#include "batchsystem/internal/singleCmd.h"
 
 using namespace cw::batch::internal;
 
@@ -111,7 +110,7 @@ std::error_code make_error_code(error e) {
   return {static_cast<int>(e), error_cat};
 }
 
-Pbs::Pbs(cmd_f func): _func(func) {}
+Pbs::Pbs(cmd_f func): _cmd(func) {}
 
 bool Pbs::getNodes(supported_t) { return true; }
 bool Pbs::getQueues(supported_t) { return true; }
@@ -130,7 +129,7 @@ bool Pbs::resumeJob(supported_t) { return true; }
 bool Pbs::rescheduleRunningJobInQueue(supported_t) { return true; }
 
 
-void Pbs::parseNodes(const std::string& output, std::function<getNodes_inserter_f> insert) {
+void Pbs::parseNodes(const std::string& output, std::vector<Node>& nodes) {
 	xmlpp::DomParser parser;
 	std::string s(output);
 	ltrim(s); // skip empty lines etc.
@@ -145,9 +144,9 @@ void Pbs::parseNodes(const std::string& output, std::function<getNodes_inserter_
 		throw std::system_error(error::pbsnodes_x_xml_parse_error, e.what());
 	}
 	const auto root = parser.get_document()->get_root_node();
-	const auto nodes = root->find("/Data/Node");
+	const auto nodes_elems = root->find("/Data/Node");
 
-	for (const auto& node : nodes)
+	for (const auto& node : nodes_elems)
 	{
 		Node batchNode = {};
 		for (const auto& child : node->get_children()) {
@@ -208,12 +207,12 @@ void Pbs::parseNodes(const std::string& output, std::function<getNodes_inserter_
 			
 		}
 
-		if (!insert(batchNode)) return;
+		nodes.push_back(batchNode);
 	}
 }
 
 // see man pbs_job_attributes 
-void Pbs::parseJobs(const std::string& output, std::function<getJobs_inserter_f> insert) {
+void Pbs::parseJobs(const std::string& output, std::vector<Job>& jobs) {
 	xmlpp::DomParser parser;
 
 	try {
@@ -388,13 +387,13 @@ void Pbs::parseJobs(const std::string& output, std::function<getJobs_inserter_f>
 				job.submitArgs = xml_node_to_str(child);
 			}
 		}
-		if (!insert(job)) return;
+		jobs.push_back(job);
 	}
 }
 
 
 
-void Pbs::parseQueues(const std::string& output, std::function<getQueues_inserter_f> insert) {
+void Pbs::parseQueues(const std::string& output, std::vector<Queue>& queues) {
 	std::stringstream commandResult(output);
 
 	std::string tmp, queueType;
@@ -421,7 +420,7 @@ void Pbs::parseQueues(const std::string& output, std::function<getQueues_inserte
 			{
 				queue.state=QueueState::Closed;
 			}
-			if (!insert(queue)) return;
+			queues.push_back(queue);
 		}
 	};
 
@@ -523,483 +522,194 @@ void Pbs::parseQueues(const std::string& output, std::function<getQueues_inserte
 	insertQueue();
 }
 
+void Pbs::getNodes(std::vector<std::string> filterNodes, std::function<void(std::vector<Node> nodes, std::error_code ec)> cb) {
+	std::vector<std::string> args{"-x"};
+	for (const auto& n : filterNodes) args.push_back(n);
+	_cmd({"pbsnodes", args, {}, cmdopt::capture_stdout}, [cb](auto res){
+		std::vector<Node> nodes;
+		if (!res.ec && res.exit == 0) Pbs::parseNodes(res.out, nodes);
+		cb(nodes, res.exit != 0 ? error::pbsnodes_x_failed : res.ec);
+	});
+}
 
-class DeleteJobByUser {
-private:
-    cmd_f& cmd;
-	std::string user;
-	bool force;
-    Result qselect;
-    Result qdel;
-    enum class State {
-        QselectStart,
-        QselectWaiting,
-        QdelStart,
-		QdelWaiting,
-		Done,
-    };
-    State state = State::QselectStart;
-public:
-    DeleteJobByUser(cmd_f& cmd_, const std::string& user_, bool force_): cmd(cmd_), user(user_), force(force_) {}
+void Pbs::getJobs(std::vector<std::string> filterJobs, std::function<void(std::vector<Job> jobs, std::error_code ec)> cb) {
+	(void)filterJobs;	
+	_cmd({"qstat", {"-f", "-x"}, {}, cmdopt::capture_stdout}, [cb](auto res){
+		std::vector<Job> jobs;
+		if (!res.ec && res.exit == 0) Pbs::parseJobs(res.out, jobs);
+		cb(jobs, res.exit != 0 ? error::qstat_f_x_failed : res.ec);
+	});
+}
 
-    bool operator()() {
-        switch (state) {
-			case State::QselectStart: {
-				// qdel -u only supported by SGE https://stackoverflow.com/questions/28857807/use-qdel-to-delete-all-my-jobs-at-once-not-one-at-a-time
-				// instead manually query jobs of user first and then delete them
-				cmd(qselect, {"qselect", {"-u", user}, {}, cmdopt::capture_stdout});
-				state = State::QselectWaiting;
-			}
-			// fall through
-			case State::QselectWaiting: {
-                if (qselect.exit==not_finished) {
-                    return false;
-                } else if (qselect.exit==0) {
-					state=State::QdelStart;
-                } else {
-					throw std::system_error(error::qselect_u_failed);
-				}
-			}
-			// fall through
-			case State::QdelStart: {
-				std::vector<std::string> args;
-				splitString(qselect.out, "\n", [&](size_t start, size_t end) {
-					std::string job=trim_copy(qselect.out.substr(start, end));
-					if (!job.empty()) args.push_back(std::move(job));
-					return true;
-				});
-				if (force) args.push_back("-p"); // purge forces job to be deleted
+void Pbs::getQueues(std::function<void(std::vector<Queue> queues, std::error_code ec)> cb) {
+	_cmd({"qstat", {"-Qf"}, {}, cmdopt::capture_stdout}, [cb](auto res){
+		std::vector<Queue> queues;
+		if (!res.ec && res.exit == 0) Pbs::parseQueues(res.out, queues);
+		cb(queues, res.exit != 0 ? error::qstat_Qf_failed : res.ec);
+	});
+}
 
-				cmd(qselect, {"qdel", args, {}, cmdopt::none});
-				state = State::QdelWaiting;
-			}
-			// fall through
-			case State::QdelWaiting: {
-				if (qdel.exit==not_finished) {
-					return false;
-				} else if (qdel.exit!=0) {
-					throw std::system_error(error::qdel_failed);
-				}
-				state=State::Done;
-			}
-			// fall through
-			case State::Done: {
-				return true;
-			}
-			default: assert(false && "invalid state");
-        }
-    }
-};
+void Pbs::rescheduleRunningJobInQueue(std::string job, bool force, std::function<void(std::error_code ec)> cb) {
+	std::vector<std::string> args;
+	if (force) args.push_back("-f");
+	args.push_back(job);
+	_cmd({"qrerun", args, {}, cmdopt::none}, [cb](auto res){
+		cb(res.exit != 0 ? error::qrerun_failed : res.ec);
+	});
+}
 
-
-class ChangeNodeState: public SingleCmd {
-private:
-	std::string name;
-	NodeChangeState nodeState;
-	bool force;
-	std::string reason;
-	bool appendReason;
-public:
-	ChangeNodeState(cmd_f& cmd_, const std::string& name_, NodeChangeState nodeState_, bool force_, const std::string& reason_, bool appendReason_): SingleCmd(cmd_), name(name_), nodeState(nodeState_), force(force_), reason(reason_), appendReason(appendReason_) {}
-    bool operator()() {
-        switch (state) {
-            case State::Starting: {
-				std::string stateArg;
-				switch (nodeState) {
-					case NodeChangeState::Resume: stateArg="-r"; break;
-					case NodeChangeState::Drain: stateArg="-o"; break;
-					case NodeChangeState::Undrain: stateArg="-c"; break;
-					default: throw std::system_error(cw::batch::error::node_change_state_out_of_enum);
-
-				}
-
-                cmd(res, {"pbsnodes", {stateArg, name, appendReason ? "-A" : "-N", reason}, {}, cmdopt::none});
-                state=State::Waiting;
-			}
-			// fall through
-            case State::Waiting:
-                if (!checkWaiting(error::pbsnodes_change_node_state_failed)) return false; 
-                // fall through
-            case State::Done:
-				return true;
-			default: assert(false && "invalid state");
-        }
-    }
-};
-
-class SetNodeComment: public SingleCmd {
-private:
-	std::string name;
-	bool force;
-	std::string comment;
-	bool appendComment;
-public:
-	SetNodeComment(cmd_f& cmd_, const std::string& name_, bool force_, const std::string& comment_, bool appendComment_): SingleCmd(cmd_), name(name_), force(force_), comment(comment_), appendComment(appendComment_) {}
-    bool operator()() {
-        switch (state) {
-            case State::Starting:
-                cmd(res, {"pbsnodes", {name, appendComment ? "-A" : "-N", comment}, {}, cmdopt::none});
-                state=State::Waiting;
-                // fall through
-            case State::Waiting:
-                if (!checkWaiting(error::pbsnodes_set_comment_failed)) return false; 
-                // fall through
-            case State::Done:
-				return true;
-			default: assert(false && "invalid state");
-        }
-    }
-};
-
-class ReleaseJob: public SingleCmd {
-private:
-	std::string job;
-	bool force;
-public:
-	ReleaseJob(cmd_f& cmd_, const std::string& job_, bool force_): SingleCmd(cmd_), job(job_), force(force_) {}
-    bool operator()() {
-        switch (state) {
-            case State::Starting:
-                cmd(res, {"qrls", {job}, {}, cmdopt::none});
-                state=State::Waiting;
-                // fall through
-            case State::Waiting:
-                if (!checkWaiting(error::qrls_failed)) return false; 
-                // fall through
-            case State::Done:
-				return true;
-			default: assert(false && "invalid state");
-        }
-    }
-};
-
-class HoldJob: public SingleCmd {
-private:
-	std::string job;
-	bool force;
-public:
-	HoldJob(cmd_f& cmd_, const std::string& job_, bool force_): SingleCmd(cmd_), job(job_), force(force_) {}
-    bool operator()() {
-        switch (state) {
-            case State::Starting:
-                cmd(res, {"qhold", {job}, {}, cmdopt::none});
-                state=State::Waiting;
-                // fall through
-            case State::Waiting:
-                if (!checkWaiting(error::qhold_failed)) return false; 
-                // fall through
-            case State::Done:
-				return true;
-			default: assert(false && "invalid state");
-        }
-    }
-};
-
-class DeleteJobById: public SingleCmd {
-private:
-	std::string job;
-	bool force;
-public:
-	DeleteJobById(cmd_f& cmd_, const std::string& job_, bool force_): SingleCmd(cmd_), job(job_), force(force_) {}
-    bool operator()() {
-        switch (state) {
-            case State::Starting: {
-				// purge forces job to be deleted
-				std::vector<std::string> args;
-				if (force) args.push_back("-p");
-				args.push_back(job);
-                cmd(res, {"qdel", args, {}, cmdopt::none});
-                state=State::Waiting;
-			}
-                // fall through
-            case State::Waiting:
-                if (!checkWaiting(error::qdel_failed)) return false; 
-                // fall through
-            case State::Done:
-				return true;
-			default: assert(false && "invalid state");
-        }
-    }
-};
-
-class SuspendJob: public SingleCmd {
-private:
-	std::string job;
-	bool force;
-public:
-	SuspendJob(cmd_f& cmd_, const std::string& job_, bool force_): SingleCmd(cmd_), job(job_), force(force_) {}
-    bool operator()() {
-        switch (state) {
-            case State::Starting:
-                cmd(res, {"qsig", {"-s", "suspend", job}, {}, cmdopt::none});
-                state=State::Waiting;
-                // fall through
-            case State::Waiting:
-                if (!checkWaiting(error::qsig_s_suspend_failed)) return false; 
-                // fall through
-            case State::Done:
-				return true;
-			default: assert(false && "invalid state");
-        }
-    }
-};
-
-class ResumeJob: public SingleCmd {
-private:
-	std::string job;
-	bool force;
-public:
-	ResumeJob(cmd_f& cmd_, const std::string& job_, bool force_): SingleCmd(cmd_), job(job_), force(force_) {}
-    bool operator()() {
-        switch (state) {
-            case State::Starting:
-                cmd(res, {"qsig", {"-s", "resume", job}, {}, cmdopt::none});
-                state=State::Waiting;
-                // fall through
-            case State::Waiting:
-                if (!checkWaiting(error::qsig_s_resume_failed)) return false; 
-                // fall through
-            case State::Done:
-				return true;
-			default: assert(false && "invalid state");
-        }
-    }
-};
-
-class SetQueueState: public SingleCmd {
-private:
-	std::string name;
-	QueueState queueState;
-	bool force;
-public:
-	SetQueueState(cmd_f& cmd_, const std::string& name_, QueueState state_, bool force_): SingleCmd(cmd_), name(name_), queueState(state_), force(force_) {}
-    bool operator()() {
-        switch (state) {
-            case State::Starting: {
-				bool enabled = false;
-				bool started = false;
-				switch (queueState) {
-					case QueueState::Unknown: throw std::system_error(cw::batch::error::queue_state_unknown_not_supported);
-					case QueueState::Open: enabled=true; started=true; break;
-					case QueueState::Closed: enabled=false; started=false; break;
-					case QueueState::Inactive: enabled=true; started=false; break;
-					case QueueState::Draining: enabled=false; started=true; break;
-					default: throw std::system_error(cw::batch::error::queue_state_out_of_enum);
-				}
-
-				cmd(res, {"qmgr", {"-c", "set queue " + name + " enabled="+(enabled ? "true" : "false") + ",started="+(started ? "true" : "false")}, {}, cmdopt::none});
-                state=State::Waiting;
-			}
-			// fall through
-            case State::Waiting:
-                if (!checkWaiting(error::qmgr_c_set_queue_failed)) return false; 
-                // fall through
-            case State::Done: {
-				return true;
-			}
-			default: assert(false && "invalid state");
-        }
+void Pbs::setQueueState(std::string name, QueueState state, bool force, std::function<void(std::error_code ec)> cb) {
+	(void)force;
+	bool enabled = false;
+	bool started = false;
+	switch (state) {
+		case QueueState::Unknown: throw std::system_error(cw::batch::error::queue_state_unknown_not_supported);
+		case QueueState::Open: enabled=true; started=true; break;
+		case QueueState::Closed: enabled=false; started=false; break;
+		case QueueState::Inactive: enabled=true; started=false; break;
+		case QueueState::Draining: enabled=false; started=true; break;
+		default: throw std::system_error(cw::batch::error::queue_state_out_of_enum);
 	}
-};
 
-class Detect: public SingleCmd {
-public:
-	using SingleCmd::SingleCmd;
-    bool operator()(bool& detected) {
-        switch (state) {
-            case State::Starting:
-                cmd(res, {"pbs-config", {"--version"}, {}, cmdopt::none});
-                state=State::Waiting;
-                // fall through
-            case State::Waiting:
-				if (res.exit==not_finished) {
-					return false;
-				}
-				state = State::Done;
-                // fall through
-            case State::Done:
-				detected = res.exit==0;
+	_cmd({"qmgr", {"-c", "set queue " + name + " enabled="+(enabled ? "true" : "false") + ",started="+(started ? "true" : "false")}, {}, cmdopt::none}, [cb](auto res){
+		cb(res.exit != 0 ? error::qmgr_c_set_queue_failed : res.ec);
+	});
+}
+
+void Pbs::resumeJob(std::string job, bool force, std::function<void(std::error_code ec)> cb) {
+	(void)force;
+	_cmd({"qsig", {"-s", "resume", job}, {}, cmdopt::none}, [cb](auto res){
+		cb(res.exit != 0 ? error::qsig_s_resume_failed : res.ec);
+	});
+}
+
+void Pbs::suspendJob(std::string job, bool force, std::function<void(std::error_code ec)> cb) {
+	(void)force;
+	_cmd({"qsig", {"-s", "suspend", job}, {}, cmdopt::none}, [cb](auto res){
+		cb(res.exit != 0 ? error::qsig_s_suspend_failed : res.ec);
+	});
+}
+
+void Pbs::getJobsByUser(std::string user, std::function<void(std::vector<std::string> jobs, std::error_code ec)> cb) {
+	_cmd({"qselect", {"-u", user}, {}, cmdopt::capture_stdout}, [cb](auto res){
+		std::vector<std::string> jobs;
+		if (res.exit==0 && !res.ec) {
+			splitString(res.out, "\n", [&](size_t start, size_t end) {
+				std::string job=trim_copy(res.out.substr(start, end));
+				if (!job.empty()) jobs.push_back(std::move(job));
 				return true;
-			default: assert(false && "invalid state");
-        }
-    }
-};
+			});
+			cb(jobs, {});
+		} else {
+			cb(jobs, res.exit != 0 ? error::qselect_u_failed : res.ec);
+		}
+	});
+}
 
-class RescheduleRunningJobInQueue: public SingleCmd {
-private:
-	std::string job;
-	bool hold;
-public:
-	RescheduleRunningJobInQueue(cmd_f& cmd_, const std::string& job_, bool hold_): SingleCmd(cmd_), job(job_), hold(hold_) {}
-    bool operator()() {
-        switch (state) {
-            case State::Starting: {
-				std::vector<std::string> args;
-				if (hold) args.push_back("-f");
-				args.push_back(job);
-                cmd(res, {"qrerun", args, {}, cmdopt::none});
-                state=State::Waiting;
-			}
-			// fall through
-            case State::Waiting:
-                if (!checkWaiting(error::qrerun_failed)) return false; 
-                // fall through
-            case State::Done:
-				return true;
-			default: assert(false && "invalid state");
-        }
-    }
-};
+void Pbs::deleteJobsById(std::vector<std::string> jobs, bool force, std::function<void(std::error_code ec)> cb) {
+	if (force) jobs.push_back("-p"); // purge forces job to be deleted
 
-class GetNodes: public SingleCmd {
-private:
-	std::vector<std::string> filterNodes;
-public:
-	GetNodes(cmd_f& cmd_, std::vector<std::string> filterNodes_): SingleCmd(cmd_), filterNodes(filterNodes_) {}
-    bool operator()(const std::function<getNodes_inserter_f>& insert) {
-        switch (state) {
-            case State::Starting: {
-				std::vector<std::string> args{"-x"};
-				for (const auto& n : filterNodes) args.push_back(n);
-                cmd(res, {"pbsnodes", args, {}, cmdopt::capture_stdout});
-                state=State::Waiting;
-			}
-                // fall through
-            case State::Waiting:
-                if (!checkWaiting(error::pbsnodes_x_failed)) return false; 
-                // fall through
-            case State::Done: 
-				Pbs::parseNodes(res.out, insert);
-				return true;
-			default: assert(false && "invalid state");
-        }
-    }
-};
+	_cmd({"qdel", jobs, {}, cmdopt::none}, [cb](auto res){
+		cb(res.exit != 0 ? error::qdel_failed : res.ec);
+	});
+}
 
-class GetQueues: public SingleCmd {
-public:
-	using SingleCmd::SingleCmd;
-    bool operator()(const std::function<getQueues_inserter_f>& insert) {
-        switch (state) {
-            case State::Starting: {
-                cmd(res, {"qstat", {"-Qf"}, {}, cmdopt::capture_stdout});
-                state=State::Waiting;
-			}
-                // fall through
-            case State::Waiting:
-                if (!checkWaiting(error::qstat_Qf_failed)) return false; 
-                // fall through
-            case State::Done: 
-				Pbs::parseQueues(res.out, insert);
-				return true;
-			default: assert(false && "invalid state");
-        }
-    }
-};
+void Pbs::deleteJobByUser(std::string user, bool force, std::function<void(std::error_code ec)> cb) {
+	// qdel -u only supported by SGE https://stackoverflow.com/questions/28857807/use-qdel-to-delete-all-my-jobs-at-once-not-one-at-a-time
+	// instead manually query jobs of user first and then delete them
+	getJobsByUser(user, [this, cb, force](auto jobs, auto ec){
+		if (ec) {
+			cb(ec);
+			return;
+		}
 
-class RunJob: public SingleCmd {
-private:
-	JobOptions opts;
-public:
-	RunJob(cmd_f& cmd_, JobOptions opts_): SingleCmd(cmd_), opts(opts_) {}
+		deleteJobsById(jobs, force, cb);
+	});
+}
 
-    bool operator()(std::string& jobName) {
-        switch (state) {
-            case State::Starting: {
-				// --parsable to only print job id
-				Cmd c{"qsub", {}, {}, cmdopt::capture_stdout};
-				if (opts.numberNodes.has_value()) {
-					c.args.push_back("-l");
-					c.args.push_back("nodes="+std::to_string(opts.numberNodes.get()));
-				}
-				if (opts.numberTasks.has_value()) {
-					c.args.push_back("-l");
-					c.args.push_back("procs="+std::to_string(opts.numberTasks.get()));
-				}
-				if (opts.numberGpus.has_value()) {
-					c.args.push_back("-l");
-					c.args.push_back("gpus="+std::to_string(opts.numberGpus.get()));
-				}
-				c.args.push_back(opts.path.get());
+void Pbs::deleteJobById(std::string job, bool force, std::function<void(std::error_code ec)> cb) {
+	deleteJobsById({job}, force, cb);
+}
 
-                cmd(res, c);
-                state=State::Waiting;
-			}
-                // fall through
-            case State::Waiting:
-                if (!checkWaiting(error::qsub_failed)) return false; 
-                // fall through
-            case State::Done: 
-				jobName = trim_copy(res.out);
-				return true;
-			default: assert(false && "invalid state");
-        }
-    }
-};
+void Pbs::holdJob(std::string job, bool force, std::function<void(std::error_code ec)> cb) {
+	(void)force;
+	_cmd({"qhold", {job}, {}, cmdopt::none}, [cb](auto res){
+		cb(res.exit != 0 ? error::qhold_failed : res.ec);
+	});
+}
 
-class GetJobs: public SingleCmd {
-public:
-	using SingleCmd::SingleCmd;
+void Pbs::releaseJob(std::string job, bool force, std::function<void(std::error_code ec)> cb) {
+	(void)force;
+	_cmd({"qrls", {job}, {}, cmdopt::none}, [cb](auto res){
+		cb(res.exit != 0 ? error::qrls_failed : res.ec);
+	});
+}
 
-    bool operator()(const std::function<getJobs_inserter_f>& insert) {
-        switch (state) {
-            case State::Starting: {
-                cmd(res, {"qstat", {"-f", "-x"}, {}, cmdopt::capture_stdout});
-                state=State::Waiting;
-			}
-                // fall through
-            case State::Waiting:
-                if (!checkWaiting(error::qstat_f_x_failed)) return false; 
-                // fall through
-            case State::Done: 
-				Pbs::parseJobs(res.out, insert);
-				return true;
-			default: assert(false && "invalid state");
-        }
+void Pbs::setNodeComment(std::string name, bool force, std::string comment, bool appendComment, std::function<void(std::error_code ec)> cb) {
+	(void)force;
+	_cmd({"pbsnodes", {name, appendComment ? "-A" : "-N", comment}, {}, cmdopt::none}, [cb](auto res){
+		cb(res.exit != 0 ? error::pbsnodes_set_comment_failed : res.ec);
+	});
+}
+
+void Pbs::changeNodeState(std::string name, NodeChangeState state, bool force, std::string reason, bool appendReason, std::function<void(std::error_code ec)> cb) {
+	(void)force;
+	std::string stateArg;
+	switch (state) {
+		case NodeChangeState::Resume: stateArg="-r"; break;
+		case NodeChangeState::Drain: stateArg="-o"; break;
+		case NodeChangeState::Undrain: stateArg="-c"; break;
+		default: throw std::system_error(cw::batch::error::node_change_state_out_of_enum);
 	}
-};
 
-class GetBatchInfo: public SingleCmd {
-public:
-	using SingleCmd::SingleCmd;
+    _cmd({"pbsnodes", {stateArg, name, appendReason ? "-A" : "-N", reason}, {}, cmdopt::none}, [cb](auto res){
+		cb(res.exit != 0 ? error::pbsnodes_change_node_state_failed : res.ec);
+	});
+}
 
-    bool operator()(BatchInfo& info) {
-        switch (state) {
-			case State::Starting: {
-				// start in parallel
-				cmd(res, {"pbsnodes", {"--version"}, {}, cmdopt::capture_stdout});
-				state = State::Waiting;
-			}
-			// fall through
-			case State::Waiting:
-                if (!checkWaiting(error::pbsnodes_version_failed)) return false; 
-				// fall through
-			case State::Done:
-				info.name = std::string("pbs");
-				info.version = trim_copy(res.out);
-				return true;
-			default: assert(false && "invalid state");
-        }
-    }
-};
+void Pbs::runJob(JobOptions opts, std::function<void(std::string jobName, std::error_code ec)> cb) {
+	Cmd c{"qsub", {}, {}, cmdopt::capture_stdout};
+	if (opts.numberNodes.has_value()) {
+		c.args.push_back("-l");
+		c.args.push_back("nodes="+std::to_string(opts.numberNodes.get()));
+	}
+	if (opts.numberTasks.has_value()) {
+		c.args.push_back("-l");
+		c.args.push_back("procs="+std::to_string(opts.numberTasks.get()));
+	}
+	if (opts.numberGpus.has_value()) {
+		c.args.push_back("-l");
+		c.args.push_back("gpus="+std::to_string(opts.numberGpus.get()));
+	}
+	c.args.push_back(opts.path.get());
 
+	_cmd(c, [cb](auto res){
+		if (res.exit==0 && !res.ec) {
+			cb(trim_copy(res.out), {});
+		} else {
+			cb("", error::qsub_failed);
+		}
+	});
+}
 
-std::function<getNodes_f> Pbs::getNodes(std::vector<std::string> filterNodes) { return GetNodes(_func, filterNodes); }
-std::function<getJobs_f> Pbs::getJobs(std::vector<std::string>) { return GetJobs(_func); }
-std::function<getQueues_f> Pbs::getQueues() { return GetQueues(_func); }
-std::function<bool()> Pbs::rescheduleRunningJobInQueue(const std::string& job, bool force) { return RescheduleRunningJobInQueue(_func, job, force); }
-std::function<bool()> Pbs::setQueueState(const std::string& name, QueueState state, bool force) { return SetQueueState(_func, name, state, force); }
-std::function<bool()> Pbs::resumeJob(const std::string& job, bool force) { return ResumeJob(_func, job, force); }
-std::function<bool()> Pbs::suspendJob(const std::string& job, bool force) { return SuspendJob(_func, job, force); }
-std::function<bool()> Pbs::deleteJobByUser(const std::string& user, bool force) { return DeleteJobByUser(_func, user, force); }
-std::function<bool()> Pbs::deleteJobById(const std::string& job, bool force) { return DeleteJobById(_func, job, force); }
-std::function<bool()> Pbs::holdJob(const std::string& job, bool force) { return HoldJob(_func, job, force); }
-std::function<bool()> Pbs::releaseJob(const std::string& job, bool force) { return ReleaseJob(_func, job, force); }
-std::function<bool()> Pbs::setNodeComment(const std::string& name, bool force, const std::string& comment, bool appendComment) { return SetNodeComment(_func, name, force, comment, appendComment); }
-std::function<bool()> Pbs::changeNodeState(const std::string& name, NodeChangeState state, bool force, const std::string& reason, bool appendReason) { return ChangeNodeState(_func, name, state, force, reason, appendReason); }
-std::function<runJob_f> Pbs::runJob(const JobOptions& opts) { return RunJob(_func, opts); }
-std::function<bool(bool&)> Pbs::detect() { return Detect(_func); }
-std::function<bool(BatchInfo&)> Pbs::getBatchInfo() { return GetBatchInfo(_func); }
+void Pbs::detect(std::function<void(bool has_batch, std::error_code ec)> cb) {
+	_cmd({"pbs-config", {"--version"}, {}, cmdopt::none}, [cb](auto res){
+		cb(res.exit==0, {});
+	});
+}
+
+void Pbs::getBatchInfo(std::function<void(BatchInfo, std::error_code ec)> cb) {
+	_cmd({"pbsnodes", {"--version"}, {}, cmdopt::capture_stdout}, [cb](auto res){
+		BatchInfo info;
+		
+		if (res.exit == 0 && !res.ec) {
+			info.name = std::string("pbs");
+			info.version = trim_copy(res.out);
+		}
+
+		cb(info, res.exit != 0 ? error::pbsnodes_version_failed : res.ec);
+	});
+}
 
 }
 }

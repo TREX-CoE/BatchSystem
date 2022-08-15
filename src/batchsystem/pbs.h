@@ -39,13 +39,13 @@ std::error_code make_error_code(error e);
  */
 class Pbs : public BatchInterface {
 private:
-	cmd_f _func;
+	cmd_f _cmd;
 public:
 	Pbs(cmd_f func);
 
-	static void parseNodes(const std::string& output, std::function<getNodes_inserter_f> insert);
-	static void parseJobs(const std::string& output, std::function<getJobs_inserter_f> insert);
-	static void parseQueues(const std::string& output, std::function<getQueues_inserter_f> insert);
+	static void parseNodes(const std::string& output, std::vector<Node>& nodes);
+	static void parseJobs(const std::string& output, std::vector<Job>& jobs);
+	static void parseQueues(const std::string& output, std::vector<Queue>& queues);
 
 
 	bool getNodes(supported_t) override;
@@ -64,22 +64,26 @@ public:
 	bool resumeJob(supported_t) override;
 	bool rescheduleRunningJobInQueue(supported_t) override;
 
-	std::function<getNodes_f> getNodes(std::vector<std::string> filterNodes) override;
-	std::function<getJobs_f> getJobs(std::vector<std::string> filterJobs) override;
-	std::function<getQueues_f> getQueues() override;
-	std::function<bool()> rescheduleRunningJobInQueue(const std::string& job, bool force) override;
-	std::function<bool()> setQueueState(const std::string& name, QueueState state, bool force) override;
-	std::function<bool()> resumeJob(const std::string& job, bool force) override;
-	std::function<bool()> suspendJob(const std::string& job, bool force) override;
-	std::function<bool()> deleteJobByUser(const std::string& user, bool force) override;
-	std::function<bool()> deleteJobById(const std::string& job, bool force) override;
-	std::function<bool()> holdJob(const std::string& job, bool force) override;
-	std::function<bool()> releaseJob(const std::string& job, bool force) override;
-	std::function<bool()> setNodeComment(const std::string& name, bool force, const std::string& comment, bool appendComment) override;
-	std::function<bool()> changeNodeState(const std::string& name, NodeChangeState state, bool force, const std::string& reason, bool appendReason) override;
-	std::function<runJob_f> runJob(const JobOptions& opts) override;
-	std::function<bool(bool&)> detect() override;
-	std::function<bool(BatchInfo&)> getBatchInfo() override;
+
+	void getJobsByUser(std::string user, std::function<void(std::vector<std::string> jobs, std::error_code ec)> cb);
+	void deleteJobsById(std::vector<std::string> jobs, bool force, std::function<void(std::error_code ec)> cb);
+
+	void getNodes(std::vector<std::string> filterNodes, std::function<void(std::vector<Node> nodes, std::error_code ec)> cb) override;
+	void getJobs(std::vector<std::string> filterJobs, std::function<void(std::vector<Job> jobs, std::error_code ec)> cb) override;
+	void getQueues(std::function<void(std::vector<Queue> queues, std::error_code ec)> cb) override;
+	void rescheduleRunningJobInQueue(std::string job, bool force, std::function<void(std::error_code ec)> cb) override;
+	void setQueueState(std::string name, QueueState state, bool force, std::function<void(std::error_code ec)> cb) override;
+	void resumeJob(std::string job, bool force, std::function<void(std::error_code ec)> cb) override;
+	void suspendJob(std::string job, bool force, std::function<void(std::error_code ec)> cb) override;
+	void deleteJobByUser(std::string user, bool force, std::function<void(std::error_code ec)> cb) override;
+	void deleteJobById(std::string job, bool force, std::function<void(std::error_code ec)> cb) override;
+	void holdJob(std::string job, bool force, std::function<void(std::error_code ec)> cb) override;
+	void releaseJob(std::string job, bool force, std::function<void(std::error_code ec)> cb) override;
+	void setNodeComment(std::string name, bool force, std::string comment, bool appendComment, std::function<void(std::error_code ec)> cb) override;
+	void changeNodeState(std::string name, NodeChangeState state, bool force, std::string reason, bool appendReason, std::function<void(std::error_code ec)> cb) override;
+	void runJob(JobOptions opts, std::function<void(std::string jobName, std::error_code ec)> cb) override;
+	void detect(std::function<void(bool has_batch, std::error_code ec)> cb) override;
+	void getBatchInfo(std::function<void(BatchInfo info, std::error_code ec)> cb) override;
 
 };
 
