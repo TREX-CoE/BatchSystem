@@ -48,7 +48,7 @@ public:
 		scontrol, //!< use scontrol
 	};
 private:
-	cmd_f _func;
+	cmd_f _cmd;
 	/**
 	 * @brief Which command to use for getting job info
 	 * 
@@ -122,8 +122,9 @@ public:
 	 * Uses a filter to only get active jobs.
 	 */
 	void getJobs(std::vector<std::string> filterJobs, std::function<void(std::vector<Job> jobs, std::error_code ec)> cb) override;
-	
-	
+	void getJobsSacct(std::vector<std::string> filterJobs, std::string stateFilter, std::function<void(std::vector<Job> jobs, std::error_code ec)> cb);
+	void getJobsLegacy(std::function<void(std::vector<Job> jobs, std::error_code ec)> cb);
+
 	void getQueues(std::function<void(std::vector<Queue> queues, std::error_code ec)> cb) override;
 	void rescheduleRunningJobInQueue(std::string job, bool force, std::function<void(std::error_code ec)> cb) override;
 	void setQueueState(std::string name, QueueState state, bool force, std::function<void(std::error_code ec)> cb) override;
@@ -154,10 +155,6 @@ public:
 	 * \param[out] sacctSupported Wether command succeeded with 0 exit code
 	 */
 	void checkSacct(std::function<void(bool has_sacct, std::error_code ec)> cb);
-
-
-
-	void getBatchInfo(std::function<void(BatchInfo, std::error_code ec)> cb);
 
 	bool getNodes(supported_t) override;
 	bool getQueues(supported_t) override;

@@ -85,8 +85,8 @@ struct ErrCategory : std::error_category
 const ErrCategory error_cat {};
 
 struct BatchInfoState {
-	Result version;
-    Result config;
+	cw::batch::Result version;
+    cw::batch::Result config;
 };
 
 cw::batch::JobState parseJobState(const std::string& str) {
@@ -290,7 +290,7 @@ Slurm::job_mode Slurm::getJobMode() const {
 	return _mode;
 }
 
-void Slurm::parseNodes(const std::string& output, const std::function<getNodes_inserter_f>& insert) {
+void Slurm::parseNodes(const std::string& output, std::vector<Node>& nodes) {
 	std::stringstream commandResult(output);
 
 	std::stringstream buffer;
@@ -324,7 +324,7 @@ void Slurm::parseNodes(const std::string& output, const std::function<getNodes_i
 				if(name=="NodeName")
 				{
 					if (node.name.has_value()) {
-						if (!insert(std::move(node))) return;
+						nodes.push_back(std::move(node));
 						node = Node{}; // reset to default
 					}
 					node.name=value;
@@ -389,7 +389,7 @@ void Slurm::parseNodes(const std::string& output, const std::function<getNodes_i
 		}
 	}
 	// check after last line if as uninserted node
-	if (node.name.has_value()) insert(std::move(node));
+	if (node.name.has_value()) nodes.push_back(std::move(node));
 }
 
 void Slurm::parseShowJob(const std::string& output, std::function<bool(std::map<std::string, std::string>)> insert) {
@@ -646,7 +646,7 @@ void Slurm::parseQueues(const std::string& output, std::vector<Queue>& queues) {
 				if(name=="PartitionName")
 				{
 					if(queue.name.has_value()) {
-						if (!queues.push_back(std::move(queue))) return;
+						queues.push_back(std::move(queue));
 						queue.name.reset();
 					} else {
 						queue.name=value;
@@ -729,7 +729,7 @@ void Slurm::getNodes(std::vector<std::string> filterNodes, std::function<void(st
 		args.push_back(internal::joinString(filterNodes.begin(), filterNodes.end(), ","));
 	}
 
-	cmd({"scontrol", args, {}, cmdopt::capture_stdout}, [cb](auto res){
+	_cmd({"scontrol", args, {}, cmdopt::capture_stdout}, [cb](auto res){
 		std::vector<Node> nodes;
 		if (!res.ec && res.exit == 0) Slurm::parseNodes(res.out, nodes);
 		cb(nodes, res.exit != 0 ? error::scontrol_show_node_failed : res.ec);
@@ -748,27 +748,27 @@ void Slurm::getJobsSacct(std::vector<std::string> filterJobs, std::string stateF
 	}
 	_cmd({"sacct", args, {}, cmdopt::capture_stdout}, [cb](auto res){
 		std::vector<Job> jobs;
-		if (!res.ec && res.exit == 0) Slurm::parseJobsSacct(jobs.out, jobs);
-		cb(queues, res.exit != 0 ? error::sacct_X_P_format_ALL_failed : res.ec);
+		if (!res.ec && res.exit == 0) Slurm::parseJobsSacct(res.out, jobs);
+		cb(jobs, res.exit != 0 ? error::sacct_X_P_format_ALL_failed : res.ec);
 	});
 }
 void Slurm::getJobsLegacy(std::function<void(std::vector<Job> jobs, std::error_code ec)> cb) {
 	_cmd({"scontrol", {"show", "job", "--all"}, {}, cmdopt::capture_stdout}, [cb](auto res){
 		std::vector<Job> jobs;
-		if (!res.ec && res.exit == 0) Slurm::parseJobsLegacy(jobs.out, jobs);
-		cb(queues, res.exit != 0 ? error::scontrol_show_job_all_failed : res.ec);
+		if (!res.ec && res.exit == 0) Slurm::parseJobsLegacy(res.out, jobs);
+		cb(jobs, res.exit != 0 ? error::scontrol_show_job_all_failed : res.ec);
 	});
 }
 
-void Slurm::getJobs(std::vector<std::string> filterJobs, std::function<void(std::vector<Job> jobs, std::error_code ec)> cb, std::string stateFilter="PD,R,RQ,S") {	
-	switch (mode_) {
+void Slurm::getJobs(std::vector<std::string> filterJobs, std::function<void(std::vector<Job> jobs, std::error_code ec)> cb) {	
+	switch (_mode) {
 		case Slurm::job_mode::scontrol: getJobsLegacy(cb); break;
-		case Slurm::job_mode::sacct: getJobsSacct(filterJobs, stateFilter, cb); break;
+		case Slurm::job_mode::sacct: getJobsSacct(filterJobs, "PD,R,RQ,S", cb); break;
 		case Slurm::job_mode::unchecked: {
-			checkSacct([filterJobs, cb](bool has_sacct, auto ec){
+			checkSacct([filterJobs, cb, this](bool has_sacct, auto ec){
 				if (!ec) {
 					if (has_sacct) {
-						getJobsSacct(filterJobs, cb);
+						getJobsSacct(filterJobs, "PD,R,RQ,S", cb);
 					} else {
 						getJobsLegacy(cb);
 					}
@@ -789,12 +789,13 @@ void Slurm::getQueues(std::function<void(std::vector<Queue> queues, std::error_c
 }
 
 void Slurm::rescheduleRunningJobInQueue(std::string job, bool force, std::function<void(std::error_code ec)> cb) {
-	_cmd({"scontrol", {force ? "requeuehold" : "requeue", job}, {}, cmdopt::none}, [cb](auto res){
+	_cmd({"scontrol", {force ? "requeuehold" : "requeue", job}, {}, cmdopt::none}, [cb, force](auto res){
 		cb(res.exit != 0 ? (force ? error::scontrol_requeuehold_failed : error::scontrol_requeue_failed) : res.ec);
 	});
 }
 
 void Slurm::setQueueState(std::string name, QueueState state, bool force, std::function<void(std::error_code ec)> cb) {
+	(void)force;
 	std::string stateStr;
 	switch (state) {
 		case QueueState::Unknown: throw std::system_error(cw::batch::error::queue_state_unknown_not_supported);
@@ -804,54 +805,64 @@ void Slurm::setQueueState(std::string name, QueueState state, bool force, std::f
 		case QueueState::Draining: stateStr="DRAIN"; break;
 		default: throw std::system_error(cw::batch::error::queue_state_out_of_enum);
 	}
-	cmd({"scontrol", {"update", "PartitionName=" + name, "State="+stateStr}, {}, cmdopt::none}, [cb](auto res){
+	_cmd({"scontrol", {"update", "PartitionName=" + name, "State="+stateStr}, {}, cmdopt::none}, [cb](auto res){
 		cb(res.exit != 0 ? error::scontrol_update_PartitionName_State_failed : res.ec);
 	});
 }
 
 void Slurm::resumeJob(std::string job, bool force, std::function<void(std::error_code ec)> cb) {
+	(void)force;
 	_cmd({"scontrol", {"resume", job}, {}, cmdopt::none}, [cb](auto res){
 		cb(res.exit != 0 ? error::scontrol_resume_failed : res.ec);
 	});
 }
 
 void Slurm::suspendJob(std::string job, bool force, std::function<void(std::error_code ec)> cb) {
+	(void)force;
 	_cmd({"scontrol", {"suspend", job}, {}, cmdopt::none}, [cb](auto res){
 		cb(res.exit != 0 ? error::scontrol_suspend_failed : res.ec);
 	});
 }
 
 void Slurm::deleteJobByUser(std::string user, bool force, std::function<void(std::error_code ec)> cb) {
+	(void)force;
 	_cmd({"scancel", {"-u", user}, {}, cmdopt::none}, [cb](auto res){
 		cb(res.exit != 0 ? error::scancel_u_failed : res.ec);
 	});
 }
 
 void Slurm::deleteJobById(std::string job, bool force, std::function<void(std::error_code ec)> cb) {
+	(void)force;
 	_cmd({"scancel", {job}, {}, cmdopt::none}, [cb](auto res){
 		cb(res.exit != 0 ? error::scancel_failed : res.ec);
 	});
 }
 
 void Slurm::holdJob(std::string job, bool force, std::function<void(std::error_code ec)> cb) {
+	(void)force;
 	_cmd({"scontrol", {"hold", job}, {}, cmdopt::none}, [cb](auto res){
 		cb(res.exit != 0 ? error::scontrol_hold_failed : res.ec);
 	});
 }
 
 void Slurm::releaseJob(std::string job, bool force, std::function<void(std::error_code ec)> cb) {
+	(void)force;
 	_cmd({"scontrol", {"release", job}, {}, cmdopt::none}, [cb](auto res){
 		cb(res.exit != 0 ? error::scontrol_release_failed : res.ec);
 	});
 }
 
-void Slurm::setNodeComment(const std::string& name, bool force, const std::string& comment, bool appendComment, std::function<void(std::error_code ec)> cb) {
+void Slurm::setNodeComment(std::string name, bool force, std::string comment, bool appendComment, std::function<void(std::error_code ec)> cb) {
+	(void)force;
+	(void)appendComment;
 	_cmd({"scontrol", {"update", "NodeName="+name, "Comment="+comment}, {}, cmdopt::none}, [cb](auto res){
 		cb(res.exit != 0 ? error::scontrol_update_NodeName_Comment_failed : res.ec);
 	});
 }
 
-void Slurm::changeNodeState(const std::string& name, NodeChangeState state, bool force, const std::string& reason, bool appendReason, std::function<void(std::error_code ec)> cb) {
+void Slurm::changeNodeState(std::string name, NodeChangeState state, bool force, std::string reason, bool appendReason, std::function<void(std::error_code ec)> cb) {
+	(void)force;
+	(void)appendReason;
 	std::string stateString;
 	switch (state) {
 		case NodeChangeState::Resume: stateString="RESUME"; break;
@@ -861,7 +872,7 @@ void Slurm::changeNodeState(const std::string& name, NodeChangeState state, bool
 	} 
 	std::vector<std::string> args{"update", "NodeName=" + name, "State="+stateString};
 	// add reason if needed and force default if empty as needed by slurm!
-	if (nodeState != NodeChangeState::Resume) args.push_back("Reason="+(reason.empty() ? Slurm::DefaultReason : reason));
+	if (state != NodeChangeState::Resume) args.push_back("Reason="+(reason.empty() ? Slurm::DefaultReason : reason));
 
 	_cmd({"scontrol", args, {}, cmdopt::none}, [cb](auto res){
 		cb(res.exit != 0 ? error::scontrol_update_NodeName_State_failed : res.ec);
