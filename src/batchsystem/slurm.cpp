@@ -338,7 +338,7 @@ void Slurm::parseNodes(const std::string& output, std::vector<Node>& nodes) {
 						{
 							node.state = NodeState::Online;
 						}
-						else if(value=="DOWN" || value=="DOWN*" || value=="DOWN+DRAIN" || value=="DOWN*+DRAIN" || value=="DRAINED" || value=="DRAINING" || value=="IDLE+DRAIN" || value=="IDLE*+DRAIN" || value=="ALLOCATED+DRAIN" || value=="ALLOCATED*+DRAIN" || value=="MIXED+DRAIN" || value=="MIXED*+DRAIN")
+						else if(value=="DOWN" || value=="DOWN*" || value=="DOWN+DRAIN" || value=="DOWN*+DRAIN" || value=="DOWN*+DRAIN+NOT_RESPONDING" || value=="DOWN+DRAIN+NOT_RESPONDING" || value=="DRAINED" || value=="DRAINING" || value=="IDLE+DRAIN" || value=="IDLE*+DRAIN" || value=="ALLOCATED+DRAIN" || value=="ALLOCATED*+DRAIN" || value=="MIXED+DRAIN" || value=="MIXED*+DRAIN")
 						{
 							node.state = NodeState::Disabled;
 						}
