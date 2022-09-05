@@ -153,6 +153,7 @@ public:
 	 * Calls "sacct --helpformat" to check if command can be called and works (slurmdbd running)
 	 * 
 	 * \param[out] sacctSupported Wether command succeeded with 0 exit code
+	 * \param cb Callback to get whether sacct is supported and possible error state
 	 */
 	void checkSacct(std::function<void(bool has_sacct, std::error_code ec)> cb);
 

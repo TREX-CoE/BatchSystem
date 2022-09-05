@@ -103,6 +103,7 @@ struct Cmd {
  * 
  * \param[out] res Store outputs and exit codes in result object
  * \param cmd Command, arguments and options to run command
+ * \param res Callback to get command result
  */
 using cmd_f = std::function<void(Cmd cmd, std::function<void(Result)> res)>;
 
@@ -378,6 +379,7 @@ public:
 	 * \note if node in filterNodes is missing no execption is thrown, the batchsystem tries return info for the other nodes queried but some implementations will not get info for any node 
 	 *
 	 * \param filterNodes Query only selected nodes or all if empty
+	 * \param cb Callback to get node infos and possible error state
 	 */
 	virtual void getNodes(std::vector<std::string> filterNodes, std::function<void(std::vector<Node>, std::error_code ec)> cb);
 	virtual bool getNodes(supported_t);
@@ -388,6 +390,7 @@ public:
 	 * Query batchsystem for queue informations.
 	 * 
 	 * \param insert Callback to get next Queue
+	 * \param cb Callback to get queue infos and possible error state
 	 */
 	virtual void getQueues(std::function<void(std::vector<Queue>, std::error_code ec)> cb);
 	virtual bool getQueues(supported_t);
@@ -398,6 +401,7 @@ public:
 	 * Query batchsystem for job informations.
 	 * 
 	 * \param filterJobs Filter out only certain jobs or all if empty
+	 * \param cb Callback to get job infos and possible error state
 	 */
 	virtual void getJobs(std::vector<std::string> filterJobs, std::function<void(std::vector<Job>, std::error_code ec)> cb);
 	virtual bool getJobs(supported_t);
@@ -406,6 +410,8 @@ public:
 	 * \brief Get batchsystem information
 	 * 
 	 * Get metadata for used batchsystem and version.
+	 * 
+	 * \param cb Callback to get batchsystem info and possible error state
 	 */
 	virtual void getBatchInfo(std::function<void(BatchInfo, std::error_code ec)> cb);
 	virtual bool getBatchInfo(supported_t);
@@ -415,6 +421,7 @@ public:
 	 * 
 	 * \param job Id of job to delete
 	 * \param force Force delete
+	 * \param cb Callback to get possible error state
 	 */
 	virtual void deleteJobById(std::string job, bool force, std::function<void(std::error_code ec)> cb);
 	virtual bool deleteJobById(supported_t);
@@ -424,6 +431,7 @@ public:
 	 * 
 	 * \param user User of job(s) to delete
 	 * \param force Force delete
+	 * \param cb Callback to get possible error state
 	 */
 	virtual void deleteJobByUser(std::string user, bool force, std::function<void(std::error_code ec)> cb);
 	virtual bool deleteJobByUser(supported_t);
@@ -433,9 +441,10 @@ public:
 	 * 
 	 * \param name Name of node to change
 	 * \param state Event to trigger to change node state
-	 * \param force Wether to force node change
+	 * \param force Whether to force node change
 	 * \param reason Reason of node change
-	 * \param appendReason Wether reason should be appended instead of overwritten
+	 * \param appendReason Whether reason should be appended instead of overwritten
+	 * \param cb Callback to get possible error state
 	 */
 	virtual void changeNodeState(std::string name, NodeChangeState state, bool force, std::string reason, bool appendReason, std::function<void(std::error_code ec)> cb);
 	virtual bool changeNodeState(supported_t);
@@ -447,7 +456,8 @@ public:
 	 * 
 	 * \param name Name of the queue to change state
 	 * \param state State to change to
-	 * \param force Wether to force state change
+	 * \param force Whether to force state change
+	 * \param cb Callback to get possible error state
 	 */
 	virtual void setQueueState(std::string name, QueueState state, bool force, std::function<void(std::error_code ec)> cb);
 	virtual bool setQueueState(supported_t);
@@ -456,6 +466,7 @@ public:
 	 * \brief Schedule job to run on batchsystem
 	 * 
 	 * \param opts Options for job to run
+	 * \param cb Callback to get possible error state
 	 */
 	virtual void runJob(JobOptions opts, std::function<void(std::string jobName, std::error_code ec)> cb);
 	virtual bool runJob(supported_t);
@@ -466,7 +477,8 @@ public:
 	 * \param name Node to set comment for
 	 * \param comment Comment string to set
 	 * \param force Force set comment
-	 * \param appendComment Wether to append comment instead of overwritting
+	 * \param appendComment Whether to append comment instead of overwritting
+	 * \param cb Callback to get possible error state
 	 */
 	virtual void setNodeComment(std::string name, bool force, std::string comment, bool appendComment, std::function<void(std::error_code ec)> cb);
 	virtual bool setNodeComment(supported_t);
@@ -477,7 +489,8 @@ public:
 	 * Reverse of \ref releaseJob operation.
 	 * 
 	 * \param job Id of job to hold
-	 * \param force Wether to force hold
+	 * \param force Whether to force hold
+	 * \param cb Callback to get possible error state
 	 */
 	virtual void holdJob(std::string job, bool force, std::function<void(std::error_code ec)> cb);
 	virtual bool holdJob(supported_t);
@@ -489,7 +502,8 @@ public:
 	 * Reverse of \ref holdJob operation.
 	 * 
 	 * \param job Id of job to release
-	 * \param force Wether to force release
+	 * \param force Whether to force release
+	 * \param cb Callback to get possible error state
 	 */
 	virtual void releaseJob(std::string job, bool force, std::function<void(std::error_code ec)> cb);
 	virtual bool releaseJob(supported_t);
@@ -500,7 +514,8 @@ public:
 	 * Reverse of \ref resumeJob operation.
 	 * 
 	 * \param job Id of job to suspend
-	 * \param force Wether to force suspend
+	 * \param force Whether to force suspend
+	 * \param cb Callback to get possible error state
 	 */
 	virtual void suspendJob(std::string job, bool force, std::function<void(std::error_code ec)> cb);
 	virtual bool suspendJob(supported_t);
@@ -511,7 +526,8 @@ public:
 	 * Reverse of \ref suspendJob operation.
 	 * 
 	 * \param job Id of job to resume
-	 * \param force Wether to force resume
+	 * \param force Whether to force resume
+	 * \param cb Callback to get possible error state
 	 */
 	virtual void resumeJob(std::string job, bool force, std::function<void(std::error_code ec)> cb);
 	virtual bool resumeJob(supported_t);
@@ -523,7 +539,8 @@ public:
 	 * Running / supended / finished job is put back into a pending state.
 	 * 
 	 * \param job Id of job to requeue
-	 * \param force Wether to force reque
+	 * \param force Whether to force reque
+	 * \param cb Callback to get possible error state
 	 */
 	virtual void rescheduleRunningJobInQueue(std::string job, bool force, std::function<void(std::error_code ec)> cb);
 	virtual bool rescheduleRunningJobInQueue(supported_t);
