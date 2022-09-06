@@ -20,6 +20,32 @@ namespace {
 
 using namespace cw::batch::slurm;
 
+template <typename F>
+void detectSetSlurmdMode(Slurm* that, F func) {
+	switch (that->getSlurmdMode()) {
+		case Slurm::slurmd_mode::running: func({}); break;
+		case Slurm::slurmd_mode::notrunning:
+			// slurmd not running -> don't call sinfo --nodes=hostname -> avoids "slurmctld: error: _find_node_record: lookup failure for node" in slurmctld log (ClustWare #656)
+			func(error::slurm_slurmd_not_running);
+			break;
+		case Slurm::slurmd_mode::unchecked: {
+			that->detectSlurmd([func, that](bool has_slurmd_running, auto ec){
+				if (!ec) {
+					if (has_slurmd_running) {
+						that->setSlurmdMode(Slurm::slurmd_mode::running);
+						func({});
+					} else {
+						// slurmd not running -> don't call sinfo --nodes=hostname -> avoids "slurmctld: error: _find_node_record: lookup failure for node" in slurmctld log (ClustWare #656)
+						func(error::slurm_slurmd_not_running);
+					}
+				}
+			});
+			break;
+		}
+		default: throw std::system_error(error::slurm_slurmd_mode_out_of_enum);
+	}
+}
+
 const char* to_cstr(error type) {
   switch (type) {
       case error::sacct_X_P_format_ALL_failed: return "sacct -X -P --format ALL failed";
@@ -41,6 +67,8 @@ const char* to_cstr(error type) {
       case error::scontrol_show_partition_all_failed: return "scontrol show partition --all failed";
       case error::sbatch_failed: return "sbatch failed";
       case error::slurm_job_mode_out_of_enum: return "slurm job mode invalid enum value";
+      case error::slurm_slurmd_mode_out_of_enum: return "slurmd mode invalid enum value";
+	  case error::slurm_slurmd_not_running: return "slurmd not detected";
       default: return "(unrecognized error)";
   }
 }
@@ -77,6 +105,8 @@ struct ErrCategory : std::error_category
         case error::scontrol_show_partition_all_failed: return cw::batch::batch_condition::command_failed;
         case error::sbatch_failed: return cw::batch::batch_condition::command_failed;
         case error::slurm_job_mode_out_of_enum: return cw::batch::batch_condition::invalid_argument;
+        case error::slurm_slurmd_mode_out_of_enum: return cw::batch::batch_condition::invalid_argument;
+        case error::slurm_slurmd_not_running: return cw::batch::batch_condition::command_failed;
         default: assert(false && "unknown error");
       }
   }
@@ -288,6 +318,14 @@ void Slurm::setJobMode(Slurm::job_mode mode) {
 
 Slurm::job_mode Slurm::getJobMode() const {
 	return _mode;
+}
+
+void Slurm::setSlurmdMode(Slurm::slurmd_mode mode) {
+	_slurmd_mode = mode;
+}
+
+Slurm::slurmd_mode Slurm::getSlurmdMode() const {
+	return _slurmd_mode;
 }
 
 void Slurm::parseNodes(const std::string& output, std::vector<Node>& nodes) {
@@ -722,17 +760,20 @@ void Slurm::parseQueues(const std::string& output, std::vector<Queue>& queues) {
 }
 
 void Slurm::getNodes(std::vector<std::string> filterNodes, std::function<void(std::vector<Node> nodes, std::error_code ec)> cb) {
-	std::vector<std::string> args{"show", "node"};
-	if (filterNodes.empty()) {
-		args.push_back("--all");
-	} else {
-		args.push_back(internal::joinString(filterNodes.begin(), filterNodes.end(), ","));
-	}
+	detectSetSlurmdMode(this, [cb, filterNodes, this](std::error_code ec){
+		if (ec) return cb({}, ec);
+		std::vector<std::string> args{"show", "node"};
+		if (filterNodes.empty()) {
+			args.push_back("--all");
+		} else {
+			args.push_back(internal::joinString(filterNodes.begin(), filterNodes.end(), ","));
+		}
 
-	_cmd({"scontrol", args, {}, cmdopt::capture_stdout}, [cb](auto res){
-		std::vector<Node> nodes;
-		if (!res.ec && res.exit == 0) Slurm::parseNodes(res.out, nodes);
-		cb(nodes, res.exit != 0 ? error::scontrol_show_node_failed : res.ec);
+		_cmd({"scontrol", args, {}, cmdopt::capture_stdout}, [cb](auto res){
+			std::vector<Node> nodes;
+			if (!res.ec && res.exit == 0) Slurm::parseNodes(res.out, nodes);
+			cb(nodes, res.exit != 0 ? error::scontrol_show_node_failed : res.ec);
+		});
 	});
 }
 
@@ -897,20 +938,26 @@ void Slurm::runJob(JobOptions opts, std::function<void(std::string jobName, std:
 	c.args.push_back(opts.path.get());
 
 	_cmd(c, [cb](auto res){
-		cb((res.exit==0 && !res.ec) ? trim_copy(res.out) : "", res.exit != 0 ? error::sbatch_failed : res.ec);
+		cb((!res.ec && res.exit==0) ? trim_copy(res.out) : "", res.exit != 0 ? error::sbatch_failed : res.ec);
 	});
 }
 
 void Slurm::detect(std::function<void(bool has_batch, std::error_code ec)> cb) {
 	_cmd({"sinfo", {"--version"}, {}, cmdopt::none}, [cb](auto res){
-		cb(res.exit==0, {});
+		cb(!res.ec && res.exit==0, {});
 	});
 }
 
 void Slurm::checkSacct(std::function<void(bool has_sacct, std::error_code ec)> cb) {
 	// use sacct --helpformat as sacct would list all jobs, sacct --helpformat would not fail if slurmdbd is not working
 	_cmd({"sacct", {"--helpformat"}, {}, cmdopt::none}, [cb](auto res){
-		cb(res.exit==0, {});
+		cb(!res.ec && res.exit==0, {});
+	});
+}
+
+void Slurm::detectSlurmd(std::function<void(bool has_slurmd_running, std::error_code ec)> cb) {
+	_cmd({"scontrol", {"show", "slurmd"}, {}, cmdopt::none}, [cb](auto res){
+		cb(!res.ec && res.exit==0, {});
 	});
 }
 

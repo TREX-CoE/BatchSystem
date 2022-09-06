@@ -29,6 +29,8 @@ enum class error {
     scontrol_show_partition_all_failed,
     sbatch_failed,
     slurm_job_mode_out_of_enum,
+	slurm_slurmd_mode_out_of_enum,
+	slurm_slurmd_not_running,
 };
 
 
@@ -47,6 +49,11 @@ public:
 		sacct, //!< use sacct
 		scontrol, //!< use scontrol
 	};
+	enum class slurmd_mode {
+		unchecked, //!< slurmd not checked for
+		running, //!< slurmd detected
+		notrunning, //!< no slurmd detected
+	};
 private:
 	cmd_f _cmd;
 	/**
@@ -55,7 +62,9 @@ private:
 	 * Determines which command to use in \ref getJobs.
 	 * 
 	 */
-	job_mode _mode;
+	job_mode _mode = job_mode::unchecked;
+
+	slurmd_mode _slurmd_mode = slurmd_mode::unchecked;
 public:
 	static const std::string DefaultReason;
 
@@ -71,14 +80,26 @@ public:
 	/**
 	 * \brief Set to use sacct or scontrol
 	 * 
-	 * \param mode Wether to use sacct instead of scontrol
+	 * \param mode Whether to use sacct instead of scontrol
 	 */
 	void setJobMode(Slurm::job_mode mode);
 
 	/**
-	 * \brief Get wether sacct is used.
+	 * \brief Get whether sacct is used.
 	 */
 	Slurm::job_mode getJobMode() const;
+
+	/**
+	 * \brief Set to detect slurmd
+	 * 
+	 * \param mode Whether slurmd is running
+	 */
+	void setSlurmdMode(Slurm::slurmd_mode mode);
+
+	/**
+	 * \brief Get whether slurmd is detected.
+	 */
+	Slurm::slurmd_mode getSlurmdMode() const;
 
 	/**
 	 * \brief Convert generic Key-Value mapping to job struct with correct datatypes
@@ -116,7 +137,7 @@ public:
 	/**
 	 * \brief Get the Jobs object
 	 * 
-	 * Calls sacct to check wether it is available and queryable (slurmdbd running) and use that instead of scontrol for job infos
+	 * Calls sacct to check whether it is available and queryable (slurmdbd running) and use that instead of scontrol for job infos
 	 * if not set via \ref setJobMode before.
 	 * 
 	 * Uses a filter to only get active jobs.
@@ -145,14 +166,13 @@ public:
 	void detect(std::function<void(bool has_batch, std::error_code ec)> cb) override;
 	void getBatchInfo(std::function<void(BatchInfo info, std::error_code ec)> cb) override;
 
+	void detectSlurmd(std::function<void(bool has_slurmd_running, std::error_code ec)> cb);
 	
-
 	/**
 	 * \brief Check if sacct executable is present and can be queried
 	 * 
 	 * Calls "sacct --helpformat" to check if command can be called and works (slurmdbd running)
 	 * 
-	 * \param[out] sacctSupported Wether command succeeded with 0 exit code
 	 * \param cb Callback to get whether sacct is supported and possible error state
 	 */
 	void checkSacct(std::function<void(bool has_sacct, std::error_code ec)> cb);

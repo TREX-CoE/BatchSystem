@@ -594,7 +594,7 @@ void Pbs::suspendJob(std::string job, bool force, std::function<void(std::error_
 void Pbs::getJobsByUser(std::string user, std::function<void(std::vector<std::string> jobs, std::error_code ec)> cb) {
 	_cmd({"qselect", {"-u", user}, {}, cmdopt::capture_stdout}, [cb](auto res){
 		std::vector<std::string> jobs;
-		if (res.exit==0 && !res.ec) {
+		if (!res.ec && res.exit==0) {
 			splitString(res.out, "\n", [&](size_t start, size_t end) {
 				std::string job=trim_copy(res.out.substr(start, end));
 				if (!job.empty()) jobs.push_back(std::move(job));
@@ -685,7 +685,7 @@ void Pbs::runJob(JobOptions opts, std::function<void(std::string jobName, std::e
 	c.args.push_back(opts.path.get());
 
 	_cmd(c, [cb](auto res){
-		if (res.exit==0 && !res.ec) {
+		if (!res.ec && res.exit==0) {
 			cb(trim_copy(res.out), {});
 		} else {
 			cb("", error::qsub_failed);
@@ -695,7 +695,7 @@ void Pbs::runJob(JobOptions opts, std::function<void(std::string jobName, std::e
 
 void Pbs::detect(std::function<void(bool has_batch, std::error_code ec)> cb) {
 	_cmd({"pbs-config", {"--version"}, {}, cmdopt::none}, [cb](auto res){
-		cb(res.exit==0, {});
+		cb(!res.ec && res.exit==0, {});
 	});
 }
 

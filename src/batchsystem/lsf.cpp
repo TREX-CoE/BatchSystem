@@ -584,7 +584,7 @@ void Lsf::runJob(JobOptions opts, std::function<void(std::string jobName, std::e
 	c.args.push_back(opts.path.get());
 
 	_cmd(c, [cb](auto res){
-		if (res.exit==0 && !res.ec) {
+		if (!res.ec && res.exit==0) {
 			auto start = res.out.find_first_of("<");
 			auto end = res.out.find_first_of(">");
 			if (start != std::string::npos && end != std::string::npos && end > start) {
@@ -601,7 +601,7 @@ void Lsf::runJob(JobOptions opts, std::function<void(std::string jobName, std::e
 
 void Lsf::detect(std::function<void(bool has_batch, std::error_code ec)> cb) {
 	_cmd({"bjobs", {"--version"}, {}, cmdopt::none}, [cb](auto res){
-		cb(res.exit==0, {});
+		cb(!res.ec && res.exit==0, {});
 	});
 }
 
