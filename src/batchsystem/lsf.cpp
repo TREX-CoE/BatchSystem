@@ -492,7 +492,8 @@ void Lsf::getJobs(std::vector<std::string> filterJobs, std::function<void(std::v
 	});
 }
 
-void Lsf::getQueues(std::function<void(std::vector<Queue> queues, std::error_code ec)> cb) {
+void Lsf::getQueues(std::vector<std::string> filterQueues, std::function<void(std::vector<Queue> queues, std::error_code ec)> cb) {
+	(void)filterQueues;
 	_cmd({"bqueues", {}, {}, cmdopt::capture_stdout}, [cb](auto res){
 		std::vector<Queue> queues;
 		if (!res.ec && res.exit == 0) Lsf::parseQueues(res.out, queues);

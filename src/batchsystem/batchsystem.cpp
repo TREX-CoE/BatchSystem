@@ -26,7 +26,7 @@ bool BatchInterface::rescheduleRunningJobInQueue(supported_t) { return false; }
 
 void BatchInterface::getNodes(std::vector<std::string>, std::function<void(std::vector<Node> nodes, std::error_code ec)>)  { throw NotImplemented(__func__); }
 void BatchInterface::getJobs(std::vector<std::string>, std::function<void(std::vector<Job> jobs, std::error_code ec)>)  { throw NotImplemented(__func__); }
-void BatchInterface::getQueues(std::function<void(std::vector<Queue> queues, std::error_code ec)>)  { throw NotImplemented(__func__); }
+void BatchInterface::getQueues(std::vector<std::string>, std::function<void(std::vector<Queue> queues, std::error_code ec)>)  { throw NotImplemented(__func__); }
 void BatchInterface::rescheduleRunningJobInQueue(std::string, bool, std::function<void(std::error_code ec)>)  { throw NotImplemented(__func__); }
 void BatchInterface::setQueueState(std::string, QueueState, bool, std::function<void(std::error_code ec)>)  { throw NotImplemented(__func__); }
 void BatchInterface::resumeJob(std::string, bool, std::function<void(std::error_code ec)>)  { throw NotImplemented(__func__); }

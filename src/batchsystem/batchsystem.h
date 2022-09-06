@@ -389,10 +389,10 @@ public:
 	 * 
 	 * Query batchsystem for queue informations.
 	 * 
-	 * \param insert Callback to get next Queue
+	 * \param filterQueues Query only selected queues or all if empty
 	 * \param cb Callback to get queue infos and possible error state
 	 */
-	virtual void getQueues(std::function<void(std::vector<Queue>, std::error_code ec)> cb);
+	virtual void getQueues(std::vector<std::string> filterQueues, std::function<void(std::vector<Queue>, std::error_code ec)> cb);
 	virtual bool getQueues(supported_t);
 
 	/**

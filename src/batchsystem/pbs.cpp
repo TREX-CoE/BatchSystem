@@ -541,7 +541,8 @@ void Pbs::getJobs(std::vector<std::string> filterJobs, std::function<void(std::v
 	});
 }
 
-void Pbs::getQueues(std::function<void(std::vector<Queue> queues, std::error_code ec)> cb) {
+void Pbs::getQueues(std::vector<std::string> filterQueues, std::function<void(std::vector<Queue> queues, std::error_code ec)> cb) {
+	(void)filterQueues;
 	_cmd({"qstat", {"-Qf"}, {}, cmdopt::capture_stdout}, [cb](auto res){
 		std::vector<Queue> queues;
 		if (!res.ec && res.exit == 0) Pbs::parseQueues(res.out, queues);

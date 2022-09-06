@@ -780,8 +780,8 @@ void Slurm::getJobs(std::vector<std::string> filterJobs, std::function<void(std:
 	}
 }
 
-void Slurm::getQueues(std::function<void(std::vector<Queue> queues, std::error_code ec)> cb) {
-	_cmd({"scontrol", {"show", "partition", "--all"}, {}, cmdopt::capture_stdout}, [cb](auto res){
+void Slurm::getQueues(std::vector<std::string> filterQueues, std::function<void(std::vector<Queue> queues, std::error_code ec)> cb) {
+	_cmd({"scontrol", {"show", "partition", filterQueues.size() == 1 ? filterQueues[0] : "--all"}, {}, cmdopt::capture_stdout}, [cb](auto res){
 		std::vector<Queue> queues;
 		if (!res.ec && res.exit == 0) Slurm::parseQueues(res.out, queues);
 		cb(queues, res.exit != 0 ? error::scontrol_show_partition_all_failed : res.ec);

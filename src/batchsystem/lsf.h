@@ -46,7 +46,7 @@ public:
 
 	void getNodes(std::vector<std::string> filterNodes, std::function<void(std::vector<Node> nodes, std::error_code ec)> cb) override;
 	void getJobs(std::vector<std::string> filterJobs, std::function<void(std::vector<Job> jobs, std::error_code ec)> cb) override;
-	void getQueues(std::function<void(std::vector<Queue> queues, std::error_code ec)> cb) override;
+	void getQueues(std::vector<std::string> filterQueues, std::function<void(std::vector<Queue> queues, std::error_code ec)> cb) override;
 	void setQueueState(std::string name, QueueState state, bool force, std::function<void(std::error_code ec)> cb) override;
 	void deleteJobByUser(std::string user, bool force, std::function<void(std::error_code ec)> cb) override;
 	void deleteJobById(std::string job, bool force, std::function<void(std::error_code ec)> cb) override;
