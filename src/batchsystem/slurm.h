@@ -75,6 +75,8 @@ public:
 	 */
 	Slurm(cmd_f func);
 
+	const char* name() const;
+
 	static void parseQueues(const std::string& output, std::vector<Queue>& queues);
 	
 	/**

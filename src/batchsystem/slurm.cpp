@@ -296,6 +296,8 @@ const std::string Slurm::DefaultReason = "batchsystem_api";
 
 Slurm::Slurm(cmd_f func): _cmd(func), _mode(job_mode::unchecked) {}
 
+const char* Slurm::name() const { return "slurm"; }
+
 bool Slurm::getNodes(supported_t) { return true; }
 bool Slurm::getQueues(supported_t) { return true; }
 bool Slurm::getJobs(supported_t) { return true; }

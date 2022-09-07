@@ -358,14 +358,20 @@ constexpr static supported_t supported{};
  * to check wether method is supported to check without triggering action. These methods return false if not overriden.
  * 
  * \par Non-blocking support
- * Every async method returns a functor that stores its internal execution state / progress and returns a bool for non-blocking execution.
- * Until a method has not finished it returns false.
- * This way methods can be run blocking like this `autof = batch.method(); while(!f());` or non-blocking e.g. by polling the return value in an event loop.
+ * Every async method is passed a callback functor that gets called when the command handling finished,
+ * this way the interface can be used for blocking and non-blocking calls.
  */
 class BatchInterface {
 public:
 	virtual ~BatchInterface();
 	
+	/**
+	 * \brief Get name of batchsystem implementation
+	 * 
+	 * \return Name of batchsystem implementation
+	 */
+	virtual const char* name() const = 0;
+
 	/**
 	 * \brief Check to detect batch interface.
 	 */

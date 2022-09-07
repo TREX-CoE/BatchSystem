@@ -88,6 +88,8 @@ std::error_code make_error_code(error e) {
 
 Lsf::Lsf(cmd_f func): _cmd(func) {}
 
+const char* Lsf::name() const { return "lsf"; }
+
 bool Lsf::getNodes(supported_t) { return true; }
 bool Lsf::getQueues(supported_t) { return true; }
 bool Lsf::getJobs(supported_t) { return true; }

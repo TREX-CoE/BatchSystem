@@ -40,6 +40,8 @@ private:
 public:
 	Lsf(cmd_f func);
 
+	const char* name() const;
+
 	static void parseNodes(const std::string& output, std::vector<Node>& nodes);
 	static void parseJobs(const std::string& output, std::vector<Job>& jobs);
 	static void parseQueues(const std::string& output, std::vector<Queue>& queues);

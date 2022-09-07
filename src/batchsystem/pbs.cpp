@@ -112,6 +112,8 @@ std::error_code make_error_code(error e) {
 
 Pbs::Pbs(cmd_f func): _cmd(func) {}
 
+const char* Pbs::name() const { return "pbs"; }
+
 bool Pbs::getNodes(supported_t) { return true; }
 bool Pbs::getQueues(supported_t) { return true; }
 bool Pbs::getJobs(supported_t) { return true; }
