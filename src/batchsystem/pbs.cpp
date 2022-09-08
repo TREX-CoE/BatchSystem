@@ -72,7 +72,7 @@ struct ErrCategory : std::error_category
         case error::qsub_failed: return cw::batch::batch_condition::command_failed;
         case error::qstat_f_x_failed: return cw::batch::batch_condition::command_failed;
         case error::pbsnodes_version_failed: return cw::batch::batch_condition::command_failed;
-        default: assert(false && "unknown error");
+        default: return cw::batch::batch_condition::command_failed;
       }
   }
 };

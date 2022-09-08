@@ -107,7 +107,7 @@ struct ErrCategory : std::error_category
         case error::slurm_job_mode_out_of_enum: return cw::batch::batch_condition::invalid_argument;
         case error::slurm_slurmd_mode_out_of_enum: return cw::batch::batch_condition::invalid_argument;
         case error::slurm_slurmd_not_running: return cw::batch::batch_condition::command_failed;
-        default: assert(false && "unknown error");
+        default: return cw::batch::batch_condition::command_failed;
       }
   }
 };

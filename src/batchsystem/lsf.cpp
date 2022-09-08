@@ -62,7 +62,7 @@ struct ErrCategory : std::error_category
         case error::bjob_u_all_failed: return cw::batch::batch_condition::command_failed;
         case error::lsid_failed: return cw::batch::batch_condition::command_failed;
 		case error::bsub_cannot_parse_job_name: return cw::batch::batch_condition::command_failed;
-        default: assert(false && "unknown error");
+        default: return cw::batch::batch_condition::command_failed;
       }
   }
 };
