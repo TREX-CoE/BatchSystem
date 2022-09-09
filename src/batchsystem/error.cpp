@@ -46,7 +46,7 @@ struct BatchsystemErrCategory : std::error_category
         case error::queue_state_unknown_not_supported: return cw::batch::batch_condition::command_failed;
         case error::queue_state_out_of_enum: return cw::batch::batch_condition::command_failed;
         case error::system_out_of_enum: return cw::batch::batch_condition::command_failed;
-        default: assert(false && "unknown error");
+        default: return cw::batch::batch_condition::command_failed;
       }
   }
 };
