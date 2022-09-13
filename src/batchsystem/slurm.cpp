@@ -498,10 +498,6 @@ void Slurm::jobMapToStruct(const std::map<std::string, std::string>& j, Job& job
 		{
 			timeToEpoch(p.second, job.endTime.get(), "%Y-%m-%dT%H:%M:%S");
 		}
-		else if(p.first=="UserId")
-		{
-			job.owner = p.second;
-		}
 		else if(p.first=="NumNodes" || p.first=="NNodes")
 		{
 			stream_cast(p.second, job.nodesRequested.get());
@@ -540,7 +536,7 @@ void Slurm::jobMapToStruct(const std::map<std::string, std::string>& j, Job& job
 		{
 			job.comment = p.second;
 		}
-		else if(p.first=="USER")
+		else if(p.first=="User" || p.first=="USER")
 		{
 			job.user = p.second;
 		}
